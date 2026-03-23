@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Estimado Solar — Vista Previa</title>
+  <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: #EBF1FF;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 20px;
+    }
+    .card {
+      background: white;
+      border-radius: 16px;
+      padding: 40px;
+      max-width: 520px;
+      width: 100%;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.10);
+      text-align: center;
+    }
+    .logo { font-size: 22px; font-weight: 800; color: #1B3F8B; margin-bottom: 8px; }
+    h1 { font-size: 26px; font-weight: 700; color: #1B3F8B; margin-bottom: 6px; }
+    .sub { font-size: 15px; color: #6b7280; margin-bottom: 28px; }
+    .data-block {
+      background: #f0f4ff;
+      border-radius: 10px;
+      padding: 16px 20px;
+      margin-bottom: 24px;
+      text-align: left;
+    }
+    .data-block h3 { font-size: 13px; text-transform: uppercase; color: #6b7280; letter-spacing: .05em; margin-bottom: 10px; }
+    .data-row { display: flex; justify-content: space-between; font-size: 15px; padding: 4px 0; }
+    .data-row span:last-child { font-weight: 700; color: #1B3F8B; }
+    .btn {
+      width: 100%; padding: 16px; font-size: 18px; font-weight: 700;
+      background: #F5A623; color: white; border: none; border-radius: 10px;
+      cursor: pointer; margin-top: 8px;
+    }
+    .btn:hover { background: #e09415; }
+    .btn:disabled { background: #d1d5db; cursor: not-allowed; }
+    .status {
+      margin-top: 16px; font-size: 14px; color: #6b7280; min-height: 20px;
+    }
+    .status.error { color: #dc2626; }
+    .status.success { color: #059669; }
+  </style>
+</head>
+<body>
+<div class="card">
+  <div class="logo">WINDMAR / COMMERCIAL</div>
+  <h1>Estimado Solar</h1>
+  <p class="sub">Vista previa — generación de PDF</p>
+
+  <div class="data-block">
+    <h3>Cliente (datos de prueba — Factura 6)</h3>
+    <div class="data-row"><span>Negocio</span><span>Arcos Dorados (McDonald's)</span></div>
+    <div class="data-row"><span>Municipio</span><span>Fajardo</span></div>
+    <div class="data-row"><span>Tarifa LUMA</span><span>Primaria</span></div>
+    <div class="data-row"><span>Área del techo</span><span>25,000 sq ft</span></div>
+  </div>
+
+  <div class="data-block">
+    <h3>Sistema recomendado</h3>
+    <div class="data-row"><span>Capacidad</span><span>337.0 kWp</span></div>
+    <div class="data-row"><span>Paneles</span><span>~822 paneles × 410 W</span></div>
+    <div class="data-row"><span>Cobertura solar</span><span>100%</span></div>
+    <div class="data-row"><span>Precio de contado</span><span>$842,500</span></div>
+  </div>
+
+  <div class="data-block">
+    <h3>Ahorro proyectado</h3>
+    <div class="data-row"><span>Ahorro mensual (contado)</span><span>$10,499</span></div>
+    <div class="data-row"><span>Pago mensual financiado</span><span>$10,719</span></div>
+    <div class="data-row"><span>Ahorro neto financiado</span><span>$1,499/mo</span></div>
+    <div class="data-row"><span>Pronto pago</span><span>$0</span></div>
+  </div>
+
+  <button class="btn" id="btnGenerate" onclick="generatePDF()">
+    ⬇ Generar y Descargar PDF
+  </button>
+  <div class="status" id="status"></div>
+</div>
+
+<script>
+// ─── Sample data (mirrors Factura 6 calc results) ────────────────────────────
+const SAMPLE = {
+  business:   'Arcos Dorados (McDonald\'s)',
+  address:    'PR-3 Km 44.8 Bo. Quebrada Fajardo, PR 00738',
+  municipio:  'Fajardo',
+  tarifa:     'Primaria',
+  sqft:       25000,
+  systemKwp:  337.0,
+  numPanels:  822,
+  coverage:   100,
+  systemCost: 842500,
+  savingsCash:     10499,
+  monthlyPmt:      10719,
+  savingsFinanced: 1499,
+  balloon:         0,    // placeholder
+  preparedBy: 'Windmar Commercial',
+  date:       new Date().toLocaleDateString('es-PR'),
+};
+
+function fmtUSD(n) {
+  return '$' + Number(n).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+}
+
+function setStatus(msg, type = '') {
+  const el = document.getElementById('status');
+  el.textContent = msg;
+  el.className = 'status ' + type;
+}
+
+async function fetchAsBytes(url) {
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`No se pudo cargar: ${url}`);
+  return new Uint8Array(await res.arrayBuffer());
+}
+
+async function generatePDF() {
+  const btn = document.getElementById('btnGenerate');
+  btn.disabled = true;
+  setStatus('Cargando recursos…');
+
+  try {
+    const { PDFDocument, rgb, StandardFonts, degrees } = PDFLib;
+
+    // ── 1. Load assets in parallel ──────────────────────────────────────────
+    const [wrapperBytes, templateBytes, logoBytes, turnkeyBytes, warrantyBytes, serviceBytes] =
+      await Promise.all([
+        fetchAsBytes('/cotizacion_wrapper.pdf'),
+        fetchAsBytes('/estimate_template.jpg'),
+        fetchAsBytes('/logo.png'),
+        fetchAsBytes('/turnkey.jpg'),
+        fetchAsBytes('/full_warranty.jpg'),
+        fetchAsBytes('/customer_service.jpg'),
+      ]);
+
+    setStatus('Construyendo PDF…');
+
+    // ── 2. Load wrapper PDF ─────────────────────────────────────────────────
+    const wrapperDoc = await PDFDocument.load(wrapperBytes);
+    const wrapperPages = await wrapperDoc.getPages();
+    const numWrapperPages = wrapperPages.length; // should be 3
+
+    // ── 3. Create output document ────────────────────────────────────────────
+    const outDoc = await PDFDocument.create();
+
+    // ── 4. Copy wrapper page 1 (cover) ──────────────────────────────────────
+    const [coverPage] = await outDoc.copyPages(wrapperDoc, [0]);
+    outDoc.addPage(coverPage);
+
+    // ── 5. Build estimate page ───────────────────────────────────────────────
+    // Use Letter size matching the template image aspect ratio (612 × 792 pt)
+    const PW = 612, PH = 792;
+    const estimatePage = outDoc.addPage([PW, PH]);
+
+    // 5a. Background — estimate_template.jpg
+    const templateImg = await outDoc.embedJpg(templateBytes);
+    estimatePage.drawImage(templateImg, { x: 0, y: 0, width: PW, height: PH });
+
+    // 5b. Embed remaining images
+    const logoImg    = await outDoc.embedPng(logoBytes);
+    const turnkeyImg = await outDoc.embedJpg(turnkeyBytes);
+    const warrantyImg = await outDoc.embedJpg(warrantyBytes);
+    const serviceImg  = await outDoc.embedJpg(serviceBytes);
+
+    // Fonts
+    const fontBold   = await outDoc.embedFont(StandardFonts.HelveticaBold);
+    const fontReg    = await outDoc.embedFont(StandardFonts.Helvetica);
+
+    // ── Colors ──
+    const navy   = rgb(0.106, 0.247, 0.545);   // #1B3F8B
+    const orange = rgb(0.961, 0.651, 0.137);   // #F5A623
+    const white  = rgb(1, 1, 1);
+    const grayDark = rgb(0.22, 0.22, 0.22);
+    const grayMid  = rgb(0.55, 0.55, 0.55);
+    const blueBg   = rgb(0.859, 0.902, 0.984); // #DBE4FB
+
+    // ── 5c. Logo top-left ──
+    const logoDims = logoImg.scaleToFit(160, 40);
+    estimatePage.drawImage(logoImg, { x: 44, y: PH - 60, width: logoDims.width, height: logoDims.height });
+
+    // ── 5d. Header band right side — date + prepared by ──
+    estimatePage.drawText('Fecha: ' + SAMPLE.date, {
+      x: PW - 190, y: PH - 44, font: fontReg, size: 9, color: grayMid,
+    });
+    estimatePage.drawText('Preparado por: ' + SAMPLE.preparedBy, {
+      x: PW - 190, y: PH - 57, font: fontReg, size: 9, color: grayMid,
+    });
+
+    // ── 5e. Title ──
+    estimatePage.drawText('COTIZACIÓN SOLAR COMERCIAL', {
+      x: 44, y: PH - 95, font: fontBold, size: 17, color: navy,
+    });
+
+    // ── 5f. Client info box ──
+    const clientBoxY = PH - 102;
+    const clientBoxH = 64;
+    estimatePage.drawRectangle({ x: 44, y: clientBoxY - clientBoxH, width: PW - 88, height: clientBoxH, color: blueBg, borderRadius: 4 });
+    estimatePage.drawText(SAMPLE.business, { x: 54, y: clientBoxY - 18, font: fontBold, size: 12, color: navy });
+    estimatePage.drawText(SAMPLE.address,  { x: 54, y: clientBoxY - 32, font: fontReg,  size: 10, color: grayDark });
+    estimatePage.drawText('Municipio: ' + SAMPLE.municipio + '   |   Tarifa LUMA: ' + SAMPLE.tarifa + '   |   Área del techo: ' + SAMPLE.sqft.toLocaleString() + ' sq ft', {
+      x: 54, y: clientBoxY - 48, font: fontReg, size: 9, color: grayMid,
+    });
+
+    // ── 5g. Two-column layout ──
+    const colL = 44, colR = 324;
+    const colW = 260;
+    let yL = clientBoxY - clientBoxH - 18;
+    let yR = yL;
+
+    // Helper: section header
+    const drawSectionHeader = (page, text, x, y, w) => {
+      page.drawRectangle({ x, y: y - 18, width: w, height: 18, color: navy, borderRadius: 3 });
+      page.drawText(text, { x: x + 8, y: y - 13, font: fontBold, size: 10, color: white });
+    };
+
+    // Helper: data row
+    const drawRow = (page, label, value, x, y, w, highlight = false) => {
+      if (highlight) {
+        page.drawRectangle({ x, y: y - 16, width: w, height: 16, color: blueBg });
+      }
+      page.drawText(label, { x: x + 6, y: y - 12, font: fontReg, size: 10, color: grayDark });
+      page.drawText(value, { x: x + w - 6 - (fontBold.widthOfTextAtSize(value, 10)), y: y - 12, font: fontBold, size: 10, color: navy });
+      return y - 18;
+    };
+
+    // LEFT column — Sistema recomendado
+    drawSectionHeader(estimatePage, 'SISTEMA RECOMENDADO', colL, yL, colW);
+    yL -= 20;
+    yL = drawRow(estimatePage, 'Capacidad del sistema', SAMPLE.systemKwp.toLocaleString('en-US') + ' kWp', colL, yL, colW, true);
+    yL = drawRow(estimatePage, 'Cantidad de paneles', '~' + SAMPLE.numPanels + ' paneles × 410 W', colL, yL, colW);
+    yL = drawRow(estimatePage, 'Cobertura solar', SAMPLE.coverage + '% de tu consumo', colL, yL, colW, true);
+    yL -= 10;
+
+    // RIGHT column — Inversión
+    drawSectionHeader(estimatePage, 'INVERSIÓN', colR, yR, colW);
+    yR -= 20;
+    yR = drawRow(estimatePage, 'Precio de contado', fmtUSD(SAMPLE.systemCost), colR, yR, colW, true);
+    yR = drawRow(estimatePage, 'Pronto pago', '$0', colR, yR, colW);
+    yR -= 10;
+
+    // Sync Y for next sections
+    let yBothL = Math.min(yL, yR) - 8;
+    let yBothR = yBothL;
+
+    // LEFT — Ahorro contado
+    drawSectionHeader(estimatePage, 'AHORRO MENSUAL (CONTADO)', colL, yBothL, colW);
+    yBothL -= 20;
+    yBothL = drawRow(estimatePage, 'Ahorro mensual estimado', fmtUSD(SAMPLE.savingsCash), colL, yBothL, colW, true);
+
+    // RIGHT — Financiamiento
+    drawSectionHeader(estimatePage, 'OPCIÓN FINANCIADA (9% / 15 años)', colR, yBothR, colW);
+    yBothR -= 20;
+    yBothR = drawRow(estimatePage, 'Pago mensual', fmtUSD(SAMPLE.monthlyPmt), colR, yBothR, colW, true);
+    yBothR = drawRow(estimatePage, 'Ahorro mensual (solar)', fmtUSD(SAMPLE.savingsCash), colR, yBothR, colW);
+    yBothR = drawRow(estimatePage, 'Ahorro neto mensual', fmtUSD(SAMPLE.savingsFinanced), colR, yBothR, colW, true);
+
+    // ── 5h. Savings highlight bar (full width) ──
+    const barY = Math.min(yBothL, yBothR) - 22;
+    estimatePage.drawRectangle({ x: 44, y: barY - 48, width: PW - 88, height: 48, color: navy, borderRadius: 6 });
+    estimatePage.drawText('Ahorro mensual estimado (compra de contado):', {
+      x: 58, y: barY - 18, font: fontBold, size: 11, color: white,
+    });
+    estimatePage.drawText(fmtUSD(SAMPLE.savingsCash) + ' / mes', {
+      x: 58, y: barY - 34, font: fontBold, size: 20, color: orange,
+    });
+    estimatePage.drawText('*Basado en historial de consumo LUMA. Ahorro real depende de consumo futuro.', {
+      x: 58, y: barY - 46, font: fontReg, size: 7.5, color: rgb(0.8, 0.85, 1),
+    });
+
+    // ── 5i. Disclaimer text ──
+    const disclY = barY - 60;
+    estimatePage.drawText('Este estimado es preliminar. Los valores finales dependen de la ingeniería y propuesta formal de Windmar Energy.', {
+      x: 44, y: disclY, font: fontReg, size: 8, color: grayMid,
+    });
+
+    // ── 5j. Icons at bottom ──
+    const iconW = 70, iconH = 70;
+    const iconY = 52;
+    const iconSpacing = (PW - 88 - 3 * iconW) / 2;
+    const icon1X = 44;
+    const icon2X = icon1X + iconW + iconSpacing;
+    const icon3X = icon2X + iconW + iconSpacing;
+
+    const iconLabelY = iconY - 10;
+
+    estimatePage.drawImage(turnkeyImg,  { x: icon1X, y: iconY, width: iconW, height: iconH });
+    estimatePage.drawImage(warrantyImg, { x: icon2X, y: iconY, width: iconW, height: iconH });
+    estimatePage.drawImage(serviceImg,  { x: icon3X, y: iconY, width: iconW, height: iconH });
+
+    estimatePage.drawText('Instalación Llave en Mano', {
+      x: icon1X - 2, y: iconLabelY, font: fontBold, size: 7.5, color: navy,
+    });
+    estimatePage.drawText('Garantía Total', {
+      x: icon2X + 8, y: iconLabelY, font: fontBold, size: 7.5, color: navy,
+    });
+    estimatePage.drawText('Servicio al Cliente 24/7', {
+      x: icon3X - 4, y: iconLabelY, font: fontBold, size: 7.5, color: navy,
+    });
+
+    // ── 6. Copy wrapper pages 2 and 3 (map + facilities) ────────────────────
+    if (numWrapperPages >= 2) {
+      const indicesToCopy = [];
+      for (let i = 1; i < numWrapperPages; i++) indicesToCopy.push(i);
+      const copiedPages = await outDoc.copyPages(wrapperDoc, indicesToCopy);
+      copiedPages.forEach(p => outDoc.addPage(p));
+    }
+
+    // ── 7. Serialize and download ────────────────────────────────────────────
+    setStatus('Finalizando…');
+    const pdfBytes = await outDoc.save();
+    const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+    const url  = URL.createObjectURL(blob);
+
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'Windmar_Estimado_' + SAMPLE.business.replace(/[^a-zA-Z0-9]/g, '_') + '.pdf';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    setStatus('✅ PDF descargado correctamente.', 'success');
+  } catch (err) {
+    console.error(err);
+    setStatus('❌ Error: ' + err.message, 'error');
+  } finally {
+    btn.disabled = false;
+  }
+}
+</script>
+</body>
+</html>

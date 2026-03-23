@@ -1,0 +1,2 @@
+#!/bin/zsh
+curl -X POST "https://accounts.zoho.com/oauth/v2/token" -H "Content-Type: application/x-www-form-urlencoded" -d "code=1000.e324ca272cf935046061267359b994a0.698499c2e23584c8313f481c8b49b378" -d "client_id=1000.4CGA7VNQFWP8DOQM1A1MUU2T0M42PW" -d "client_secret=3acad3faae6a0cee51be94376d95c0d9a464092051" -d "redirect_uri=https://www.zoho.com" -d "grant_type=authorization_code" | python3 -m json.tool

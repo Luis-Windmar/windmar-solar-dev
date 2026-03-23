@@ -1,0 +1,14 @@
+# Secret keys — never upload
+.env
+
+# Node modules — too large, Railway installs these itself
+node_modules/
+
+# Mac junk files
+.DS_Store
+
+# Build artifacts (Railway will build these itself)
+
+
+# Leads data — keep local
+leads/

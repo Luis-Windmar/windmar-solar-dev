@@ -1,0 +1,53 @@
+ Test file found.
+ Credentials loaded from .env
+PART A: WRITE credentials
+ Getting WRITE token...
+ WRITE token obtained.
+ A1: Attach to EXISTING lead (4258103003145639896) using WRITE â
+ A2: Create NEW lead with WRITE, then attach â
+PART B: READ credentials
+ Getting READ token...
+ READ token obtained.
+ B1: Attach to EXISTING lead (4258103003145639896) using READ â
+ B2: Create NEW lead with READ, then attach â
+SUMMARY
+A1 WRITE â
+ existing lead:     â
+ WRITE â
+ existing lead â
+ OAUTH_SCOPE_MISMATCH
+      {
+          "code": "OAUTH_SCOPE_MISMATCH",
+          "details": {},
+          "message": "invalid oauth scope to access this URL",
+          "status": "error"
+      }
+OAUTH_SCOPE_MISMATCH
+A2 WRITE â
+ new lead:          â
+ WRITE â
+ new lead â
+ OAUTH_SCOPE_MISMATCH
+      {
+          "code": "OAUTH_SCOPE_MISMATCH",
+          "details": {},
+          "message": "invalid oauth scope to access this URL",
+          "status": "error"
+      }
+OAUTH_SCOPE_MISMATCH
+B1 READ  â
+ existing lead:     â
+ READ â
+ existing lead â
+ SUCCESS
+SUCCESS
+B2 READ  â
+ new lead:          â
+ READ â
+ new lead â
+ SUCCESS
+SUCCESS
+Existing lead ID: 4258103003145639896
+WRITE new lead ID: 4258103003145721545
+READ new lead ID:  4258103003145769301
+ Delete all test records from Zoho CRM when done.

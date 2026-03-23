@@ -1,0 +1,158 @@
+{
+  "$approval": {
+    "delegate": false,
+    "takeover": false,
+    "approve": false,
+    "reject": false,
+    "resubmit": false
+  },
+  "$approval_state": "approved",
+  "$currency_symbol": "$",
+  "$editable": true,
+  "$in_merge": false,
+  "$layout_id": {
+    "display_label": "Standard",
+    "name": "Standard",
+    "id": "4258103002896202292"
+  },
+  "$locked_for_me": false,
+  "$orchestration": false,
+  "$pathfinder": false,
+  "$process_flow": false,
+  "$review_process": {
+    "approve": false,
+    "reject": false,
+    "resubmit": false
+  },
+  "$sharing_permission": "full_access",
+  "$state": "save",
+  "$zia_owner_assignment": "owner_recommendation_unavailable",
+  "Account_Name": "Account Name",
+  "Address": "Address",
+  "Battery_Qty": 18,
+  "Battery_Type": {
+    "name": "Cisrterna Torre de 150Gal",
+    "id": "4258103003138341976"
+  },
+  "Bundle_Deal": false,
+  "Capacidad_Transformador": 2021,
+  "Carga_Contratada_KVA": "1011",
+  "Caso_Vendido_Solar": {
+    "name": "96763 Elizabeth Perez Rosado Cash",
+    "id": "4258103003142813609"
+  },
+  "Catastro": "CATASTRO",
+  "Cita": "2026-03-18T14:00:00-04:00",
+  "Cita_Coordinada_por_Vendedor": true,
+  "Cita_Type": "Persona",
+  "Cita_se_dio1": "No (Recoordinar)",
+  "City": "Adjuntas",
+  "Com_Lead_Name": "CL1054 Account Name",
+  "Configuracion_del_Sistema": [
+    "Roof"
+  ],
+  "Confirmacion_Contador_Luma": "Verificado/Coincide",
+  "Consideraciones_Especiales": [
+    "CDBG"
+  ],
+  "Consumo_Promedio": 100,
+  "Created_By": {
+    "name": "Luis Morales",
+    "id": "4258103001320823253",
+    "email": "l.morales@windmarenergy.com"
+  },
+  "Created_Time": "2026-03-18T14:54:03-04:00",
+  "Cuestionario_Submitted": "2026-03-19",
+  "Currency": "USD",
+  "EPC_BASE": 2.63,
+  "Email": "email@emailfield.com",
+  "Email_1": "Main@Email.com",
+  "Email_2": "email@dequienrefiere.com",
+  "Envio_Copia_Clinete": false,
+  "Exchange_Rate": 1,
+  "Existing_Battery_Type": "Existing Battery Type",
+  "Existing_System_Notes": "Existing System Notes",
+  "Google_Maps_Link": "https://www.google.com/maps/place/Mega+Cycle+by+Epic+Cycles/@26.1030977,-80.3637153,17z/data=!4m14!1m7!3m6!1s0x88d909f9085d23d3:0x613401e638d1ecd3!2sMega+Cycle+by+Epic+Cycles!8m2!3d26.1030977!4d-80.3611404!16s%2Fg%2F1wj_v1qr!3m5!1s0x88d909f9085d23d3:0x613401e638d1ecd3!8m2!3d26.1030977!4d-80.3611404!16s%2Fg%2F1wj_v1qr?entry=ttu&g_ep=EgoyMDI2MDMxNS4wIKXMDSoASAFQAw%3D%3D",
+  "Inverter": {
+    "name": "Hot Water Recirculation Pump",
+    "id": "4258103003139857002"
+  },
+  "Inverter_Add": {
+    "name": "Cisterna de 1000gal",
+    "id": "4258103003138341928"
+  },
+  "Inverter_Add_Qty": 1920,
+  "Inverter_QTY": 1617,
+  "Last_Activity_Time": "2026-03-18T15:41:39-04:00",
+  "Latitude": "Latitude",
+  "Lead_Assistance": "Business Atelier",
+  "Lead_Notes": "Lead Notes",
+  "Lead_Number": "Lead Number",
+  "Lead_Owner": {
+    "name": "Perfil Comercial Comercial",
+    "id": "4258103001863220103"
+  },
+  "Lead_Source": "Cuenta Propia",
+  "Lead_Status": "Preliminary Design",
+  "Locked__s": false,
+  "Longitude": "Longitude",
+  "MDP_Location": "Facil (Pared Exterior)",
+  "Main_Breaker": 567,
+  "Modified_By": {
+    "name": "Luis Morales",
+    "id": "4258103001320823253",
+    "email": "l.morales@windmarenergy.com"
+  },
+  "Modified_Time": "2026-03-18T15:41:39-04:00",
+  "Multiples_Contadores": "Si",
+  "Name": "CL1054",
+  "Nombre_de_quien_refiere": "Nombre de quien refiere",
+  "Owner": {
+    "name": "Luis Morales",
+    "id": "4258103001320823253",
+    "email": "l.morales@windmarenergy.com"
+  },
+  "PV_System_Size_kW1": "1234",
+  "Panel_Qty": 1415,
+  "Phone_2": "Main Phone",
+  "Phone_3": "Secondary Phone",
+  "Phone_5": "Telefono de quien refiere",
+  "Preliminary_Reviewer_Notes": "Preliminary Criteria Notes",
+  "Primary_Contact": "Primary Contact",
+  "Products": [
+    "Anker"
+  ],
+  "Promo_Item": "Promo Item",
+  "Racking": {
+    "name": "Unirac Groundmount",
+    "id": "4258103002655169043"
+  },
+  "Ready_for_Site_Survey": true,
+  "Reschedule_Reason": "Reschedule reason",
+  "Reschedule_Survey": true,
+  "Revision_Confirmada": false,
+  "Revision_Techo": "Techo completo Madera/ Metal",
+  "Sales_Rep_Email": "Sales Rep Email",
+  "Sales_Rep_Phone": "Sales Rep Phone",
+  "Secondary_Contact": "Secondary Contact",
+  "Site_Survey_Completed": "2026-03-21",
+  "Site_Survey_Date_and_Time": "2026-03-20T14:00:00-04:00",
+  "Site_Survey_Notes": "Site survey notes",
+  "Site_Survey_Start_Time_Block": "Early Morning",
+  "Site_Survey_Type_Pre_Cierre": "Solar",
+  "Storage_Size_kWh": "2345",
+  "System_Size_AC": 2425,
+  "System_Size_DC": 2223,
+  "Tama_o_Estimado": 50000,
+  "Tama_o_del_Transformador_KVA": "789",
+  "Techo_Estable": true,
+  "Tipo_Conexion": "Monofasico",
+  "Tipo_de_Respaldo": "Completo",
+  "Tipo_de_Tarifa": "Primaria Voltaje Transmision",
+  "Transfer_Switch": "Automatico",
+  "Veces_Recoordinado": 1000,
+  "Voltaje_Transformador": "480/240",
+  "Voltaje_de_la_Red": 1213,
+  "Zip_Code": "Zip code",
+  "id": "4258103003143818527"
+}

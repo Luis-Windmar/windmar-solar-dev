@@ -1,0 +1,251 @@
+✅ Credentials loaded from .env
+
+🔑 Getting WRITE access token...
+✅ Write token obtained.
+
+📋 Creating test lead with ALL fields...
+✅ Lead created. ID: 4258103003144617568
+
+🔑 Getting READ access token...
+✅ Read token obtained.
+
+📖 Reading lead back from Zoho...
+✅ Lead read successfully.
+
+════════════════════════════════════════════════════════════════════════
+COMPARISON: Sent vs. Received
+════════════════════════════════════════════════════════════════════════
+Field                    Sent                       Received                   Status
+----------------------------------------------------------------------------------------
+Primary_Contact          API TEST IGNORE ME         API TEST IGNORE ME         ✅
+Account_Name             API TEST IGNORE ME         API TEST IGNORE ME         ✅
+Phone_2                  787-000-0000               787-000-0000               ✅
+Phone_3                  787-000-0001               787-000-0001               ✅
+Email                    apitest@ignoreme.com       apitest@ignoreme.com       ✅
+Address                  API TEST IGNORE ME         API TEST IGNORE ME         ✅
+City                     API TEST IGNORE ME         API TEST IGNORE ME         ✅
+Zip_Code                 00000                      00000                      ✅
+Tama_o_Estimado          9999                       9999                       ✅
+Consumo_Promedio         9999                       9999                       ✅
+PV_System_Size_kW1       99                         99                         ✅
+Sales_Rep_Email          apitest@ignoreme.com       apitest@ignoreme.com       ✅
+Lead_Notes               API TEST IGNORE ME         API TEST IGNORE ME         ✅
+Lead_Status              New Lead                   New Lead                   ✅
+Lead_Source              PreQual Wizard             PreQual Wizard             ✅
+----------------------------------------------------------------------------------------
+✅ All fields matched perfectly.
+
+Full received record (all fields Zoho returned):
+{
+  "Owner": {
+    "name": "Perfil Comercial Comercial",
+    "id": "4258103001863220103",
+    "email": "ventas.comerciales@windmarenergy.com"
+  },
+  "Address": "API TEST IGNORE ME",
+  "$field_states": null,
+  "$sharing_permission": "full_access",
+  "Reschedule_Reason": null,
+  "MDP_Location": null,
+  "Ballasted": null,
+  "Asistencia_al_Consultor": null,
+  "Consideraciones_Especiales": [],
+  "$state": "save",
+  "$process_flow": false,
+  "Currency": "USD",
+  "Tama_o_Estimado": 9999,
+  "Revision_Confirmada": false,
+  "Google_Maps_Link": null,
+  "id": "4258103003144617568",
+  "Veces_Recoordinado": null,
+  "Tipo_de_Tarifa": null,
+  "$approval": {
+    "delegate": false,
+    "takeover": false,
+    "approve": false,
+    "reject": false,
+    "resubmit": false
+  },
+  "Sum_of_Adders": null,
+  "Created_Time": "2026-03-19T09:52:14-04:00",
+  "Cita_Type": null,
+  "DG_Penetration": null,
+  "Longitude": null,
+  "Notas_Adders": null,
+  "Preliminary_Design_Notes": null,
+  "Intentos_de_llamadas": null,
+  "Notas_de_Seguimiento": null,
+  "Phone_3": "787-000-0001",
+  "Carga_Contratada_KVA": null,
+  "Zanja_Excavacion": null,
+  "Created_By": {
+    "name": "JJ Gonzalez",
+    "id": "4258103000000242013",
+    "email": "zoho.admin@windmarhome.com"
+  },
+  "Phone_2": "787-000-0000",
+  "Phone_5": null,
+  "Otros": null,
+  "Support_Tier": null,
+  "Site_Survey_Type_Pre_Cierre": null,
+  "Quote_Amount": null,
+  "Presentacion_al_Cliente": null,
+  "Plano_Preliminar_Ready": null,
+  "Presentacion_se_dio": null,
+  "Caso_Vendido_Solar": null,
+  "Battery_Qty": null,
+  "Cita_Orientacion": null,
+  "Alquiler_de_Equipos": null,
+  "Cancellation_Reason": null,
+  "$review_process": {
+    "approve": false,
+    "reject": false,
+    "resubmit": false
+  },
+  "Primary_Contact": "API TEST IGNORE ME",
+  "Inversores": null,
+  "Inverter_Add": null,
+  "Lead_Status": "New Lead",
+  "Cita": null,
+  "Inverter_QTY": null,
+  "Tuberias": null,
+  "Nombre_de_quien_refiere": null,
+  "Existing_System_Notes": null,
+  "Account_Name": "API TEST IGNORE ME",
+  "Notas": null,
+  "Battery_System_Size_kWh": null,
+  "Promo_Item": null,
+  "LOI_Signed": null,
+  "Seguimiento_Cliente_Programado": null,
+  "Inverter": null,
+  "Site_Survey_Notes": null,
+  "Voltaje_de_la_Red": null,
+  "Racking": null,
+  "Comunicacion_por_Teams": null,
+  "Com_Lead_Name": "CL1058 API TEST IGNORE ME",
+  "$orchestration": false,
+  "Panel": null,
+  "Contract_Signed": null,
+  "Permisos": null,
+  "Finance_Options": [],
+  "Numero_de_Revisiones": null,
+  "Underwritting_Agent_Consierge": null,
+  "Capacidad_Transformador": null,
+  "Carport": null,
+  "Locked__s": false,
+  "Lead_Source": "PreQual Wizard",
+  "Consumo_Promedio": 9999,
+  "System_Size_Calculation": null,
+  "Tag": [],
+  "Lead_Number": null,
+  "$pathfinder": false,
+  "Products": [],
+  "Email": "apitest@ignoreme.com",
+  "$currency_symbol": "$",
+  "Confirmacion_Recibido": null,
+  "Techo_Estable": false,
+  "Size_Process": null,
+  "Latitude": null,
+  "Site_Survey_Start_Time_Block": null,
+  "Name": "CL1058",
+  "Last_Activity_Time": "2026-03-19T09:52:15-04:00",
+  "Ultima_Revison": null,
+  "Unsubscribed_Mode": null,
+  "Battery_Type": null,
+  "Exchange_Rate": 1,
+  "Voltaje_Transformador": null,
+  "Test": null,
+  "$locked_for_me": false,
+  "Zip_Code": "00000",
+  "Secondary_Contact": null,
+  "Reschedule_Survey": false,
+  "Site_Survey_Date_and_Time": null,
+  "Contract_Sent": null,
+  "Ready_for_Site_Survey": false,
+  "Panel_Qty": null,
+  "Ultima_Comunicacion_por_Teams": null,
+  "PV_System_Size_kW1": "99",
+  "Storage_Size_kWh": null,
+  "Priority": null,
+  "Tipo_de_Respaldo": null,
+  "Envio_Copia_Clinete": false,
+  "Lead_Assistance": null,
+  "Cita_se_dio1": null,
+  "$wizard_connection_path": null,
+  "$editable": true,
+  "Lead_Owner": null,
+  "Main_Breaker": null,
+  "Underwritting_Notes": null,
+  "City": "API TEST IGNORE ME",
+  "Surveyor": null,
+  "Quoting_Package_Status": null,
+  "Logistica": null,
+  "Preliminary_Reviewer_Notes": null,
+  "Groundmount": null,
+  "Bundle_Deal": false,
+  "Incentive_Options": null,
+  "Lead_Notes": "API TEST IGNORE ME",
+  "Assisted_Closing": null,
+  "Quoting_Package_Sent": null,
+  "BOS_Electrico": null,
+  "Sales_Rep_Email": "apitest@ignoreme.com",
+  "Email_1": null,
+  "Asistencia_con_el_Cliente": null,
+  "System_Size_AC": null,
+  "Email_2": null,
+  "Baterias": null,
+  "Tipo_Conexion": null,
+  "$zia_owner_assignment": "owner_recommendation_unavailable",
+  "Site_Survey_Completed": null,
+  "PV_System_Size_kW": null,
+  "Ultima_llamada": null,
+  "Revision_Techo": null,
+  "Estudio_de_Carga": null,
+  "System_Size_DC": null,
+  "Multiples_Contadores": null,
+  "Metodo_de_Envio": [],
+  "$layout_id": {
+    "display_label": "Standard",
+    "name": "Standard",
+    "id": "4258103002896202292"
+  },
+  "Existing_System_Docs": null,
+  "Ultimo_Contacto": null,
+  "Configuracion_del_Sistema": [],
+  "Sales_Rep_Phone": null,
+  "Modified_By": {
+    "name": "JJ Gonzalez",
+    "id": "4258103000000242013",
+    "email": "zoho.admin@windmarhome.com"
+  },
+  "$review": null,
+  "Baterry_Type": null,
+  "Closing_Probability": null,
+  "Sales_Rep": null,
+  "Canopy": null,
+  "Transfer_Switch": null,
+  "$zia_visions": null,
+  "Confirmacion_Contador_Luma": null,
+  "Transformador": null,
+  "Cita_se_dio": null,
+  "Modified_Time": "2026-03-19T09:52:15-04:00",
+  "Catastro": null,
+  "Intento_de_llamadas": null,
+  "Unsubscribed_Time": null,
+  "Cita_Coordinada_por_Vendedor": false,
+  "Existing_Battery_Type": null,
+  "EPC_BASE": null,
+  "Cancelled": null,
+  "Seguimiento_Programado": null,
+  "Inverter_Add_Qty": null,
+  "Underwritting_Docs": [],
+  "Consumo_Ultimos_12_Meses": null,
+  "$in_merge": false,
+  "Cuestionario_Submitted": null,
+  "Tama_o_del_Transformador_KVA": null,
+  "$approval_state": "approved"
+}
+
+════════════════════════════════════════════════════════════════════════
+Cleanup: Delete lead ID 4258103003144617568 from Zoho CRM when done.
+════════════════════════════════════════════════════════════════════════
