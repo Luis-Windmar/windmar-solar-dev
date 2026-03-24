@@ -339,7 +339,7 @@ const S = {
 };
 
 // ─── EstimateScreen ─────────────────────────────────────────────────────────
-export default function EstimateScreen({ ocrData, sqft, batteryHours, setBatteryHours, pricing, onInterested, onNotInterested }) {
+function EstimateScreenInner({ ocrData, sqft, batteryHours, setBatteryHours, pricing, onInterested, onNotInterested }) {
   const consumoMensual = parseNum(ocrData?.consumoKWH);
   const municipio      = ocrData?.municipio || "San Juan";
   const cargoCliente   = parseNum(ocrData?.cargoCliente);
@@ -490,4 +490,18 @@ export default function EstimateScreen({ ocrData, sqft, batteryHours, setBattery
       </div>
     </div>
   );
+}
+
+export default function EstimateScreen(props) {
+  try {
+    return <EstimateScreenInner {...props} />;
+  } catch (err) {
+    return (
+      <div style={{ padding: "24px", backgroundColor: "#fff3cd", minHeight: "100vh" }}>
+        <h2 style={{ color: "#dc2626", marginTop: 0 }}>Error en Estimado</h2>
+        <pre style={{ fontSize: "13px", whiteSpace: "pre-wrap", color: "#7f1d1d" }}>{String(err)}</pre>
+        <pre style={{ fontSize: "11px", whiteSpace: "pre-wrap", color: "#6b7280" }}>{err?.stack}</pre>
+      </div>
+    );
+  }
 }

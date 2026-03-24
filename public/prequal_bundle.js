@@ -13926,7 +13926,7 @@
       display: "block"
     }
   };
-  function EstimateScreen({ ocrData, sqft, batteryHours, setBatteryHours, pricing, onInterested, onNotInterested }) {
+  function EstimateScreenInner({ ocrData, sqft, batteryHours, setBatteryHours, pricing, onInterested, onNotInterested }) {
     const consumoMensual = parseNum(ocrData?.consumoKWH);
     const municipio = ocrData?.municipio || "San Juan";
     const cargoCliente = parseNum(ocrData?.cargoCliente);
@@ -14060,6 +14060,17 @@
         /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("button", { style: S5.btnGray, onClick: onNotInterested, children: "No por ahora" })
       ] })
     ] });
+  }
+  function EstimateScreen(props) {
+    try {
+      return /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(EstimateScreenInner, { ...props });
+    } catch (err) {
+      return /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)("div", { style: { padding: "24px", backgroundColor: "#fff3cd", minHeight: "100vh" }, children: [
+        /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("h2", { style: { color: "#dc2626", marginTop: 0 }, children: "Error en Estimado" }),
+        /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("pre", { style: { fontSize: "13px", whiteSpace: "pre-wrap", color: "#7f1d1d" }, children: String(err) }),
+        /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("pre", { style: { fontSize: "11px", whiteSpace: "pre-wrap", color: "#6b7280" }, children: err?.stack })
+      ] });
+    }
   }
 
   // src/ContactScreen.jsx
