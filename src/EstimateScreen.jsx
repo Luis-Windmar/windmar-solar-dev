@@ -90,7 +90,7 @@ const calcEstimate = (consumoMensual, roofSqft, municipio, billData, epcTable) =
   const savingsCash     = costo_kwh * solarKwhMonthly;
   const fin               = calcFinancing(systemCost);
   const savingsFinanced   = savingsCash - fin.monthlyPmt;
-  const numPanels         = Math.round(systemKwp * 1000 / CFG.panel_watts);
+  const numPanels         = Math.round(systemKwp * 1000 / CFG_DEFAULTS.panel_watts);
   return {
     systemKwp: parseFloat(systemKwp.toFixed(1)),
     numPanels,
