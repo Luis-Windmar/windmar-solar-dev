@@ -294,16 +294,15 @@ export default function WelcomeScreen() {
       <ProgressBar current={1} total={4} />
       <div style={styles.content}>
         <h1 style={styles.heading}>¡Bienvenido!</h1>
-        <h2 style={styles.subheading}>Pre-Cualificación Solar Comercial</h2>
+        <h2 style={styles.subheading}>Estimado Solar Comercial</h2>
         <p style={styles.bodyText}>
-          Vamos a evaluar si su negocio es un buen candidato para solar. El
-          proceso toma <strong>menos de 5 minutos</strong> y necesitaremos su
-          factura de LUMA más reciente.
+          En <strong>menos de 5 minutos</strong> te vamos a decir cuánto te puedes ahorrar con un sistema solar fotovoltaico. Para ello necesitamos tu factura de LUMA más reciente.
         </p>
 
         <label style={styles.label}>
-          ¿Tiene su factura de LUMA disponible?
+          ¿Tienes la factura de LUMA de tu negocio a la mano?
         </label>
+
         <select
           style={selection ? { ...styles.select, ...styles.selectSelected } : styles.select}
           value={selection}

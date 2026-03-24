@@ -13352,7 +13352,7 @@
       /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(Header, {}),
       /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(ProgressBar, { current: 3, total: 4 }),
       /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("div", { style: S3.content, children: [
-        /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("h1", { style: S3.h1, children: "\xBFCu\xE1l es el tama\xF1o de su local?" }),
+        /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("h1", { style: S3.h1, children: "\xBFCu\xE1l es el tama\xF1o de tu local?" }),
         /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("p", { style: S3.sub, children: "Seleccione la opci\xF3n que mejor describe su negocio, o ingrese el \xE1rea exacta abajo." }),
         /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("div", { style: S3.grid, children: SIZES.map(({ key, img, label, desc }) => {
           const isSelected = selected === key && custom.trim() === "";
@@ -13862,6 +13862,7 @@
     const [nombre, setNombre] = (0, import_react3.useState)("");
     const [phone, setPhone] = (0, import_react3.useState)("");
     const [consultorNombre, setConsultor] = (0, import_react3.useState)("");
+    const [consultorEmail, setConsultorEmail] = (0, import_react3.useState)("");
     const [loading, setLoading] = (0, import_react3.useState)(false);
     const [error, setError] = (0, import_react3.useState)("");
     const [focusedField, setFocusedField] = (0, import_react3.useState)(null);
@@ -13883,12 +13884,13 @@
             demandaKVA: ocrData?.demandaKVA || "",
             totalFactura: ocrData?.totalFactura || "",
             sqft,
+            consultorEmail: consultorEmail.trim(),
             source: "prequal-wizard"
           })
         });
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || "Error al guardar.");
-        onNext({ leadId: data.leadId, quoteNumber: data.quoteNumber, nombre: nombre.trim(), phone: phone.trim(), consultorNombre: consultorNombre.trim() });
+        onNext({ leadId: data.leadId, quoteNumber: data.quoteNumber, nombre: nombre.trim(), phone: phone.trim(), consultorNombre: consultorNombre.trim(), consultorEmail: consultorEmail.trim() });
       } catch (err) {
         setError(err.message);
         setLoading(false);
@@ -13950,6 +13952,21 @@
             }
           )
         ] }),
+        /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)("div", { style: S5.fieldGroup, children: [
+          /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("label", { style: S5.label, children: "\xBFTienes su correo electr\xF3nico?" }),
+          /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(
+            "input",
+            {
+              style: inputStyle("consultorEmail"),
+              type: "email",
+              placeholder: "ej. juan.perez@windmar.com",
+              value: consultorEmail,
+              onChange: (e) => setConsultorEmail(e.target.value),
+              onFocus: () => setFocusedField("consultorEmail"),
+              onBlur: () => setFocusedField(null)
+            }
+          )
+        ] }),
         error && /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("div", { style: S5.errorMsg, children: error }),
         /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(
           "button",
@@ -13957,7 +13974,7 @@
             style: { ...S5.btnNavy, ...canSubmit ? {} : S5.btnNavyDisabled },
             disabled: !canSubmit || loading,
             onClick: handleSubmit,
-            children: loading ? "Enviando\u2026" : "Enviar y continuar"
+            children: loading ? "Enviando\u2026" : "Continuar"
           }
         ),
         /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("button", { style: S5.btnGhost, onClick: onBack, children: "Atr\xE1s" })
@@ -14187,7 +14204,8 @@
             `Sistema: ${estData?.systemKwp} kWp | Cobertura: ${estData?.coverage}%`,
             `Precio est.: $${estData?.systemCost?.toLocaleString("en-US")}`,
             `Techo: ${sqft?.toLocaleString("en-US")} p\xB2`,
-            contactData.consultorNombre ? `Consultor en Estimado: ${contactData.consultorNombre}` : null
+            contactData.consultorNombre ? `Consultor en Estimado: ${contactData.consultorNombre}` : null,
+            contactData.consultorEmail ? `Estimado Rep-email: ${contactData.consultorEmail}` : null
           ].filter(Boolean).join(" | ");
           const { street, zip } = parseAddress(ocrData?.direccion, ocrData?.municipio);
           const leadData = {
@@ -14272,7 +14290,6 @@
             /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("img", { src: "/listo_icon.jpg", alt: "", style: { width: "72px", height: "72px", objectFit: "contain" } }),
             pdfStatus
           ] }),
-          /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("a", { href: "https://windmar-solar-production.up.railway.app/deal", style: S6.btnNavy, children: "Continuar al cuestionario completo" }),
           /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("button", { style: S6.btnGhost, onClick: onRestart, children: "Nueva consulta" })
         ] }) })
       ] });
@@ -14577,13 +14594,13 @@
       /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(ProgressBar2, { current: 1, total: 4 }),
       /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("div", { style: styles.content, children: [
         /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("h1", { style: styles.heading, children: "\xA1Bienvenido!" }),
-        /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("h2", { style: styles.subheading, children: "Pre-Cualificaci\xF3n Solar Comercial" }),
+        /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("h2", { style: styles.subheading, children: "Estimado Solar Comercial" }),
         /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("p", { style: styles.bodyText, children: [
-          "Vamos a evaluar si su negocio es un buen candidato para solar. El proceso toma ",
+          "En ",
           /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("strong", { children: "menos de 5 minutos" }),
-          " y necesitaremos su factura de LUMA m\xE1s reciente."
+          " te vamos a decir cu\xE1nto te puedes ahorrar con un sistema solar fotovoltaico. Para ello necesitamos tu factura de LUMA m\xE1s reciente."
         ] }),
-        /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("label", { style: styles.label, children: "\xBFTiene su factura de LUMA disponible?" }),
+        /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("label", { style: styles.label, children: "\xBFTienes la factura de LUMA de tu negocio a la mano?" }),
         /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)(
           "select",
           {

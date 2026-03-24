@@ -272,16 +272,17 @@ const parseLeadNotes = (notes) => {
     return match ? match[1].replace(/,/g, '').trim() : null;
   };
   return {
-    cotizacion: extract(/Cotización:\s*([^|]+)/),
-    tarifa:     extract(/Tarifa:\s*([^|]+)/),
-    consumo:    extract(/Consumo:\s*([\d,]+)\s*kWh/),
-    demanda:    extract(/Demanda:\s*([\d,]+)\s*kVA/),
-    costo:      extract(/Costo\/kWh:\s*([\d.]+)/),
-    sistema:    extract(/Sistema:\s*([\d.]+)\s*kWp/),
-    cobertura:  extract(/Cobertura:\s*([\d.]+)%/),
-    precio:     extract(/Precio est\.\:\s*\$([\d,]+)/),
-    techo:      extract(/Techo:\s*([\d,]+)\s*p/),
-    consultor:  extract(/Consultor en Estimado:\s*([^|]+)/),
+    cotizacion:     extract(/Cotización:\s*([^|]+)/),
+    tarifa:         extract(/Tarifa:\s*([^|]+)/),
+    consumo:        extract(/Consumo:\s*([\d,]+)\s*kWh/),
+    demanda:        extract(/Demanda:\s*([\d,]+)\s*kVA/),
+    costo:          extract(/Costo\/kWh:\s*([\d.]+)/),
+    sistema:        extract(/Sistema:\s*([\d.]+)\s*kWp/),
+    cobertura:      extract(/Cobertura:\s*([\d.]+)%/),
+    precio:         extract(/Precio est\.\:\s*\$([\d,]+)/),
+    techo:          extract(/Techo:\s*([\d,]+)\s*p/),
+    consultor:      extract(/Consultor en Estimado:\s*([^|]+)/),
+    consultorEmail: extract(/Estimado Rep-email:\s*([^|]+)/),
   };
 };
 
@@ -325,9 +326,10 @@ const getZohoReadToken = async () => {
 const createZohoLead = async (leadData, token) => {
   const p = parseLeadNotes(leadData.notes);
   const condensedNotes = [
-    p.cobertura  ? `Cobertura Estimada: ${p.cobertura}%`               : null,
-    p.costo      ? `Costo de energia promedio estimado: ${p.costo}`     : null,
-    p.consultor  ? `Consultor en Estimado: ${p.consultor}`              : null,
+    p.cobertura      ? `Cobertura Estimada: ${p.cobertura}%`           : null,
+    p.costo          ? `Costo de energia promedio estimado: ${p.costo}` : null,
+    p.consultor      ? `Consultor en Estimado: ${p.consultor}`          : null,
+    p.consultorEmail ? `Estimado Rep-email: ${p.consultorEmail}`        : null,
   ].filter(Boolean).join(' | ') || null;
 
   const res = await fetch('https://www.zohoapis.com/crm/v3/Commercial_Lead', {
@@ -353,7 +355,6 @@ const createZohoLead = async (leadData, token) => {
         PV_System_Size_kW1: p.sistema                              || (leadData.systemKwp ? String(leadData.systemKwp) : null),
         Tipo_de_Tarifa:     p.tarifa                                          || null,
         Quote_Amount:       p.precio    ? parseFloat(p.precio)   : null,
-        Sales_Rep_Email:    leadData.salesRepEmail                            || null,
         Lead_Notes:         condensedNotes,
         Lead_Status:        'New Lead',
         Lead_Source:        'PreQual',

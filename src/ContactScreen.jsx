@@ -101,6 +101,7 @@ export default function ContactScreen({ ocrData, sqft, onNext, onBack }) {
   const [nombre, setNombre]           = useState("");
   const [phone, setPhone]             = useState("");
   const [consultorNombre, setConsultor] = useState("");
+  const [consultorEmail, setConsultorEmail] = useState("");
   const [loading, setLoading]         = useState(false);
   const [error, setError]             = useState("");
   const [focusedField, setFocusedField] = useState(null);
@@ -125,12 +126,13 @@ export default function ContactScreen({ ocrData, sqft, onNext, onBack }) {
           demandaKVA:   ocrData?.demandaKVA  || "",
           totalFactura: ocrData?.totalFactura || "",
           sqft,
+          consultorEmail: consultorEmail.trim(),
           source: "prequal-wizard",
         }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Error al guardar.");
-      onNext({ leadId: data.leadId, quoteNumber: data.quoteNumber, nombre: nombre.trim(), phone: phone.trim(), consultorNombre: consultorNombre.trim() });
+      onNext({ leadId: data.leadId, quoteNumber: data.quoteNumber, nombre: nombre.trim(), phone: phone.trim(), consultorNombre: consultorNombre.trim(), consultorEmail: consultorEmail.trim() });
     } catch (err) {
       setError(err.message);
       setLoading(false);
@@ -195,6 +197,19 @@ export default function ContactScreen({ ocrData, sqft, onNext, onBack }) {
           />
         </div>
 
+        <div style={S.fieldGroup}>
+          <label style={S.label}>¿Tienes su correo electrónico?</label>
+          <input
+            style={inputStyle("consultorEmail")}
+            type="email"
+            placeholder="ej. juan.perez@windmar.com"
+            value={consultorEmail}
+            onChange={(e) => setConsultorEmail(e.target.value)}
+            onFocus={() => setFocusedField("consultorEmail")}
+            onBlur={() => setFocusedField(null)}
+          />
+        </div>
+
         {error && <div style={S.errorMsg}>{error}</div>}
 
         <button
@@ -202,7 +217,7 @@ export default function ContactScreen({ ocrData, sqft, onNext, onBack }) {
           disabled={!canSubmit || loading}
           onClick={handleSubmit}
         >
-          {loading ? "Enviando…" : "Enviar y continuar"}
+          {loading ? "Enviando…" : "Continuar"}
         </button>
         <button style={S.btnGhost} onClick={onBack}>
           Atrás

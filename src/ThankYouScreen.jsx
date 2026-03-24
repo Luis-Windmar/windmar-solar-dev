@@ -227,6 +227,7 @@ export default function ThankYouScreen({ interested, contactData, ocrData, sqft,
           `Precio est.: $${estData?.systemCost?.toLocaleString("en-US")}`,
           `Techo: ${sqft?.toLocaleString("en-US")} p²`,
           contactData.consultorNombre ? `Consultor en Estimado: ${contactData.consultorNombre}` : null,
+          contactData.consultorEmail  ? `Estimado Rep-email: ${contactData.consultorEmail}`     : null,
         ].filter(Boolean).join(" | ");
 
         const { street, zip } = parseAddress(ocrData?.direccion, ocrData?.municipio);
@@ -329,10 +330,10 @@ export default function ThankYouScreen({ interested, contactData, ocrData, sqft,
               </div>
             )}
 
-            {/* 2. Continuar al cuestionario completo */}
-            <a href="https://windmar-solar-production.up.railway.app/deal" style={S.btnNavy}>
+            {/* 2. Continuar al cuestionario completo — disabled for now, re-activate later */}
+            {/* <a href="https://windmar-solar-production.up.railway.app/deal" style={S.btnNavy}>
               Continuar al cuestionario completo
-            </a>
+            </a> */}
 
             {/* 3. Nueva consulta */}
             <button style={S.btnGhost} onClick={onRestart}>
