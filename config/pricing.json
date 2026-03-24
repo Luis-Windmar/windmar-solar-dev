@@ -1,0 +1,54 @@
+{
+  "_description": "Windmar Commercial — PreQual Wizard Pricing Configuration",
+  "_updated": "2026-03-24",
+  "_note": "Effective EPC = Base EPC × (1 + Misc. Adder%). Units are kW DC.",
+
+  "solar": {
+    "_comment": "Effective EPC ($/W) by system size. max_kw is the upper bound of each tier. Last tier has no upper bound (null).",
+    "epc_tiers": [
+      { "max_kw": 5,      "price_per_w": 3.52 },
+      { "max_kw": 35,     "price_per_w": 3.13 },
+      { "max_kw": 100,    "price_per_w": 2.97 },
+      { "max_kw": 250,    "price_per_w": 2.84 },
+      { "max_kw": 500,    "price_per_w": 2.44 },
+      { "max_kw": 1200,   "price_per_w": 2.32 },
+      { "max_kw": 2000,   "price_per_w": 2.10 },
+      { "max_kw": 3000,   "price_per_w": 2.05 },
+      { "max_kw": 4000,   "price_per_w": 2.00 },
+      { "max_kw": 5000,   "price_per_w": 1.90 },
+      { "max_kw": 10000,  "price_per_w": 1.85 },
+      { "max_kw": null,   "price_per_w": 1.70 }
+    ],
+    "financing": {
+      "term_years": 15,
+      "rate": 0.09,
+      "balloon_month": 84
+    }
+  },
+
+  "battery": {
+    "_comment": "All costs are Windmar's supplier cost. Customer price = cost × markup.",
+    "_comment2": "Worst-case assumption: 480V / 3-phase / outdoor (Sol-Ark system)",
+    "markup": 1.35,
+    "ac_dc_conv": 1.25,
+    "inverter": {
+      "model": "60K-3P-480V",
+      "brand": "Sol-Ark",
+      "kw_per_unit": 60,
+      "cost": 12900,
+      "shipping": 150
+    },
+    "battery_unit": {
+      "model": "L3-HVR-60KWH",
+      "brand": "Sol-Ark",
+      "kwh_per_unit": 60,
+      "location": "outdoor",
+      "cost": 27700,
+      "shipping": 500,
+      "install_first": 7000,
+      "install_next": 2000,
+      "max_per_inverter": 6
+    },
+    "slider_hours": [0, 4, 8, 12, 16, 24]
+  }
+}

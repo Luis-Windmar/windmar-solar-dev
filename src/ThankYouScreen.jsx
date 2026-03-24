@@ -204,7 +204,7 @@ const parseAddress = (fullAddress, municipio) => {
   return { street, zip };
 };
 
-export default function ThankYouScreen({ interested, contactData, ocrData, sqft, estData, billFiles, onRestart }) {
+export default function ThankYouScreen({ interested, contactData, ocrData, sqft, estData, batteryHours, batteryResult, billFiles, onRestart }) {
   const [pdfStatus,  setPdfStatus]  = useState("");
   const [pdfError,   setPdfError]   = useState("");
   const [pdfReady,          setPdfReady]          = useState(false);
@@ -228,6 +228,7 @@ export default function ThankYouScreen({ interested, contactData, ocrData, sqft,
           `Techo: ${sqft?.toLocaleString("en-US")} p²`,
           contactData.consultorNombre ? `Consultor en Estimado: ${contactData.consultorNombre}` : null,
           contactData.consultorEmail  ? `Estimado Rep-email: ${contactData.consultorEmail}`     : null,
+          batteryResult               ? `Baterías: ${batteryResult.productName} | Respaldo: ${batteryResult.actualHours}h | Precio bat.: $${batteryResult.totalCost?.toLocaleString("en-US")}` : null,
         ].filter(Boolean).join(" | ");
 
         const { street, zip } = parseAddress(ocrData?.direccion, ocrData?.municipio);
@@ -241,6 +242,10 @@ export default function ThankYouScreen({ interested, contactData, ocrData, sqft,
           roofSqft:       sqft,
           avgConsumption: parseNum(ocrData?.consumoKWH),
           systemKwp:      estData?.systemKwp,
+          batteryHours:   batteryHours  || 0,
+          batteryKWH:     batteryResult?.systemKWH  || null,
+          batteryKW:      batteryResult?.systemKW   || null,
+          batteryPrice:   batteryResult?.totalCost  || null,
           notes,
         };
 

@@ -22,7 +22,7 @@ const MUNICIPIO_YIELDS = {
 };
 const getYield = (m) => MUNICIPIO_YIELDS[m] ?? 1530;
 
-const CFG = {
+const CFG_DEFAULTS = {
   panel_watts: 410,
   kwp_per_2500sqft: 45,
   epc_table: [
@@ -40,9 +40,16 @@ const CFG = {
   ],
 };
 
-const getEPC = (kwp) => {
-  const row = CFG.epc_table.find(r => kwp >= r.from && kwp < r.to);
-  return row ? row.epc : CFG.epc_table[CFG.epc_table.length - 1].epc;
+const getEPC = (kwp, epcTable) => {
+  const table = epcTable || CFG_DEFAULTS.epc_table;
+  // New format: { max_kw, price_per_w } — max_kw is upper bound, null means no limit
+  if (table[0]?.price_per_w !== undefined) {
+    const row = table.find(r => r.max_kw === null || kwp < r.max_kw);
+    return row ? row.price_per_w : table[table.length - 1].price_per_w;
+  }
+  // Legacy fallback format: { from, to, epc }
+  const row = table.find(r => kwp >= r.from && kwp < r.to);
+  return row ? row.epc : table[table.length - 1].epc;
 };
 
 const roundToPanels = (kwp) => {
@@ -64,23 +71,21 @@ const calcFinancing = (systemCost) => {
   return { facilityFee, secDeposit, financed, monthlyPmt, balloon };
 };
 
-const calcEstimate = (consumoMensual, roofSqft, municipio, billData) => {
+const calcEstimate = (consumoMensual, roofSqft, municipio, billData, epcTable) => {
   const { cargo_cliente = 0, cargo_demanda = 0, exceso_usd = 0, consumo_kwh = consumoMensual, costo_kwh = 0,
           tariff = "", demanda_kva = 0, exceso_kva = 0 } = billData;
   const annualYield   = getYield(municipio);
   const annualConsump = consumoMensual * 12;
-  const maxKwpRoof    = (roofSqft / 2500) * CFG.kwp_per_2500sqft;
+  const maxKwpRoof    = (roofSqft / 2500) * CFG_DEFAULTS.kwp_per_2500sqft;
   const kwpFor100pct  = annualConsump / annualYield;
   const isSecundaria  = /secundaria/i.test(tariff);
   const demandCap     = isSecundaria ? 60 : (demanda_kva + exceso_kva) * 1.2 * 1.5;
   const systemKwp     = roundToPanels(Math.min(maxKwpRoof, kwpFor100pct, demandCap > 0 ? demandCap : Infinity));
   const annualGen     = systemKwp * annualYield;
   const coverage      = Math.min((annualGen / annualConsump) * 100, 100);
-  const epcPerW       = getEPC(systemKwp);
+  const epcPerW       = getEPC(systemKwp, epcTable);
   const systemCost    = systemKwp * 1000 * epcPerW;
-  // Average monthly bill = energy + fixed client charge + demand charges
   const avgMonthlyBill  = (costo_kwh * consumo_kwh) + cargo_cliente + cargo_demanda + exceso_usd;
-  // Solar offsets energy kWh only — demand charges remain regardless
   const solarKwhMonthly = Math.min(annualGen / 12, consumo_kwh);
   const savingsCash     = costo_kwh * solarKwhMonthly;
   const fin               = calcFinancing(systemCost);
@@ -98,6 +103,81 @@ const calcEstimate = (consumoMensual, roofSqft, municipio, billData) => {
     balloon:         Math.round(fin.balloon),
   };
 };
+
+// ─── Battery storage sizing logic ───────────────────────────────────────────
+const BAT_CFG_DEFAULTS = {
+  AC_DC_CONV:        1.25,
+  INV_UNIT_KW:       60,
+  BAT_UNIT_KWH:      60,
+  MAX_BATT_PER_INV:  6,
+  INV_COST:          12900,
+  BAT_COST:          27700,
+  BAT_SHIP:          500,
+  INV_SHIP:          150,
+  BAT_INSTALL_FIRST: 7000,
+  BAT_INSTALL_NEXT:  2000,
+  MARKUP:            1.35,
+};
+
+const resolveBatCfg = (pricing) => {
+  if (!pricing?.battery) return BAT_CFG_DEFAULTS;
+  const b = pricing.battery;
+  return {
+    AC_DC_CONV:        b.ac_dc_conv                     ?? BAT_CFG_DEFAULTS.AC_DC_CONV,
+    INV_UNIT_KW:       b.inverter?.kw_per_unit           ?? BAT_CFG_DEFAULTS.INV_UNIT_KW,
+    BAT_UNIT_KWH:      b.battery_unit?.kwh_per_unit      ?? BAT_CFG_DEFAULTS.BAT_UNIT_KWH,
+    MAX_BATT_PER_INV:  b.battery_unit?.max_per_inverter  ?? BAT_CFG_DEFAULTS.MAX_BATT_PER_INV,
+    INV_COST:          b.inverter?.cost                  ?? BAT_CFG_DEFAULTS.INV_COST,
+    BAT_COST:          b.battery_unit?.cost              ?? BAT_CFG_DEFAULTS.BAT_COST,
+    BAT_SHIP:          b.battery_unit?.shipping          ?? BAT_CFG_DEFAULTS.BAT_SHIP,
+    INV_SHIP:          b.inverter?.shipping              ?? BAT_CFG_DEFAULTS.INV_SHIP,
+    BAT_INSTALL_FIRST: b.battery_unit?.install_first     ?? BAT_CFG_DEFAULTS.BAT_INSTALL_FIRST,
+    BAT_INSTALL_NEXT:  b.battery_unit?.install_next      ?? BAT_CFG_DEFAULTS.BAT_INSTALL_NEXT,
+    MARKUP:            b.markup                          ?? BAT_CFG_DEFAULTS.MARKUP,
+  };
+};
+
+export const calcBatterySystem = (demandaKVA, avgMonthlyKWH, batteryHours, pricing) => {
+  if (!batteryHours || batteryHours === 0) return null;
+  const { AC_DC_CONV, INV_UNIT_KW, BAT_UNIT_KWH, MAX_BATT_PER_INV,
+          INV_COST, BAT_COST, BAT_SHIP, INV_SHIP,
+          BAT_INSTALL_FIRST, BAT_INSTALL_NEXT, MARKUP } = resolveBatCfg(pricing);
+
+  const requiredKW_dc = demandaKVA * AC_DC_CONV;
+  const numInverters  = Math.ceil(requiredKW_dc / INV_UNIT_KW);
+  const systemKW      = numInverters * INV_UNIT_KW;
+
+  const hourlyKW      = (avgMonthlyKWH / 30.4375) / 24;
+  const requiredKWH   = hourlyKW * batteryHours;
+
+  const rawBatteries  = Math.ceil(requiredKWH / BAT_UNIT_KWH);
+  const minBatteries  = numInverters;
+  const maxBatteries  = numInverters * MAX_BATT_PER_INV;
+  const numBatteries  = Math.min(Math.max(rawBatteries, minBatteries), maxBatteries);
+  const systemKWH     = numBatteries * BAT_UNIT_KWH;
+
+  const equipPrice    = (numInverters * INV_COST + numBatteries * BAT_COST) * MARKUP;
+  const shipping      = (numBatteries * BAT_SHIP) + (numInverters * INV_SHIP);
+  const installation  = BAT_INSTALL_FIRST + ((numBatteries - 1) * BAT_INSTALL_NEXT);
+  const totalCost     = equipPrice + shipping + installation;
+  const actualHours   = hourlyKW > 0 ? systemKWH / hourlyKW : 0;
+
+  return {
+    numInverters,
+    numBatteries,
+    systemKW,
+    systemKWH,
+    actualHours: Math.round(actualHours * 10) / 10,
+    equipPrice,
+    shipping,
+    installation,
+    totalCost: Math.round(totalCost),
+    productName: `Sol-Ark ${systemKW}kW / ${systemKWH}kWh`,
+    capped: numBatteries === maxBatteries,
+  };
+};
+
+const SLIDER_HOURS = [0, 4, 8, 12, 16, 24];
 
 // ─── Parse a formatted field value back to a number ────────────────────────
 const parseNum = (s) => parseFloat(String(s ?? "").replace(/,/g, "").replace(/[^0-9.-]/g, "")) || 0;
@@ -159,7 +239,6 @@ const S = {
   rowLabel: { fontSize: "15px", color: "#374151" },
   rowValue: { fontSize: "17px", fontWeight: "700", color: "#1B3F8B" },
   rowValueAccent: { fontSize: "17px", fontWeight: "700", color: "#059669" },
-  // Savings highlight box
   highlight: {
     backgroundColor: "#1B3F8B",
     borderRadius: "16px",
@@ -172,7 +251,6 @@ const S = {
   highlightLabel: { fontSize: "16px", fontWeight: "600", color: "#ffffff" },
   highlightFootnote: { fontSize: "12px", color: "rgba(255,255,255,0.7)", marginTop: "3px" },
   highlightValue: { fontSize: "32px", fontWeight: "800", color: "#F5A623" },
-  // Financing divider
   financeDivider: {
     fontSize: "15px",
     fontWeight: "700",
@@ -190,6 +268,48 @@ const S = {
   },
   rowBoldLabel: { fontSize: "15px", fontWeight: "700", color: "#111827" },
   rowBoldValue: { fontSize: "17px", fontWeight: "800", color: "#1B3F8B" },
+  // Battery section
+  batteryHeader: {
+    fontSize: "15px",
+    fontWeight: "700",
+    color: "#1B3F8B",
+    marginBottom: "12px",
+    paddingBottom: "8px",
+    borderBottom: "2px solid #EBF1FF",
+  },
+  totalCard: {
+    backgroundColor: "#1B3F8B",
+    borderRadius: "16px",
+    padding: "16px 20px",
+    marginBottom: "12px",
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  totalLabel: { fontSize: "16px", fontWeight: "600", color: "#ffffff" },
+  totalValue: { fontSize: "28px", fontWeight: "800", color: "#F5A623" },
+  sliderCard: {
+    backgroundColor: "#ffffff",
+    borderRadius: "16px",
+    padding: "16px 20px",
+    marginBottom: "12px",
+  },
+  sliderLabel: { fontSize: "14px", fontWeight: "600", color: "#374151", marginBottom: "8px" },
+  sliderValue: { fontSize: "22px", fontWeight: "800", color: "#1B3F8B", textAlign: "center", marginBottom: "10px" },
+  sliderTicks: { display: "flex", justifyContent: "space-between", fontSize: "11px", color: "#9ca3af", marginTop: "6px" },
+  addBatteryLink: {
+    textAlign: "center",
+    fontSize: "15px",
+    color: "#1B3F8B",
+    textDecoration: "underline",
+    cursor: "pointer",
+    marginBottom: "12px",
+    display: "block",
+    background: "none",
+    border: "none",
+    width: "100%",
+    padding: "8px 0",
+  },
   // Buttons
   btnOrange: {
     width: "100%",
@@ -219,7 +339,7 @@ const S = {
 };
 
 // ─── EstimateScreen ─────────────────────────────────────────────────────────
-export default function EstimateScreen({ ocrData, sqft, onInterested, onNotInterested }) {
+export default function EstimateScreen({ ocrData, sqft, batteryHours, setBatteryHours, pricing, onInterested, onNotInterested }) {
   const consumoMensual = parseNum(ocrData?.consumoKWH);
   const municipio      = ocrData?.municipio || "San Juan";
   const cargoCliente   = parseNum(ocrData?.cargoCliente);
@@ -230,6 +350,8 @@ export default function EstimateScreen({ ocrData, sqft, onInterested, onNotInter
   const excesoKVA      = parseNum(ocrData?.excesoKVA);
   const tariff         = ocrData?.tariff || "";
 
+  const epcTable = pricing?.solar?.epc_tiers || null;
+
   const est = calcEstimate(consumoMensual, sqft, municipio, {
     cargo_cliente: cargoCliente,
     cargo_demanda: cargoDemanda,
@@ -239,16 +361,26 @@ export default function EstimateScreen({ ocrData, sqft, onInterested, onNotInter
     tariff,
     demanda_kva:   demandaKVA,
     exceso_kva:    excesoKVA,
-  });
+  }, epcTable);
 
   const paybackYears = est.savingsCash > 0
     ? Math.ceil(est.systemCost / (est.savingsCash * 12))
     : "—";
 
+  // Battery
+  const localBatteryHours = batteryHours ?? 0;
+  const batteryResult = calcBatterySystem(demandaKVA, consumoMensual, localBatteryHours, pricing);
+  const totalCost = est.systemCost + (batteryResult?.totalCost ?? 0);
+
+  const sliderIdx = Math.max(0, SLIDER_HOURS.indexOf(localBatteryHours));
+  const handleSliderChange = (e) => {
+    setBatteryHours(SLIDER_HOURS[Number(e.target.value)]);
+  };
+
   return (
     <div style={S.page}>
       <Header />
-      <ProgressBar current={4} total={4} />
+      <ProgressBar current={4} total={5} />
       <div style={S.content}>
         <h1 style={S.h1}>Tu estimado solar</h1>
         <p style={S.sub}>{municipio} – {sqft.toLocaleString()} p²</p>
@@ -301,7 +433,55 @@ export default function EstimateScreen({ ocrData, sqft, onInterested, onNotInter
           </div>
         </div>
 
-        <button style={S.btnOrange} onClick={() => onInterested(est)}>
+        {/* Battery section */}
+        {batteryResult && (
+          <>
+            <div style={S.card}>
+              <div style={S.batteryHeader}>Almacenamiento de Energía</div>
+              <div style={S.row}>
+                <span style={S.rowLabel}>Sistema:</span>
+                <span style={S.rowValue}>{batteryResult.productName}</span>
+              </div>
+              <div style={S.row}>
+                <span style={S.rowLabel}>Respaldo estimado:</span>
+                <span style={S.rowValue}>{batteryResult.actualHours} horas</span>
+              </div>
+              <div style={S.rowLast}>
+                <span style={S.rowLabel}>Precio estimado:</span>
+                <span style={S.rowValue}>{fmtUSD(batteryResult.totalCost)}</span>
+              </div>
+            </div>
+
+            <div style={S.totalCard}>
+              <span style={S.totalLabel}>Total Solar + Baterías</span>
+              <span style={S.totalValue}>{fmtUSD(totalCost)}</span>
+            </div>
+          </>
+        )}
+
+        {/* Battery fine-tune / add slider */}
+        <div style={S.sliderCard}>
+          <div style={S.sliderLabel}>Ajusta las horas de respaldo:</div>
+          <div style={S.sliderValue}>
+            {localBatteryHours === 0 ? "Sin almacenamiento" : `${localBatteryHours} horas de respaldo`}
+          </div>
+          <input
+            type="range"
+            min={0}
+            max={SLIDER_HOURS.length - 1}
+            step={1}
+            value={sliderIdx}
+            onChange={handleSliderChange}
+            style={{ width: "100%", cursor: "pointer", accentColor: "#F5A623", minHeight: "44px" }}
+          />
+          <div style={S.sliderTicks}>
+            {SLIDER_HOURS.map((h) => (
+              <span key={h}>{h === 0 ? "0" : `${h}h`}</span>
+            ))}
+          </div>
+        </div>
+
+        <button style={S.btnOrange} onClick={() => onInterested(est, batteryResult)}>
           Sí me interesa
         </button>
         <button style={S.btnGray} onClick={onNotInterested}>

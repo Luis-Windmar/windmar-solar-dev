@@ -147,7 +147,7 @@ export default function ContactScreen({ ocrData, sqft, onNext, onBack }) {
   return (
     <div style={S.page}>
       <Header />
-      <ProgressBar current={4} total={4} />
+      <ProgressBar current={5} total={5} />
       <div style={S.content}>
         <h1 style={S.h1}>Un paso más</h1>
         <p style={S.sub}>

@@ -345,7 +345,7 @@ export default function UploadScreen({ onNext, onBack }) {
     return (
       <div style={S.page}>
         <Header />
-        <ProgressBar current={2} total={4} />
+        <ProgressBar current={2} total={5} />
         <div style={S.content}>
           <h1 style={S.h1}>Sube tu factura de LUMA</h1>
           <p style={S.sub}>
@@ -400,7 +400,7 @@ export default function UploadScreen({ onNext, onBack }) {
     return (
       <div style={S.page}>
         <Header />
-        <ProgressBar current={2} total={4} />
+        <ProgressBar current={2} total={5} />
         <div style={S.content}>
           <h1 style={S.h1}>Analizando factura…</h1>
 
@@ -458,7 +458,7 @@ export default function UploadScreen({ onNext, onBack }) {
   return (
     <div style={S.page}>
       <Header />
-      <ProgressBar current={2} total={4} />
+      <ProgressBar current={2} total={5} />
       <div style={S.content}>
         <h1 style={S.h1}>¡Factura procesada!</h1>
         <p style={S.sub}>

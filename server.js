@@ -166,6 +166,16 @@ app.get('/api/leads', (req, res) => {
   }
 });
 
+// ─── API: PRICING CONFIG ──────────────────────────────────────────────────────
+// GET /api/pricing — returns solar EPC tiers and battery constants
+app.get('/api/pricing', (req, res) => {
+  try {
+    res.json(require('./config/pricing.json'));
+  } catch (err) {
+    res.status(500).json({ error: 'Pricing config unavailable.' });
+  }
+});
+
 // ─── API: OCR ─────────────────────────────────────────────────────────────────
 // Accepts a LUMA bill (PDF or image) and returns structured JSON.
 app.post('/api/ocr', upload.array('bills', 10), async (req, res) => {
@@ -353,10 +363,13 @@ const createZohoLead = async (leadData, token) => {
         Consumo_Promedio:   p.consumo   ? parseFloat(p.consumo)   : (leadData.avgConsumption || null),
         Carga_Contratada_KVA: p.demanda                            || null,
         PV_System_Size_kW1: p.sistema                              || (leadData.systemKwp ? String(leadData.systemKwp) : null),
-        Tipo_de_Tarifa:     p.tarifa                                          || null,
-        Quote_Amount:       p.precio    ? parseFloat(p.precio)   : null,
-        Lead_Notes:         condensedNotes,
-        Lead_Status:        'New Lead',
+        Tipo_de_Tarifa:          p.tarifa                                     || null,
+        Quote_Amount:            p.precio ? parseFloat(p.precio) : null,
+        Baterias:                (leadData.batteryHours > 0) ? true : false,
+        Battery_System_Size_kWh: leadData.batteryKWH                         || null,
+        Storage_Size_kWh:        leadData.batteryKWH                         || null,
+        Lead_Notes:              condensedNotes,
+        Lead_Status:             'New Lead',
         Lead_Source:        'PreQual',
         Owner:              { id: process.env.ZOHO_OWNER_USER_ID },
       }],

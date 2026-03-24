@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import UploadScreen from "./UploadScreen.jsx";
 import RoofScreen from "./RoofScreen.jsx";
+import BatteryIntentScreen from "./BatteryIntentScreen.jsx";
 import EstimateScreen from "./EstimateScreen.jsx";
 import ContactScreen from "./ContactScreen.jsx";
 import ThankYouScreen from "./ThankYouScreen.jsx";
@@ -194,15 +195,38 @@ const ProgressBar = ({ current, total }) => {
 
 export default function WelcomeScreen() {
   const [selection, setSelection] = useState("");
-  const [screen, setScreen]       = useState("welcome"); // welcome | exit | upload | roof | estimate | contact | thankyou-yes | thankyou-no
+  const [screen, setScreen]       = useState("welcome"); // welcome | exit | upload | roof | battery | estimate | contact | thankyou-yes | thankyou-no
   const [contactData, setContactData] = useState(null);
   const [ocrData, setOcrData]     = useState(null);
   const [sqft, setSqft]           = useState(null);
   const [estData, setEstData]     = useState(null);
+  const [batteryHours, setBatteryHours] = useState(0);
+  const [batteryResult, setBatteryResult] = useState(null);
   const [billFiles, setBillFiles] = useState(null);
+  const [pricing, setPricing] = useState(null);
+  const [pricingLoading, setPricingLoading] = useState(true);
+
+  useEffect(() => {
+    fetch("/api/pricing")
+      .then((r) => r.json())
+      .then((data) => setPricing(data))
+      .catch(() => { /* silently fall back to hardcoded defaults */ })
+      .finally(() => setPricingLoading(false));
+  }, []);
 
   const handleContinue = () => setScreen(selection === "si" ? "upload" : "exit");
-  const handleRestart  = () => { setSelection(""); setScreen("welcome"); setOcrData(null); setSqft(null); setEstData(null); setContactData(null); setBillFiles(null); };
+  const handleRestart  = () => { setSelection(""); setScreen("welcome"); setOcrData(null); setSqft(null); setEstData(null); setContactData(null); setBillFiles(null); setBatteryHours(0); setBatteryResult(null); };
+
+  if (pricingLoading) {
+    return (
+      <div style={styles.container}>
+        <Header />
+        <div style={{ display: "flex", justifyContent: "center", alignItems: "center", flex: 1, minHeight: "200px" }}>
+          <p style={{ color: "#6b7280", fontSize: "16px" }}>Cargando…</p>
+        </div>
+      </div>
+    );
+  }
 
   if (screen === "exit") {
     return (
@@ -237,8 +261,18 @@ export default function WelcomeScreen() {
   if (screen === "roof") {
     return (
       <RoofScreen
-        onNext={(s) => { setSqft(s); setScreen("estimate"); }}
+        onNext={(s) => { setSqft(s); setScreen("battery"); }}
         onBack={() => setScreen("upload")}
+      />
+    );
+  }
+
+  if (screen === "battery") {
+    return (
+      <BatteryIntentScreen
+        batteryHours={batteryHours}
+        onNext={(hours) => { setBatteryHours(hours); setScreen("estimate"); }}
+        onBack={() => setScreen("roof")}
       />
     );
   }
@@ -248,7 +282,10 @@ export default function WelcomeScreen() {
       <EstimateScreen
         ocrData={ocrData}
         sqft={sqft}
-        onInterested={(est) => { setEstData(est); setScreen("contact"); }}
+        pricing={pricing}
+        batteryHours={batteryHours}
+        setBatteryHours={setBatteryHours}
+        onInterested={(est, batt) => { setEstData(est); setBatteryResult(batt); setScreen("contact"); }}
         onNotInterested={() => setScreen("thankyou-no")}
       />
     );
@@ -273,6 +310,8 @@ export default function WelcomeScreen() {
         ocrData={ocrData}
         sqft={sqft}
         estData={estData}
+        batteryHours={batteryHours}
+        batteryResult={batteryResult}
         billFiles={billFiles}
         onRestart={handleRestart}
       />
@@ -291,7 +330,7 @@ export default function WelcomeScreen() {
   return (
     <div style={styles.container}>
       <Header />
-      <ProgressBar current={1} total={4} />
+      <ProgressBar current={1} total={5} />
       <div style={styles.content}>
         <h1 style={styles.heading}>¡Bienvenido!</h1>
         <h2 style={styles.subheading}>Estimado Solar Comercial</h2>
