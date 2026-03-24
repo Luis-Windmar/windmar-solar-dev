@@ -114,8 +114,8 @@ export default function BatteryIntentScreen({ batteryHours, onNext, onBack }) {
           Las baterías te dan respaldo eléctrico durante apagones. No reducen tu factura, pero mantienen tu negocio operando.
         </p>
 
+        <span style={S.sliderLabel}>¿Cuántas horas de respaldo deseas?</span>
         <div style={S.sliderWrap}>
-          <span style={S.sliderLabel}>¿Cuántas horas de respaldo deseas?</span>
           <div style={S.sliderValue}>
             {hours === 0 ? "Sin almacenamiento" : `${hours} horas de respaldo`}
           </div>
@@ -126,7 +126,7 @@ export default function BatteryIntentScreen({ batteryHours, onNext, onBack }) {
             step={1}
             value={sliderIdx}
             onChange={(e) => setSliderIdx(Number(e.target.value))}
-            style={{ width: "100%", cursor: "pointer", accentColor: "#F5A623", minHeight: "44px" }}
+            style={{ width: "100%", cursor: "pointer", accentColor: "#1B3F8B", minHeight: "44px" }}
           />
           <div style={S.sliderTicks}>
             {SLIDER_HOURS.map((h) => (

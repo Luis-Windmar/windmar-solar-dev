@@ -13510,8 +13510,8 @@
       /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)("div", { style: S4.content, children: [
         /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("h1", { style: S4.h1, children: "\xBFDeseas incluir almacenamiento de energ\xEDa?" }),
         /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("p", { style: S4.sub, children: "Las bater\xEDas te dan respaldo el\xE9ctrico durante apagones. No reducen tu factura, pero mantienen tu negocio operando." }),
+        /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("span", { style: S4.sliderLabel, children: "\xBFCu\xE1ntas horas de respaldo deseas?" }),
         /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)("div", { style: S4.sliderWrap, children: [
-          /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("span", { style: S4.sliderLabel, children: "\xBFCu\xE1ntas horas de respaldo deseas?" }),
           /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("div", { style: S4.sliderValue, children: hours === 0 ? "Sin almacenamiento" : `${hours} horas de respaldo` }),
           /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(
             "input",
@@ -13522,7 +13522,7 @@
               step: 1,
               value: sliderIdx,
               onChange: (e) => setSliderIdx(Number(e.target.value)),
-              style: { width: "100%", cursor: "pointer", accentColor: "#F5A623", minHeight: "44px" }
+              style: { width: "100%", cursor: "pointer", accentColor: "#1B3F8B", minHeight: "44px" }
             }
           ),
           /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("div", { style: S4.sliderTicks, children: SLIDER_HOURS.map((h) => /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("span", { children: h === 0 ? "0" : `${h}h` }, h)) })
