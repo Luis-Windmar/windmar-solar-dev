@@ -13352,8 +13352,8 @@
       /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(Header, {}),
       /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(ProgressBar, { current: 3, total: 4 }),
       /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("div", { style: S3.content, children: [
-        /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("h1", { style: S3.h1, children: "\xBFCu\xE1l es el tama\xF1o de tu local?" }),
-        /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("p", { style: S3.sub, children: "Seleccione la opci\xF3n que mejor describe su negocio, o ingrese el \xE1rea exacta abajo." }),
+        /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("h1", { style: S3.h1, children: "\xBFCu\xE1nto techo tienes disponible?" }),
+        /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("p", { style: S3.sub, children: "Selecciona la opci\xF3n que mejor describe tu negocio, o ingresa el \xE1rea exacta abajo." }),
         /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("div", { style: S3.grid, children: SIZES.map(({ key, img, label, desc }) => {
           const isSelected = selected === key && custom.trim() === "";
           return /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)(
@@ -14598,7 +14598,7 @@
         /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("p", { style: styles.bodyText, children: [
           "En ",
           /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("strong", { children: "menos de 5 minutos" }),
-          " te vamos a decir cu\xE1nto te puedes ahorrar con un sistema solar fotovoltaico. Para ello necesitamos tu factura de LUMA m\xE1s reciente."
+          " te vamos a decir cu\xE1nto te puedes ahorrar con un sistema solar fotovoltaico Windmar\u2122. Para ello necesitamos tu factura de LUMA m\xE1s reciente."
         ] }),
         /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("label", { style: styles.label, children: "\xBFTienes la factura de LUMA de tu negocio a la mano?" }),
         /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)(

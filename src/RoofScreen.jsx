@@ -144,9 +144,9 @@ export default function RoofScreen({ onNext, onBack }) {
       <Header />
       <ProgressBar current={3} total={4} />
       <div style={S.content}>
-        <h1 style={S.h1}>¿Cuál es el tamaño de tu local?</h1>
+        <h1 style={S.h1}>¿Cuánto techo tienes disponible?</h1>
         <p style={S.sub}>
-          Seleccione la opción que mejor describe su negocio, o ingrese el área exacta abajo.
+          Selecciona la opción que mejor describe tu negocio, o ingresa el área exacta abajo.
         </p>
 
         <div style={S.grid}>
