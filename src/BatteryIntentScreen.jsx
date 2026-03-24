@@ -106,6 +106,11 @@ export default function BatteryIntentScreen({ batteryHours, onNext, onBack }) {
 
   return (
     <div style={S.page}>
+      <style>{`
+        .battery-slider { -webkit-appearance: none; appearance: none; height: 6px; background: #d1d5db; border-radius: 3px; outline: none; }
+        .battery-slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 24px; height: 24px; border-radius: 50%; background: #1B3F8B; cursor: pointer; }
+        .battery-slider::-moz-range-thumb { width: 24px; height: 24px; border-radius: 50%; background: #1B3F8B; cursor: pointer; border: none; }
+      `}</style>
       <Header />
       <ProgressBar current={3} total={5} />
       <div style={S.content}>
@@ -121,12 +126,13 @@ export default function BatteryIntentScreen({ batteryHours, onNext, onBack }) {
           </div>
           <input
             type="range"
+            className="battery-slider"
             min={0}
             max={SLIDER_HOURS.length - 1}
             step={1}
             value={sliderIdx}
             onChange={(e) => setSliderIdx(Number(e.target.value))}
-            style={{ width: "100%", cursor: "pointer", accentColor: "#1B3F8B", minHeight: "44px" }}
+            style={{ width: "100%", cursor: "pointer", minHeight: "44px" }}
           />
           <div style={S.sliderTicks}>
             {SLIDER_HOURS.map((h) => (

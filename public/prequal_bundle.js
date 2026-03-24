@@ -13505,6 +13505,11 @@
     const [sliderIdx, setSliderIdx] = (0, import_react3.useState)(initIdx);
     const hours = SLIDER_HOURS[sliderIdx];
     return /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)("div", { style: S4.page, children: [
+      /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("style", { children: `
+        .battery-slider { -webkit-appearance: none; appearance: none; height: 6px; background: #d1d5db; border-radius: 3px; outline: none; }
+        .battery-slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 24px; height: 24px; border-radius: 50%; background: #1B3F8B; cursor: pointer; }
+        .battery-slider::-moz-range-thumb { width: 24px; height: 24px; border-radius: 50%; background: #1B3F8B; cursor: pointer; border: none; }
+      ` }),
       /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Header, {}),
       /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(ProgressBar, { current: 3, total: 5 }),
       /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)("div", { style: S4.content, children: [
@@ -13517,12 +13522,13 @@
             "input",
             {
               type: "range",
+              className: "battery-slider",
               min: 0,
               max: SLIDER_HOURS.length - 1,
               step: 1,
               value: sliderIdx,
               onChange: (e) => setSliderIdx(Number(e.target.value)),
-              style: { width: "100%", cursor: "pointer", accentColor: "#1B3F8B", minHeight: "44px" }
+              style: { width: "100%", cursor: "pointer", minHeight: "44px" }
             }
           ),
           /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("div", { style: S4.sliderTicks, children: SLIDER_HOURS.map((h) => /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("span", { children: h === 0 ? "0" : `${h}h` }, h)) })
