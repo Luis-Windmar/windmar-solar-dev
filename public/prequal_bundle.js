@@ -13644,7 +13644,7 @@
     return row ? row.epc : table[table.length - 1].epc;
   };
   var roundToPanels = (kwp) => {
-    const panelKwp = CFG.panel_watts / 1e3;
+    const panelKwp = CFG_DEFAULTS.panel_watts / 1e3;
     return Math.floor(kwp / panelKwp) * panelKwp;
   };
   var calcFinancing = (systemCost) => {

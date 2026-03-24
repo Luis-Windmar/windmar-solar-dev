@@ -53,7 +53,7 @@ const getEPC = (kwp, epcTable) => {
 };
 
 const roundToPanels = (kwp) => {
-  const panelKwp = CFG.panel_watts / 1000;
+  const panelKwp = CFG_DEFAULTS.panel_watts / 1000;
   return Math.floor(kwp / panelKwp) * panelKwp;
 };
 
