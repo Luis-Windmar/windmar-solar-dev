@@ -13506,9 +13506,11 @@
     const hours = SLIDER_HOURS[sliderIdx];
     return /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)("div", { style: S4.page, children: [
       /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("style", { children: `
-        .battery-slider { -webkit-appearance: none; appearance: none; height: 6px; background: #d1d5db; border-radius: 3px; outline: none; }
-        .battery-slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 24px; height: 24px; border-radius: 50%; background: #1B3F8B; cursor: pointer; }
-        .battery-slider::-moz-range-thumb { width: 24px; height: 24px; border-radius: 50%; background: #1B3F8B; cursor: pointer; border: none; }
+        .battery-slider { -webkit-appearance: none; appearance: none; height: 3px; background: #d1d5db; border-radius: 2px; outline: none; }
+        .battery-slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 28px; height: 28px; border-radius: 50%; background: #1B3F8B; cursor: pointer; margin-top: -12px; }
+        .battery-slider::-webkit-slider-runnable-track { height: 3px; background: #d1d5db; border-radius: 2px; }
+        .battery-slider::-moz-range-thumb { width: 28px; height: 28px; border-radius: 50%; background: #1B3F8B; cursor: pointer; border: none; }
+        .battery-slider::-moz-range-track { height: 3px; background: #d1d5db; border-radius: 2px; }
       ` }),
       /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Header, {}),
       /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(ProgressBar, { current: 3, total: 5 }),
