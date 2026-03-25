@@ -108,7 +108,7 @@ export default function BatteryIntentScreen({ batteryHours, onNext, onBack }) {
     <div style={S.page}>
       <style>{`
         .battery-slider { -webkit-appearance: none; appearance: none; height: 3px; background: #d1d5db; border-radius: 2px; outline: none; }
-        .battery-slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 28px; height: 28px; border-radius: 50%; background: #1B3F8B; cursor: pointer; margin-top: -12px; }
+        .battery-slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 28px; height: 28px; border-radius: 50%; background: #1B3F8B; cursor: pointer; }
         .battery-slider::-webkit-slider-runnable-track { height: 3px; background: #d1d5db; border-radius: 2px; }
         .battery-slider::-moz-range-thumb { width: 28px; height: 28px; border-radius: 50%; background: #1B3F8B; cursor: pointer; border: none; }
         .battery-slider::-moz-range-track { height: 3px; background: #d1d5db; border-radius: 2px; }
@@ -134,7 +134,7 @@ export default function BatteryIntentScreen({ batteryHours, onNext, onBack }) {
             step={1}
             value={sliderIdx}
             onChange={(e) => setSliderIdx(Number(e.target.value))}
-            style={{ width: "100%", cursor: "pointer", minHeight: "44px" }}
+            style={{ width: "100%", cursor: "pointer", padding: "12px 0" }}
           />
           <div style={S.sliderTicks}>
             {SLIDER_HOURS.map((h) => (
