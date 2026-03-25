@@ -13490,12 +13490,13 @@
     },
     btnBack: {
       width: "100%",
-      padding: "16px",
+      padding: "14px",
       fontSize: "16px",
-      fontWeight: "500",
-      color: "#6b7280",
+      fontWeight: "600",
+      color: "#1B3F8B",
       backgroundColor: "transparent",
-      border: "none",
+      border: "2px solid #1B3F8B",
+      borderRadius: "10px",
       cursor: "pointer",
       display: "block"
     }
@@ -13506,11 +13507,11 @@
     const hours = SLIDER_HOURS[sliderIdx];
     return /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)("div", { style: S4.page, children: [
       /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("style", { children: `
-        .battery-slider { -webkit-appearance: none; appearance: none; height: 3px; background: #d1d5db; border-radius: 2px; outline: none; }
-        .battery-slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 28px; height: 28px; border-radius: 50%; background: #1B3F8B; cursor: pointer; }
+        .battery-slider { -webkit-appearance: none; appearance: none; width: 100%; height: 28px; background: transparent; outline: none; cursor: pointer; }
         .battery-slider::-webkit-slider-runnable-track { height: 3px; background: #d1d5db; border-radius: 2px; }
-        .battery-slider::-moz-range-thumb { width: 28px; height: 28px; border-radius: 50%; background: #1B3F8B; cursor: pointer; border: none; }
+        .battery-slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 28px; height: 28px; border-radius: 50%; background: #1B3F8B; cursor: pointer; margin-top: -12.5px; }
         .battery-slider::-moz-range-track { height: 3px; background: #d1d5db; border-radius: 2px; }
+        .battery-slider::-moz-range-thumb { width: 28px; height: 28px; border-radius: 50%; background: #1B3F8B; cursor: pointer; border: none; }
       ` }),
       /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Header, {}),
       /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(ProgressBar, { current: 3, total: 5 }),
@@ -13530,7 +13531,7 @@
               step: 1,
               value: sliderIdx,
               onChange: (e) => setSliderIdx(Number(e.target.value)),
-              style: { width: "100%", cursor: "pointer", padding: "12px 0" }
+              style: { width: "100%", cursor: "pointer" }
             }
           ),
           /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("div", { style: S4.sliderTicks, children: SLIDER_HOURS.map((h) => /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("span", { children: h === 0 ? "0" : `${h}h` }, h)) })

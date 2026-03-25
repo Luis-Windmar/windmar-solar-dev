@@ -88,12 +88,13 @@ const S = {
   },
   btnBack: {
     width: "100%",
-    padding: "16px",
+    padding: "14px",
     fontSize: "16px",
-    fontWeight: "500",
-    color: "#6b7280",
+    fontWeight: "600",
+    color: "#1B3F8B",
     backgroundColor: "transparent",
-    border: "none",
+    border: "2px solid #1B3F8B",
+    borderRadius: "10px",
     cursor: "pointer",
     display: "block",
   },
@@ -107,11 +108,11 @@ export default function BatteryIntentScreen({ batteryHours, onNext, onBack }) {
   return (
     <div style={S.page}>
       <style>{`
-        .battery-slider { -webkit-appearance: none; appearance: none; height: 3px; background: #d1d5db; border-radius: 2px; outline: none; }
-        .battery-slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 28px; height: 28px; border-radius: 50%; background: #1B3F8B; cursor: pointer; }
+        .battery-slider { -webkit-appearance: none; appearance: none; width: 100%; height: 28px; background: transparent; outline: none; cursor: pointer; }
         .battery-slider::-webkit-slider-runnable-track { height: 3px; background: #d1d5db; border-radius: 2px; }
-        .battery-slider::-moz-range-thumb { width: 28px; height: 28px; border-radius: 50%; background: #1B3F8B; cursor: pointer; border: none; }
+        .battery-slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 28px; height: 28px; border-radius: 50%; background: #1B3F8B; cursor: pointer; margin-top: -12.5px; }
         .battery-slider::-moz-range-track { height: 3px; background: #d1d5db; border-radius: 2px; }
+        .battery-slider::-moz-range-thumb { width: 28px; height: 28px; border-radius: 50%; background: #1B3F8B; cursor: pointer; border: none; }
       `}</style>
       <Header />
       <ProgressBar current={3} total={5} />
@@ -134,7 +135,7 @@ export default function BatteryIntentScreen({ batteryHours, onNext, onBack }) {
             step={1}
             value={sliderIdx}
             onChange={(e) => setSliderIdx(Number(e.target.value))}
-            style={{ width: "100%", cursor: "pointer", padding: "12px 0" }}
+            style={{ width: "100%", cursor: "pointer" }}
           />
           <div style={S.sliderTicks}>
             {SLIDER_HOURS.map((h) => (
