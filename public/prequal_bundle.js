@@ -13533,8 +13533,7 @@
           ),
           /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("div", { style: S4.sliderTicks, children: SLIDER_HOURS.map((h) => /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("span", { children: h === 0 ? "0" : `${h}h` }, h)) })
         ] }),
-        hours > 0 && /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("button", { style: S4.btnOrange, onClick: () => onNext(hours), children: "Ver estimado con bater\xEDas \u2192" }),
-        /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("button", { style: S4.btnGhost, onClick: () => onNext(0), children: "Solo solar por ahora \u2192" }),
+        /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("button", { style: S4.btnOrange, onClick: () => onNext(hours), children: hours > 0 ? "Ver estimado con bater\xEDas \u2192" : "Ver estimado solar \u2192" }),
         /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("button", { style: S4.btnBack, onClick: onBack, children: "Atr\xE1s" })
       ] })
     ] });

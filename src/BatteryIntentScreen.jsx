@@ -141,13 +141,8 @@ export default function BatteryIntentScreen({ batteryHours, onNext, onBack }) {
           </div>
         </div>
 
-        {hours > 0 && (
-          <button style={S.btnOrange} onClick={() => onNext(hours)}>
-            Ver estimado con baterías →
-          </button>
-        )}
-        <button style={S.btnGhost} onClick={() => onNext(0)}>
-          Solo solar por ahora →
+        <button style={S.btnOrange} onClick={() => onNext(hours)}>
+          {hours > 0 ? "Ver estimado con baterías →" : "Ver estimado solar →"}
         </button>
         <button style={S.btnBack} onClick={onBack}>
           Atrás
