@@ -250,7 +250,7 @@ export default function WelcomeScreen() {
               style={{ background: "none", border: "none", color: "#1B3F8B", fontSize: "16px", cursor: "pointer", textDecoration: "underline", marginTop: "8px", display: "block", width: "100%" }}
               onClick={() => setScreen("welcome")}
             >
-              ← Atrás
+              Atrás
             </button>
           </div>
         </div>

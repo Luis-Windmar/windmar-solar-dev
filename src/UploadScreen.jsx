@@ -423,7 +423,7 @@ export default function UploadScreen({ onNext, onBack, resumeData }) {
               onClick={onBack}
               style={{ background: "none", border: "none", color: "#1B3F8B", fontSize: "16px", cursor: "pointer", textDecoration: "underline" }}
             >
-              ← Atrás
+              Atrás
             </button>
           </div>
 
