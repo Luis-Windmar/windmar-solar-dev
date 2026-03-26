@@ -400,6 +400,39 @@ const attachFileToZohoLead = async (leadId, fileBuffer, fileName, mimeType, toke
   return result.details.id;
 };
 
+const addNoteToZohoLead = async (leadId, leadData, leadName, readToken) => {
+  const now = new Date().toLocaleString('es-PR', {
+    timeZone: 'America/Puerto_Rico',
+    year: 'numeric', month: '2-digit', day: '2-digit',
+    hour: '2-digit', minute: '2-digit', hour12: true,
+  });
+  const kwp  = leadData.systemKwp  ? `${leadData.systemKwp} kWp`   : null;
+  const kwh  = leadData.batteryKWH ? `${leadData.batteryKWH} kWh`  : null;
+  const size = [kwp, kwh].filter(Boolean).join(' | ');
+  const price = leadData.totalPrice
+    ? `$${Number(leadData.totalPrice).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`
+    : null;
+
+  const content = [
+    `Lead creado por PreQual Wizard el ${now}.`,
+    size   ? `Sistema: ${size}`    : null,
+    price  ? `Precio: ${price}`    : null,
+  ].filter(Boolean).join(' | ');
+
+  const res = await fetch(`https://www.zohoapis.com/crm/v3/Commercial_Lead/${leadId}/Notes`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Zoho-oauthtoken ${readToken}`,
+      'Content-Type':  'application/json',
+    },
+    body: JSON.stringify({
+      data: [{ Note_Title: 'PreQual Wizard', Note_Content: content }],
+    }),
+  });
+  const data = await res.json();
+  if (data?.data?.[0]?.code !== 'SUCCESS') throw new Error('Note creation failed: ' + JSON.stringify(data));
+};
+
 const getZohoLeadName = async (leadId, readToken) => {
   const res = await fetch(`https://www.zohoapis.com/crm/v3/Commercial_Lead/${leadId}?fields=Name`, {
     headers: { 'Authorization': `Zoho-oauthtoken ${readToken}` },
@@ -437,6 +470,13 @@ app.post('/api/zoho-lead', upload.fields([{ name: 'billFile', maxCount: 10 }]), 
       console.log('✅ Commercial Lead Name:', commercialLeadName);
     } catch (nameErr) {
       console.warn('⚠️ Could not read Com_Lead_Name:', nameErr.message);
+    }
+
+    try {
+      await addNoteToZohoLead(zohoLeadId, leadData, commercialLeadName, readToken);
+      console.log('✅ Note added to Zoho lead:', zohoLeadId);
+    } catch (noteErr) {
+      console.warn('⚠️ Note creation failed:', noteErr.message);
     }
 
     res.json({ success: true, zohoLeadId, commercialLeadName });

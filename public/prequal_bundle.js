@@ -14566,6 +14566,7 @@
             batteryKWH: batteryResult?.systemKWH || null,
             batteryKW: batteryResult?.systemKW || null,
             batteryPrice: batteryResult?.totalCost || null,
+            totalPrice: (estData?.systemCost || 0) + (batteryResult?.totalCost || 0),
             notes
           };
           const fd = new FormData();
