@@ -13151,20 +13151,13 @@
               /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("div", { style: S2.tipItem, children: "\u2022 Si es foto, t\xF3mala con buena luz" })
             ] })
           ] }),
-          /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("div", { style: { textAlign: "center" }, children: /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(
+          /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("button", { style: { ...S2.btnGhost, marginTop: "16px" }, onClick: onBack, children: "Atr\xE1s" }),
+          /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("div", { style: { textAlign: "center", marginTop: "12px" }, children: /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(
             "button",
             {
               onClick: handleMockOCR,
               style: { background: "none", border: "none", color: "#9ca3af", fontSize: "12px", cursor: "pointer", textDecoration: "underline" },
               children: "usar datos de prueba"
-            }
-          ) }),
-          /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("div", { style: { textAlign: "center", marginTop: "20px" }, children: /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(
-            "button",
-            {
-              onClick: onBack,
-              style: { background: "none", border: "none", color: "#1B3F8B", fontSize: "16px", cursor: "pointer", textDecoration: "underline" },
-              children: "Atr\xE1s"
             }
           ) })
         ] })
@@ -13245,7 +13238,7 @@
           )
         ] }, key)) }),
         /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("button", { style: S2.btnOrange, onClick: () => onNext(fields, file), children: "Todo bien. Listo" }),
-        /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("button", { style: S2.btnGhost, onClick: resetToIdle, children: "Subir otra factura" })
+        /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("button", { style: S2.btnGhost, onClick: resetToIdle, children: "Atr\xE1s" })
       ] })
     ] });
   }
@@ -13571,7 +13564,7 @@
           ),
           /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("div", { style: S4.sliderTicks, children: SLIDER_HOURS.map((h) => /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("span", { children: h === 0 ? "0" : `${h}h` }, h)) })
         ] }),
-        /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("button", { style: S4.btnOrange, onClick: () => onNext(hours), children: hours > 0 ? "Ver estimado con bater\xEDas \u2192" : "Ver estimado solar \u2192" }),
+        /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("button", { style: S4.btnOrange, onClick: () => onNext(hours), children: hours > 0 ? "Ver estimado con bater\xEDas" : "Ver estimado" }),
         /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("button", { style: S4.btnBack, onClick: onBack, children: "Atr\xE1s" })
       ] })
     ] });
@@ -15021,7 +15014,7 @@
             style: selection ? styles.btnPrimary : styles.btnGray,
             onClick: handleContinue,
             disabled: !selection,
-            children: selection === "no" ? "Entendido \u2192" : "Continuar \u2192"
+            children: selection === "no" ? "Entendido" : "Continuar"
           }
         ),
         /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)("div", { style: styles.noteCard, children: [

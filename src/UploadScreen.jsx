@@ -409,21 +409,16 @@ export default function UploadScreen({ onNext, onBack, resumeData }) {
             </div>
           </div>
 
-          <div style={{ textAlign: "center" }}>
+          <button style={{ ...S.btnGhost, marginTop: "16px" }} onClick={onBack}>
+            Atrás
+          </button>
+
+          <div style={{ textAlign: "center", marginTop: "12px" }}>
             <button
               onClick={handleMockOCR}
               style={{ background: "none", border: "none", color: "#9ca3af", fontSize: "12px", cursor: "pointer", textDecoration: "underline" }}
             >
               usar datos de prueba
-            </button>
-          </div>
-
-          <div style={{ textAlign: "center", marginTop: "20px" }}>
-            <button
-              onClick={onBack}
-              style={{ background: "none", border: "none", color: "#1B3F8B", fontSize: "16px", cursor: "pointer", textDecoration: "underline" }}
-            >
-              Atrás
             </button>
           </div>
 
@@ -534,7 +529,7 @@ export default function UploadScreen({ onNext, onBack, resumeData }) {
           Todo bien. Listo
         </button>
         <button style={S.btnGhost} onClick={resetToIdle}>
-          Subir otra factura
+          Atrás
         </button>
       </div>
     </div>

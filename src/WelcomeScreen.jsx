@@ -368,7 +368,7 @@ export default function WelcomeScreen() {
           onClick={handleContinue}
           disabled={!selection}
         >
-          {selection === "no" ? "Entendido →" : "Continuar →"}
+          {selection === "no" ? "Entendido" : "Continuar"}
         </button>
 
         <div style={styles.noteCard}>
