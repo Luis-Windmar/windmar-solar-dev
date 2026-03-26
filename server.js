@@ -401,15 +401,11 @@ const attachFileToZohoLead = async (leadId, fileBuffer, fileName, mimeType, toke
 };
 
 const getZohoLeadName = async (leadId, readToken) => {
-  // Small delay — Zoho populates Com_Lead_Name and Name asynchronously after creation
-  await new Promise(r => setTimeout(r, 2000));
-  const res = await fetch(`https://www.zohoapis.com/crm/v3/Commercial_Lead/${leadId}?fields=Com_Lead_Name,Name`, {
+  const res = await fetch(`https://www.zohoapis.com/crm/v3/Commercial_Lead/${leadId}?fields=Name`, {
     headers: { 'Authorization': `Zoho-oauthtoken ${readToken}` },
   });
   const data = await res.json();
-  console.log('🔍 Zoho name fields:', JSON.stringify(data?.data?.[0]));
-  const record = data?.data?.[0];
-  return record?.Com_Lead_Name || record?.Name || null;
+  return data?.data?.[0]?.Name || null;
 };
 
 // POST /api/zoho-lead

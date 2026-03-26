@@ -132,7 +132,7 @@ export default function ContactScreen({ ocrData, sqft, onNext, onBack }) {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Error al guardar.");
-      onNext({ leadId: data.leadId, quoteNumber: data.quoteNumber, nombre: nombre.trim(), phone: phone.trim(), consultorNombre: consultorNombre.trim(), consultorEmail: consultorEmail.trim() });
+      onNext({ leadId: data.leadId, nombre: nombre.trim(), phone: phone.trim(), consultorNombre: consultorNombre.trim(), consultorEmail: consultorEmail.trim() });
     } catch (err) {
       setError(err.message);
       setLoading(false);

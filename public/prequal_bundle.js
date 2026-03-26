@@ -14233,7 +14233,7 @@
         });
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || "Error al guardar.");
-        onNext({ leadId: data.leadId, quoteNumber: data.quoteNumber, nombre: nombre.trim(), phone: phone.trim(), consultorNombre: consultorNombre.trim(), consultorEmail: consultorEmail.trim() });
+        onNext({ leadId: data.leadId, nombre: nombre.trim(), phone: phone.trim(), consultorNombre: consultorNombre.trim(), consultorEmail: consultorEmail.trim() });
       } catch (err) {
         setError(err.message);
         setLoading(false);
@@ -14474,7 +14474,7 @@
     const municipio = ocrData?.municipio || "";
     const negocioName = ocrData?.nombreNegocio || ocrData?.address || ocrData?.direccion || "";
     const firstWord = negocioName.trim().split(/\s+/)[0] || "Negocio";
-    const quoteNumber = commercialLeadName || (contactData?.quoteNumber || "C20000") + " " + firstWord + " " + municipio;
+    const quoteNumber = commercialLeadName || "Pendiente";
     const fields = {
       numero: quoteNumber,
       cliente: contactData?.nombre || "",
@@ -14539,7 +14539,7 @@
       const run = async () => {
         try {
           const notes = [
-            `Cotizaci\xF3n: ${contactData.quoteNumber}`,
+            `Cotizaci\xF3n: ${leadNameRef.current || "Pendiente"}`,
             `Tarifa: ${ocrData?.tariff || "\u2014"}`,
             `Consumo: ${ocrData?.consumoKWH || "\u2014"}`,
             `Demanda: ${ocrData?.demandaKVA || "\u2014"}`,
@@ -14583,7 +14583,7 @@
           setPdfReady(true);
           const fd2 = new FormData();
           fd2.append("leadId", data.zohoLeadId);
-          const fileName = `Windmar_Estimado_${leadName || contactData.quoteNumber || "Solar"}.pdf`;
+          const fileName = `Windmar_Estimado_${leadName || "Solar"}.pdf`;
           fd2.append("file", blob, fileName);
           await fetch("/api/zoho-attach", { method: "POST", body: fd2 });
         } catch (err) {
@@ -14602,7 +14602,7 @@
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `Windmar_Estimado_${leadName || contactData?.quoteNumber || "Solar"}.pdf`;
+      a.download = `Windmar_Estimado_${leadName || "Solar"}.pdf`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);

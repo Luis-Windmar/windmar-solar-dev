@@ -133,8 +133,7 @@ async function generateEstimatePDF(ocrData, sqft, estData, contactData, commerci
   const municipio    = ocrData?.municipio    || "";
   const negocioName  = ocrData?.nombreNegocio || ocrData?.address || ocrData?.direccion || "";
   const firstWord    = negocioName.trim().split(/\s+/)[0] || "Negocio";
-  const quoteNumber  = commercialLeadName ||
-    ((contactData?.quoteNumber || "C20000") + " " + firstWord + " " + municipio);
+  const quoteNumber  = commercialLeadName || "Pendiente";
 
   const fields = {
     numero:      quoteNumber,
@@ -218,7 +217,7 @@ export default function ThankYouScreen({ interested, contactData, ocrData, sqft,
     const run = async () => {
       try {
         const notes = [
-          `Cotización: ${contactData.quoteNumber}`,
+          `Cotización: ${leadNameRef.current || "Pendiente"}`,
           `Tarifa: ${ocrData?.tariff || "—"}`,
           `Consumo: ${ocrData?.consumoKWH || "—"}`,
           `Demanda: ${ocrData?.demandaKVA || "—"}`,
@@ -271,7 +270,7 @@ export default function ThankYouScreen({ interested, contactData, ocrData, sqft,
         // Step 3: Attach PDF to lead
         const fd2 = new FormData();
         fd2.append("leadId", data.zohoLeadId);
-        const fileName = `Windmar_Estimado_${leadName || contactData.quoteNumber || "Solar"}.pdf`;
+        const fileName = `Windmar_Estimado_${leadName || "Solar"}.pdf`;
         fd2.append("file", blob, fileName);
         await fetch("/api/zoho-attach", { method: "POST", body: fd2 });
 
@@ -289,7 +288,7 @@ export default function ThankYouScreen({ interested, contactData, ocrData, sqft,
     const url = URL.createObjectURL(blob);
     const a   = document.createElement("a");
     a.href    = url;
-    a.download = `Windmar_Estimado_${leadName || contactData?.quoteNumber || "Solar"}.pdf`;
+    a.download = `Windmar_Estimado_${leadName || "Solar"}.pdf`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
