@@ -14043,8 +14043,10 @@
               paybackYears,
               " a\xF1os"
             ] })
-          ] }),
-          /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("div", { style: S5.financeDivider, children: "\xBFPrefieres financiar?" }),
+          ] })
+        ] }),
+        /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("div", { style: S5.sliderValue, children: "\xBFPrefieres financiar?" }),
+        /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)("div", { style: S5.card, children: [
           /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)("div", { style: S5.row, children: [
             /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("span", { style: S5.rowLabel, children: "Pronto pago:" }),
             /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("span", { style: S5.rowValue, children: "$0" })

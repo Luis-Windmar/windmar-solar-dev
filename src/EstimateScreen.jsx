@@ -414,7 +414,7 @@ function EstimateScreenInner({ ocrData, sqft, batteryHours, setBatteryHours, pri
           <div style={S.highlightValue}>{fmtUSD(est.savingsCash)}</div>
         </div>
 
-        {/* Investment + financing */}
+        {/* Investment */}
         <div style={S.card}>
           <div style={S.row}>
             <span style={S.rowLabel}>Precio de contado:</span>
@@ -424,9 +424,11 @@ function EstimateScreenInner({ ocrData, sqft, batteryHours, setBatteryHours, pri
             <span style={S.rowLabel}>Recuperas la inversión en:</span>
             <span style={S.rowValue}>{paybackYears} años</span>
           </div>
+        </div>
 
-          <div style={S.financeDivider}>¿Prefieres financiar?</div>
-
+        {/* Financing */}
+        <div style={S.sliderValue}>¿Prefieres financiar?</div>
+        <div style={S.card}>
           <div style={S.row}>
             <span style={S.rowLabel}>Pronto pago:</span>
             <span style={S.rowValue}>$0</span>
