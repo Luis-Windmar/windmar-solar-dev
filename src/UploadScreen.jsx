@@ -418,6 +418,15 @@ export default function UploadScreen({ onNext, onBack, resumeData }) {
             </button>
           </div>
 
+          <div style={{ textAlign: "center", marginTop: "20px" }}>
+            <button
+              onClick={onBack}
+              style={{ background: "none", border: "none", color: "#1B3F8B", fontSize: "16px", cursor: "pointer", textDecoration: "underline" }}
+            >
+              ← Atrás
+            </button>
+          </div>
+
         </div>
       </div>
     );

@@ -214,7 +214,10 @@ export default function WelcomeScreen() {
       .finally(() => setPricingLoading(false));
   }, []);
 
-  const handleContinue = () => setScreen(selection === "si" ? "upload" : "exit");
+  const handleContinue = () => {
+    if (!selection) return;
+    setScreen(selection === "si" ? "upload" : "exit");
+  };
   const handleRestart  = () => { setSelection(""); setScreen("welcome"); setOcrData(null); setSqft(null); setEstData(null); setContactData(null); setBillFiles(null); setBatteryHours(0); setBatteryResult(null); };
 
   if (pricingLoading) {
@@ -242,6 +245,12 @@ export default function WelcomeScreen() {
             </p>
             <button style={styles.btnPrimary} onClick={handleRestart}>
               ← Regresar al inicio
+            </button>
+            <button
+              style={{ background: "none", border: "none", color: "#1B3F8B", fontSize: "16px", cursor: "pointer", textDecoration: "underline", marginTop: "8px", display: "block", width: "100%" }}
+              onClick={() => setScreen("welcome")}
+            >
+              ← Atrás
             </button>
           </div>
         </div>
@@ -354,17 +363,13 @@ export default function WelcomeScreen() {
           <option value="no">No, en otro momento</option>
         </select>
 
-        {selection === "si" && (
-          <button style={styles.btnPrimary} onClick={handleContinue}>
-            Continuar
-          </button>
-        )}
-
-        {selection === "no" && (
-          <button style={styles.btnGray} onClick={handleContinue}>
-            Entendido →
-          </button>
-        )}
+        <button
+          style={selection ? styles.btnPrimary : styles.btnGray}
+          onClick={handleContinue}
+          disabled={!selection}
+        >
+          {selection === "no" ? "Entendido →" : "Continuar →"}
+        </button>
 
         <div style={styles.noteCard}>
           <div style={{ width: "100px", height: "100px", overflow: "hidden", flexShrink: 0 }}>
