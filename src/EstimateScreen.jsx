@@ -54,7 +54,7 @@ const getEPC = (kwp, epcTable) => {
 
 const roundToPanels = (kwp) => {
   const panelKwp = CFG_DEFAULTS.panel_watts / 1000;
-  return Math.floor(kwp / panelKwp) * panelKwp;
+  return Math.ceil(kwp / panelKwp) * panelKwp;
 };
 
 const calcFinancing = (systemCost) => {
@@ -123,16 +123,17 @@ const resolveBatCfg = (pricing) => {
   if (!pricing?.battery) return BAT_CFG_DEFAULTS;
   const b = pricing.battery;
   return {
-    AC_DC_CONV:        b.ac_dc_conv                     ?? BAT_CFG_DEFAULTS.AC_DC_CONV,
-    INV_UNIT_KW:       b.inverter?.kw_per_unit           ?? BAT_CFG_DEFAULTS.INV_UNIT_KW,
-    BAT_UNIT_KWH:      b.battery_unit?.kwh_per_unit      ?? BAT_CFG_DEFAULTS.BAT_UNIT_KWH,
-    MAX_BATT_PER_INV:  b.battery_unit?.max_per_inverter  ?? BAT_CFG_DEFAULTS.MAX_BATT_PER_INV,
-    INV_COST:          b.inverter?.cost                  ?? BAT_CFG_DEFAULTS.INV_COST,
-    BAT_COST:          b.battery_unit?.cost              ?? BAT_CFG_DEFAULTS.BAT_COST,
-    BAT_SHIP:          b.battery_unit?.shipping          ?? BAT_CFG_DEFAULTS.BAT_SHIP,
-    INV_SHIP:          b.inverter?.shipping              ?? BAT_CFG_DEFAULTS.INV_SHIP,
-    BAT_INSTALL_FIRST: b.battery_unit?.install_first     ?? BAT_CFG_DEFAULTS.BAT_INSTALL_FIRST,
-    BAT_INSTALL_NEXT:  b.battery_unit?.install_next      ?? BAT_CFG_DEFAULTS.BAT_INSTALL_NEXT,
+    AC_DC_CONV:        b.ac_dc_conv                      ?? BAT_CFG_DEFAULTS.AC_DC_CONV,
+    INV_UNIT_KW:       b.batt_inv_60?.kw_per_unit        ?? BAT_CFG_DEFAULTS.INV_UNIT_KW,
+    BAT_UNIT_KWH:      b.batt_unit?.kwh_per_unit         ?? BAT_CFG_DEFAULTS.BAT_UNIT_KWH,
+    MAX_BATT_PER_INV:  b.batt_unit?.max_per_inverter     ?? BAT_CFG_DEFAULTS.MAX_BATT_PER_INV,
+    INV_COST:          b.batt_inv_60?.inv_cost           ?? BAT_CFG_DEFAULTS.INV_COST,
+    INV_SMA_COST:      b.batt_inv_60?.sma_cost           ?? 0,
+    BAT_COST:          b.batt_unit?.cost                 ?? BAT_CFG_DEFAULTS.BAT_COST,
+    BAT_SHIP:          b.batt_unit?.shipping             ?? BAT_CFG_DEFAULTS.BAT_SHIP,
+    INV_SHIP:          b.batt_inv_60?.shipping           ?? BAT_CFG_DEFAULTS.INV_SHIP,
+    BAT_INSTALL_FIRST: b.batt_unit?.install_first        ?? BAT_CFG_DEFAULTS.BAT_INSTALL_FIRST,
+    BAT_INSTALL_NEXT:  b.batt_unit?.install_next         ?? BAT_CFG_DEFAULTS.BAT_INSTALL_NEXT,
     MARKUP:            b.markup                          ?? BAT_CFG_DEFAULTS.MARKUP,
   };
 };
@@ -140,7 +141,7 @@ const resolveBatCfg = (pricing) => {
 export const calcBatterySystem = (demandaKVA, avgMonthlyKWH, batteryHours, pricing) => {
   if (!batteryHours || batteryHours === 0) return null;
   const { AC_DC_CONV, INV_UNIT_KW, BAT_UNIT_KWH, MAX_BATT_PER_INV,
-          INV_COST, BAT_COST, BAT_SHIP, INV_SHIP,
+          INV_COST, INV_SMA_COST, BAT_COST, BAT_SHIP, INV_SHIP,
           BAT_INSTALL_FIRST, BAT_INSTALL_NEXT, MARKUP } = resolveBatCfg(pricing);
 
   const requiredKW_dc = demandaKVA * AC_DC_CONV;
@@ -156,10 +157,11 @@ export const calcBatterySystem = (demandaKVA, avgMonthlyKWH, batteryHours, prici
   const numBatteries  = Math.min(Math.max(rawBatteries, minBatteries), maxBatteries);
   const systemKWH     = numBatteries * BAT_UNIT_KWH;
 
-  const equipPrice    = (numInverters * INV_COST + numBatteries * BAT_COST) * MARKUP;
+  // Substitution pricing: inverter cost = SolArk cost − equivalent SMA cost (SMA already in EPC)
+  const invSubCost    = INV_COST - INV_SMA_COST;
   const shipping      = (numBatteries * BAT_SHIP) + (numInverters * INV_SHIP);
   const installation  = BAT_INSTALL_FIRST + ((numBatteries - 1) * BAT_INSTALL_NEXT);
-  const totalCost     = equipPrice + shipping + installation;
+  const totalCost     = (numInverters * invSubCost + numBatteries * BAT_COST + shipping + installation) * MARKUP;
   const actualHours   = hourlyKW > 0 ? systemKWH / hourlyKW : 0;
 
   return {
@@ -168,7 +170,6 @@ export const calcBatterySystem = (demandaKVA, avgMonthlyKWH, batteryHours, prici
     systemKW,
     systemKWH,
     actualHours: Math.round(actualHours * 10) / 10,
-    equipPrice,
     shipping,
     installation,
     totalCost: Math.round(totalCost),
@@ -346,7 +347,8 @@ function EstimateScreenInner({ ocrData, sqft, batteryHours, setBatteryHours, pri
   const cargoDemanda   = parseNum(ocrData?.cargoDemanda);
   const excesoUSD      = parseNum(ocrData?.excesoUSD);
   const costoKWH       = parseNum(ocrData?.costoPorKWH);
-  const demandaKVA     = parseNum(ocrData?.demandaKVA);
+  // Regulatory minimum: Secundaria tariff cap is 50 kVA; also use as fallback if OCR missed it
+  const demandaKVA     = Math.max(parseNum(ocrData?.demandaKVA), 50);
   const excesoKVA      = parseNum(ocrData?.excesoKVA);
   const tariff         = ocrData?.tariff || "";
 

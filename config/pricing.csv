@@ -1,0 +1,46 @@
+# Windmar Commercial — PreQual Wizard Pricing
+# Edit this file, then run: node scripts/csv_to_pricing.js
+# Push to Railway with: node scripts/push_pricing.js  (or tell Claude "push new pricing")
+#
+# solar_tier rows: key = max_kw upper bound (blank = no upper limit), value = price per watt ($)
+# battery rows:    key = parameter name, value = cost or spec
+# financing rows:  key = parameter name, value = number
+#
+section,key,value,notes
+solar_tier,5,3.52,Up to 5 kW
+solar_tier,35,3.13,5 to 35 kW
+solar_tier,100,2.97,35 to 100 kW
+solar_tier,250,2.84,100 to 250 kW
+solar_tier,500,2.44,250 to 500 kW
+solar_tier,1200,2.32,500 to 1200 kW
+solar_tier,2000,2.10,1200 to 2000 kW
+solar_tier,3000,2.05,2000 to 3000 kW
+solar_tier,4000,2.00,3000 to 4000 kW
+solar_tier,5000,1.90,4000 to 5000 kW
+solar_tier,10000,1.85,5000 to 10000 kW
+solar_tier,,1.70,Above 10000 kW (no upper limit)
+battery,markup,1.35,Customer price = cost * markup
+battery,ac_dc_conv,1.25,AC load to DC sizing factor
+battery,batt_inv_60_model,60K-3P-480V,Sol-Ark 60kW 480V inverter model
+battery,batt_inv_60_brand,Sol-Ark,
+battery,batt_inv_60_kw_per_unit,60,kW per inverter unit
+battery,batt_inv_60_inv_cost,12900,Supplier cost per 60kW inverter
+battery,inv_sma_60_cost,6000,SMA equivalent cost for 60kW (substitution pricing)
+battery,batt_inv_60_shipping,150,Shipping per 60kW inverter
+battery,batt_inv_30_model,30K-3P-208V,Sol-Ark 30kW 208V inverter model (future use)
+battery,batt_inv_30_brand,Sol-Ark,
+battery,batt_inv_30_kw_per_unit,30,kW per 30kW inverter unit
+battery,batt_inv_30_cost,9525,Supplier cost per 30kW inverter
+battery,inv_sma_30_cost,4000,SMA equivalent cost for 30kW (substitution pricing)
+battery,batt_inv_30_shipping,150,Shipping per 30kW inverter
+battery,batt_model,L3-HVR-60KWH,Sol-Ark battery model
+battery,batt_brand,Sol-Ark,
+battery,batt_kwh_per_unit,60,kWh per battery unit
+battery,batt_cost,27700,Supplier cost per battery unit
+battery,batt_shipping,500,Shipping per battery unit
+battery,batt_install_first,7000,Installation cost for first battery
+battery,batt_install_next,2000,Installation cost for each additional battery
+battery,batt_max_per_inverter,6,Max battery units per inverter
+financing,term_years,15,Loan amortization term
+financing,rate,0.09,Annual interest rate (9%)
+financing,balloon_month,84,Balloon payment at month 84 (year 7)
