@@ -13030,12 +13030,12 @@
     excesoUSD: 0,
     excesoKVA: 0
   };
-  function UploadScreen({ onNext, onBack }) {
-    const [stage, setStage] = (0, import_react.useState)("idle");
+  function UploadScreen({ onNext, onBack, resumeData }) {
+    const [stage, setStage] = (0, import_react.useState)(resumeData ? "done" : "idle");
     const [file, setFile] = (0, import_react.useState)(null);
     const [isDragging, setIsDragging] = (0, import_react.useState)(false);
     const [progress, setProgress] = (0, import_react.useState)(0);
-    const [fields, setFields] = (0, import_react.useState)({
+    const [fields, setFields] = (0, import_react.useState)(resumeData || {
       nombreNegocio: "",
       direccion: "",
       municipio: "",
@@ -13049,7 +13049,7 @@
       excesoUSD: 0,
       excesoKVA: 0
     });
-    const [extractedRaw, setExtractedRaw] = (0, import_react.useState)({});
+    const [extractedRaw, setExtractedRaw] = (0, import_react.useState)(resumeData || {});
     const fileInputRef = (0, import_react.useRef)(null);
     const intervalRef = (0, import_react.useRef)(null);
     (0, import_react.useEffect)(() => () => {
@@ -14878,6 +14878,7 @@
       return /* @__PURE__ */ (0, import_jsx_runtime8.jsx)(
         UploadScreen,
         {
+          resumeData: ocrData,
           onNext: (data, files) => {
             setOcrData(data);
             setBillFiles(files);

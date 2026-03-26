@@ -282,17 +282,17 @@ const MOCK_OCR = {
 };
 
 // ─── UploadScreen ───────────────────────────────────────────────────────────
-export default function UploadScreen({ onNext, onBack }) {
-  const [stage, setStage]           = useState("idle");      // idle | processing | done
+export default function UploadScreen({ onNext, onBack, resumeData }) {
+  const [stage, setStage]           = useState(resumeData ? "done" : "idle");
   const [file, setFile]             = useState(null);
   const [isDragging, setIsDragging] = useState(false);
   const [progress, setProgress]     = useState(0);
-  const [fields, setFields]         = useState({
+  const [fields, setFields]         = useState(resumeData || {
     nombreNegocio: "", direccion: "", municipio: "", tariff: "",
     consumoKWH: "", demandaKVA: "", totalFactura: "", costoPorKWH: "",
     cargoCliente: 0, cargoDemanda: 0, excesoUSD: 0, excesoKVA: 0,
   });
-  const [extractedRaw, setExtractedRaw] = useState({});
+  const [extractedRaw, setExtractedRaw] = useState(resumeData || {});
 
   const fileInputRef = useRef(null);
   const intervalRef  = useRef(null);

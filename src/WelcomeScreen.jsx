@@ -252,6 +252,7 @@ export default function WelcomeScreen() {
   if (screen === "upload") {
     return (
       <UploadScreen
+        resumeData={ocrData}
         onNext={(data, files) => { setOcrData(data); setBillFiles(files); setScreen("roof"); }}
         onBack={handleRestart}
       />
