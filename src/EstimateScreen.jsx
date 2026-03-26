@@ -363,14 +363,18 @@ function EstimateScreenInner({ ocrData, sqft, batteryHours, setBatteryHours, pri
     exceso_kva:    excesoKVA,
   }, epcTable);
 
-  const paybackYears = est.savingsCash > 0
-    ? Math.ceil(est.systemCost / (est.savingsCash * 12))
-    : "—";
-
   // Battery
   const localBatteryHours = batteryHours ?? 0;
   const batteryResult = calcBatterySystem(demandaKVA, consumoMensual, localBatteryHours, pricing);
   const totalCost = est.systemCost + (batteryResult?.totalCost ?? 0);
+
+  // Recalculate financing on total cost (solar + battery)
+  const totalFin          = calcFinancing(totalCost);
+  const totalMonthlyPmt   = totalFin.monthlyPmt;
+  const totalSavingsNet   = Math.round(est.savingsCash - totalMonthlyPmt);
+  const paybackYears      = est.savingsCash > 0
+    ? Math.ceil(totalCost / (est.savingsCash * 12))
+    : "—";
 
   const sliderIdx = Math.max(0, SLIDER_HOURS.indexOf(localBatteryHours));
   const handleSliderChange = (e) => {
@@ -429,11 +433,11 @@ function EstimateScreenInner({ ocrData, sqft, batteryHours, setBatteryHours, pri
           </div>
           <div style={S.row}>
             <span style={S.rowLabel}>Pago mensual:</span>
-            <span style={S.rowValue}>{fmtUSD(est.monthlyPmt)}</span>
+            <span style={S.rowValue}>{fmtUSD(totalMonthlyPmt)}</span>
           </div>
           <div style={S.rowBold}>
             <span style={S.rowBoldLabel}>Ahorro mensual neto:</span>
-            <span style={S.rowBoldValue}>{fmtUSD(est.savingsFinanced)}</span>
+            <span style={S.rowBoldValue}>{fmtUSD(totalSavingsNet)}</span>
           </div>
         </div>
 

@@ -13980,10 +13980,13 @@
       demanda_kva: demandaKVA,
       exceso_kva: excesoKVA
     }, epcTable);
-    const paybackYears = est.savingsCash > 0 ? Math.ceil(est.systemCost / (est.savingsCash * 12)) : "\u2014";
     const localBatteryHours = batteryHours ?? 0;
     const batteryResult = calcBatterySystem(demandaKVA, consumoMensual, localBatteryHours, pricing);
     const totalCost = est.systemCost + (batteryResult?.totalCost ?? 0);
+    const totalFin = calcFinancing(totalCost);
+    const totalMonthlyPmt = totalFin.monthlyPmt;
+    const totalSavingsNet = Math.round(est.savingsCash - totalMonthlyPmt);
+    const paybackYears = est.savingsCash > 0 ? Math.ceil(totalCost / (est.savingsCash * 12)) : "\u2014";
     const sliderIdx = Math.max(0, SLIDER_HOURS2.indexOf(localBatteryHours));
     const handleSliderChange = (e) => {
       setBatteryHours(SLIDER_HOURS2[Number(e.target.value)]);
@@ -14045,11 +14048,11 @@
           ] }),
           /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)("div", { style: S5.row, children: [
             /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("span", { style: S5.rowLabel, children: "Pago mensual:" }),
-            /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("span", { style: S5.rowValue, children: fmtUSD(est.monthlyPmt) })
+            /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("span", { style: S5.rowValue, children: fmtUSD(totalMonthlyPmt) })
           ] }),
           /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)("div", { style: S5.rowBold, children: [
             /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("span", { style: S5.rowBoldLabel, children: "Ahorro mensual neto:" }),
-            /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("span", { style: S5.rowBoldValue, children: fmtUSD(est.savingsFinanced) })
+            /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("span", { style: S5.rowBoldValue, children: fmtUSD(totalSavingsNet) })
           ] })
         ] }),
         /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("style", { children: `
