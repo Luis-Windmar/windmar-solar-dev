@@ -265,6 +265,22 @@ function normalizeOCR(data) {
   };
 }
 
+// ─── Mock OCR data (dev bypass) ─────────────────────────────────────────────
+const MOCK_OCR = {
+  nombreNegocio: "MOC OCR BIZ NAME",
+  direccion:     "PONCE BY PASS PONCE, PONCE PR 00730",
+  municipio:     "Ponce",
+  tariff:        "Servicio Comercial General a Distribución Primaria",
+  consumoKWH:    "38,880 kWh",
+  demandaKVA:    "150.00 kVA",
+  totalFactura:  "$10,599.08",
+  costoPorKWH:   "0.2479",
+  cargoCliente:  200,
+  cargoDemanda:  769.50,
+  excesoUSD:     0,
+  excesoKVA:     0,
+};
+
 // ─── UploadScreen ───────────────────────────────────────────────────────────
 export default function UploadScreen({ onNext, onBack }) {
   const [stage, setStage]           = useState("idle");      // idle | processing | done
@@ -333,6 +349,12 @@ export default function UploadScreen({ onNext, onBack }) {
     if (e.dataTransfer.files.length > 0) handleFileChange(e.dataTransfer.files);
   };
 
+  const handleMockOCR = () => {
+    setExtractedRaw(MOCK_OCR);
+    setFields(MOCK_OCR);
+    setStage("done");
+  };
+
   const resetToIdle = () => {
     if (intervalRef.current) clearInterval(intervalRef.current);
     setStage("idle");
@@ -385,6 +407,15 @@ export default function UploadScreen({ onNext, onBack }) {
               <div style={S.tipItem}>• Sube una factura reciente</div>
               <div style={S.tipItem}>• Si es foto, tómala con buena luz</div>
             </div>
+          </div>
+
+          <div style={{ textAlign: "center" }}>
+            <button
+              onClick={handleMockOCR}
+              style={{ background: "none", border: "none", color: "#9ca3af", fontSize: "12px", cursor: "pointer", textDecoration: "underline" }}
+            >
+              usar datos de prueba
+            </button>
           </div>
 
         </div>

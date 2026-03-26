@@ -13016,6 +13016,20 @@
       excesoKVA
     };
   }
+  var MOCK_OCR = {
+    nombreNegocio: "MOC OCR BIZ NAME",
+    direccion: "PONCE BY PASS PONCE, PONCE PR 00730",
+    municipio: "Ponce",
+    tariff: "Servicio Comercial General a Distribuci\xF3n Primaria",
+    consumoKWH: "38,880 kWh",
+    demandaKVA: "150.00 kVA",
+    totalFactura: "$10,599.08",
+    costoPorKWH: "0.2479",
+    cargoCliente: 200,
+    cargoDemanda: 769.5,
+    excesoUSD: 0,
+    excesoKVA: 0
+  };
   function UploadScreen({ onNext, onBack }) {
     const [stage, setStage] = (0, import_react.useState)("idle");
     const [file, setFile] = (0, import_react.useState)(null);
@@ -13082,6 +13096,11 @@
       setIsDragging(false);
       if (e.dataTransfer.files.length > 0) handleFileChange(e.dataTransfer.files);
     };
+    const handleMockOCR = () => {
+      setExtractedRaw(MOCK_OCR);
+      setFields(MOCK_OCR);
+      setStage("done");
+    };
     const resetToIdle = () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
       setStage("idle");
@@ -13131,7 +13150,15 @@
               /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("div", { style: S2.tipItem, children: "\u2022 Sube una factura reciente" }),
               /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("div", { style: S2.tipItem, children: "\u2022 Si es foto, t\xF3mala con buena luz" })
             ] })
-          ] })
+          ] }),
+          /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("div", { style: { textAlign: "center" }, children: /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(
+            "button",
+            {
+              onClick: handleMockOCR,
+              style: { background: "none", border: "none", color: "#9ca3af", fontSize: "12px", cursor: "pointer", textDecoration: "underline" },
+              children: "usar datos de prueba"
+            }
+          ) })
         ] })
       ] });
     }
