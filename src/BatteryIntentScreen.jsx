@@ -115,7 +115,7 @@ export default function BatteryIntentScreen({ batteryHours, onNext, onBack }) {
         .battery-slider::-moz-range-thumb { width: 28px; height: 28px; border-radius: 50%; background: #1B3F8B; cursor: pointer; border: none; }
       `}</style>
       <Header />
-      <ProgressBar current={3} total={5} />
+      <ProgressBar current={4} total={6} />
       <div style={S.content}>
         <h1 style={S.h1}>¿Deseas incluir almacenamiento de energía?</h1>
         <p style={S.sub}>

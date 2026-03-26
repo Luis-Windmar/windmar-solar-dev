@@ -350,9 +350,7 @@ export default function UploadScreen({ onNext, onBack }) {
   };
 
   const handleMockOCR = () => {
-    setExtractedRaw(MOCK_OCR);
-    setFields(MOCK_OCR);
-    setStage("done");
+    onNext(MOCK_OCR, null);
   };
 
   const resetToIdle = () => {
@@ -367,7 +365,7 @@ export default function UploadScreen({ onNext, onBack }) {
     return (
       <div style={S.page}>
         <Header />
-        <ProgressBar current={2} total={5} />
+        <ProgressBar current={2} total={6} />
         <div style={S.content}>
           <h1 style={S.h1}>Sube tu factura de LUMA</h1>
           <p style={S.sub}>
@@ -431,7 +429,7 @@ export default function UploadScreen({ onNext, onBack }) {
     return (
       <div style={S.page}>
         <Header />
-        <ProgressBar current={2} total={5} />
+        <ProgressBar current={2} total={6} />
         <div style={S.content}>
           <h1 style={S.h1}>Analizando factura…</h1>
 
@@ -489,7 +487,7 @@ export default function UploadScreen({ onNext, onBack }) {
   return (
     <div style={S.page}>
       <Header />
-      <ProgressBar current={2} total={5} />
+      <ProgressBar current={2} total={6} />
       <div style={S.content}>
         <h1 style={S.h1}>¡Factura procesada!</h1>
         <p style={S.sub}>

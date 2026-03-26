@@ -13097,9 +13097,7 @@
       if (e.dataTransfer.files.length > 0) handleFileChange(e.dataTransfer.files);
     };
     const handleMockOCR = () => {
-      setExtractedRaw(MOCK_OCR);
-      setFields(MOCK_OCR);
-      setStage("done");
+      onNext(MOCK_OCR, null);
     };
     const resetToIdle = () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
@@ -13110,7 +13108,7 @@
     if (stage === "idle") {
       return /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)("div", { style: S2.page, children: [
         /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(Header, {}),
-        /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(ProgressBar, { current: 2, total: 5 }),
+        /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(ProgressBar, { current: 2, total: 6 }),
         /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)("div", { style: S2.content, children: [
           /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("h1", { style: S2.h1, children: "Sube tu factura de LUMA" }),
           /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("p", { style: S2.sub, children: "Toma una foto, o selecciona un PDF de tu factura m\xE1s reciente. Nosotros nos encargamos del resto." }),
@@ -13167,7 +13165,7 @@
       const stepLabel = getStepLabel(progress);
       return /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)("div", { style: S2.page, children: [
         /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(Header, {}),
-        /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(ProgressBar, { current: 2, total: 5 }),
+        /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(ProgressBar, { current: 2, total: 6 }),
         /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)("div", { style: S2.content, children: [
           /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("h1", { style: S2.h1, children: "Analizando factura\u2026" }),
           /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)("div", { style: S2.fileChip, children: [
@@ -13209,7 +13207,7 @@
     }
     return /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)("div", { style: S2.page, children: [
       /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(Header, {}),
-      /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(ProgressBar, { current: 2, total: 5 }),
+      /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(ProgressBar, { current: 2, total: 6 }),
       /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)("div", { style: S2.content, children: [
         /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("h1", { style: S2.h1, children: "\xA1Factura procesada!" }),
         /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("p", { style: S2.sub, children: "Revisa lo que le\xED, y corrige lo necesario \xFAnicamente." }),
@@ -13377,7 +13375,7 @@
     const canContinue = effectiveSqft !== null && effectiveSqft > 0;
     return /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("div", { style: S3.page, children: [
       /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(Header, {}),
-      /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(ProgressBar, { current: 3, total: 5 }),
+      /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(ProgressBar, { current: 3, total: 6 }),
       /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("div", { style: S3.content, children: [
         /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("h1", { style: S3.h1, children: "\xBFCu\xE1nto techo tienes disponible?" }),
         /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("p", { style: S3.sub, children: "Selecciona la opci\xF3n que mejor describe tu negocio, o ingresa el \xE1rea exacta abajo." }),
@@ -13541,7 +13539,7 @@
         .battery-slider::-moz-range-thumb { width: 28px; height: 28px; border-radius: 50%; background: #1B3F8B; cursor: pointer; border: none; }
       ` }),
       /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Header, {}),
-      /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(ProgressBar, { current: 3, total: 5 }),
+      /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(ProgressBar, { current: 4, total: 6 }),
       /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)("div", { style: S4.content, children: [
         /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("h1", { style: S4.h1, children: "\xBFDeseas incluir almacenamiento de energ\xEDa?" }),
         /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("p", { style: S4.sub, children: "Las bater\xEDas te dan respaldo el\xE9ctrico durante apagones. No reducen tu factura, pero mantienen tu negocio operando." }),
@@ -13961,7 +13959,7 @@
       display: "block"
     }
   };
-  function EstimateScreenInner({ ocrData, sqft, batteryHours, setBatteryHours, pricing, onInterested, onNotInterested }) {
+  function EstimateScreenInner({ ocrData, sqft, batteryHours, setBatteryHours, pricing, onInterested, onNotInterested, onBack }) {
     const consumoMensual = parseNum(ocrData?.consumoKWH);
     const municipio = ocrData?.municipio || "San Juan";
     const cargoCliente = parseNum(ocrData?.cargoCliente);
@@ -13992,7 +13990,7 @@
     };
     return /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)("div", { style: S5.page, children: [
       /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(Header, {}),
-      /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(ProgressBar, { current: 4, total: 5 }),
+      /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(ProgressBar, { current: 5, total: 6 }),
       /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)("div", { style: S5.content, children: [
         /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("h1", { style: S5.h1, children: "Tu estimado solar" }),
         /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)("p", { style: S5.sub, children: [
@@ -14074,6 +14072,13 @@
             /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("span", { style: S5.totalValue, children: fmtUSD(totalCost) })
           ] })
         ] }),
+        /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("style", { children: `
+          .est-slider { -webkit-appearance: none; appearance: none; width: 100%; height: 28px; background: transparent; outline: none; cursor: pointer; }
+          .est-slider::-webkit-slider-runnable-track { height: 3px; background: #d1d5db; border-radius: 2px; }
+          .est-slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 28px; height: 28px; border-radius: 50%; background: #1B3F8B; cursor: pointer; margin-top: -12.5px; }
+          .est-slider::-moz-range-track { height: 3px; background: #d1d5db; border-radius: 2px; }
+          .est-slider::-moz-range-thumb { width: 28px; height: 28px; border-radius: 50%; background: #1B3F8B; cursor: pointer; border: none; }
+        ` }),
         /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)("div", { style: S5.sliderCard, children: [
           /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("div", { style: S5.sliderLabel, children: "Ajusta las horas de respaldo:" }),
           /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("div", { style: S5.sliderValue, children: localBatteryHours === 0 ? "Sin almacenamiento" : `${localBatteryHours} horas de respaldo` }),
@@ -14081,18 +14086,20 @@
             "input",
             {
               type: "range",
+              className: "est-slider",
               min: 0,
               max: SLIDER_HOURS2.length - 1,
               step: 1,
               value: sliderIdx,
               onChange: handleSliderChange,
-              style: { width: "100%", cursor: "pointer", accentColor: "#F5A623", minHeight: "44px" }
+              style: { width: "100%", cursor: "pointer" }
             }
           ),
           /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("div", { style: S5.sliderTicks, children: SLIDER_HOURS2.map((h) => /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("span", { children: h === 0 ? "0" : `${h}h` }, h)) })
         ] }),
         /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("button", { style: S5.btnOrange, onClick: () => onInterested(est, batteryResult), children: "S\xED me interesa" }),
-        /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("button", { style: S5.btnGray, onClick: onNotInterested, children: "No por ahora" })
+        /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("button", { style: S5.btnGray, onClick: onNotInterested, children: "No por ahora" }),
+        /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("button", { style: { ...S5.btnGray, backgroundColor: "transparent", color: "#1B3F8B", border: "2px solid #1B3F8B", marginTop: "12px" }, onClick: onBack, children: "Atr\xE1s" })
       ] })
     ] });
   }
@@ -14250,7 +14257,7 @@
     });
     return /* @__PURE__ */ (0, import_jsx_runtime6.jsxs)("div", { style: S6.page, children: [
       /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(Header, {}),
-      /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(ProgressBar, { current: 5, total: 5 }),
+      /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(ProgressBar, { current: 5, total: 6 }),
       /* @__PURE__ */ (0, import_jsx_runtime6.jsxs)("div", { style: S6.content, children: [
         /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("h1", { style: S6.h1, children: "Un paso m\xE1s" }),
         /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("p", { style: S6.sub, children: "Comp\xE1rtenos tus datos y un consultor de Windmar se pondr\xE1 en contacto para discutir tu inter\xE9s." }),
@@ -14875,7 +14882,7 @@
       return /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)("div", { style: styles.container, children: [
         /* @__PURE__ */ (0, import_jsx_runtime8.jsx)(Header2, {}),
         /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("div", { style: styles.content, children: /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)("div", { style: styles.exitCard, children: [
-          /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("div", { style: styles.exitIcon, children: "\u{1F91D}" }),
+          /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("img", { src: "/hand_shake.jpg", alt: "", style: { width: "96px", height: "96px", objectFit: "contain" } }),
           /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("h2", { style: styles.exitHeading, children: "\xA1Gracias por su tiempo!" }),
           /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("p", { style: styles.exitText, children: "Entendemos que este no es el momento ideal. Cuando est\xE9 listo para explorar opciones de energ\xEDa solar, estaremos aqu\xED para ayudarle." }),
           /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("button", { style: styles.btnPrimary, onClick: handleRestart, children: "\u2190 Regresar al inicio" })
@@ -14934,7 +14941,8 @@
             setBatteryResult(batt);
             setScreen("contact");
           },
-          onNotInterested: () => setScreen("thankyou-no")
+          onNotInterested: () => setScreen("thankyou-no"),
+          onBack: () => setScreen("battery")
         }
       );
     }
@@ -14979,7 +14987,7 @@
     }
     return /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)("div", { style: styles.container, children: [
       /* @__PURE__ */ (0, import_jsx_runtime8.jsx)(Header2, {}),
-      /* @__PURE__ */ (0, import_jsx_runtime8.jsx)(ProgressBar2, { current: 1, total: 5 }),
+      /* @__PURE__ */ (0, import_jsx_runtime8.jsx)(ProgressBar2, { current: 1, total: 6 }),
       /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)("div", { style: styles.content, children: [
         /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("h1", { style: styles.heading, children: "\xA1Bienvenido!" }),
         /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("h2", { style: styles.subheading, children: "Estimado Solar Comercial" }),

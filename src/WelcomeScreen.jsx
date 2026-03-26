@@ -234,7 +234,7 @@ export default function WelcomeScreen() {
         <Header />
         <div style={styles.content}>
           <div style={styles.exitCard}>
-            <div style={styles.exitIcon}>🤝</div>
+            <img src="/hand_shake.jpg" alt="" style={{ width: "96px", height: "96px", objectFit: "contain" }} />
             <h2 style={styles.exitHeading}>¡Gracias por su tiempo!</h2>
             <p style={styles.exitText}>
               Entendemos que este no es el momento ideal. Cuando esté listo para
@@ -287,6 +287,7 @@ export default function WelcomeScreen() {
         setBatteryHours={setBatteryHours}
         onInterested={(est, batt) => { setEstData(est); setBatteryResult(batt); setScreen("contact"); }}
         onNotInterested={() => setScreen("thankyou-no")}
+        onBack={() => setScreen("battery")}
       />
     );
   }
@@ -330,7 +331,7 @@ export default function WelcomeScreen() {
   return (
     <div style={styles.container}>
       <Header />
-      <ProgressBar current={1} total={5} />
+      <ProgressBar current={1} total={6} />
       <div style={styles.content}>
         <h1 style={styles.heading}>¡Bienvenido!</h1>
         <h2 style={styles.subheading}>Estimado Solar Comercial</h2>

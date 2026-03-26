@@ -142,7 +142,7 @@ export default function RoofScreen({ onNext, onBack }) {
   return (
     <div style={S.page}>
       <Header />
-      <ProgressBar current={3} total={5} />
+      <ProgressBar current={3} total={6} />
       <div style={S.content}>
         <h1 style={S.h1}>¿Cuánto techo tienes disponible?</h1>
         <p style={S.sub}>

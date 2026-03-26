@@ -339,7 +339,7 @@ const S = {
 };
 
 // ─── EstimateScreen ─────────────────────────────────────────────────────────
-function EstimateScreenInner({ ocrData, sqft, batteryHours, setBatteryHours, pricing, onInterested, onNotInterested }) {
+function EstimateScreenInner({ ocrData, sqft, batteryHours, setBatteryHours, pricing, onInterested, onNotInterested, onBack }) {
   const consumoMensual = parseNum(ocrData?.consumoKWH);
   const municipio      = ocrData?.municipio || "San Juan";
   const cargoCliente   = parseNum(ocrData?.cargoCliente);
@@ -380,7 +380,7 @@ function EstimateScreenInner({ ocrData, sqft, batteryHours, setBatteryHours, pri
   return (
     <div style={S.page}>
       <Header />
-      <ProgressBar current={4} total={5} />
+      <ProgressBar current={5} total={6} />
       <div style={S.content}>
         <h1 style={S.h1}>Tu estimado solar</h1>
         <p style={S.sub}>{municipio} – {sqft.toLocaleString()} p²</p>
@@ -459,7 +459,14 @@ function EstimateScreenInner({ ocrData, sqft, batteryHours, setBatteryHours, pri
           </>
         )}
 
-        {/* Battery fine-tune / add slider */}
+        {/* Battery fine-tune slider */}
+        <style>{`
+          .est-slider { -webkit-appearance: none; appearance: none; width: 100%; height: 28px; background: transparent; outline: none; cursor: pointer; }
+          .est-slider::-webkit-slider-runnable-track { height: 3px; background: #d1d5db; border-radius: 2px; }
+          .est-slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 28px; height: 28px; border-radius: 50%; background: #1B3F8B; cursor: pointer; margin-top: -12.5px; }
+          .est-slider::-moz-range-track { height: 3px; background: #d1d5db; border-radius: 2px; }
+          .est-slider::-moz-range-thumb { width: 28px; height: 28px; border-radius: 50%; background: #1B3F8B; cursor: pointer; border: none; }
+        `}</style>
         <div style={S.sliderCard}>
           <div style={S.sliderLabel}>Ajusta las horas de respaldo:</div>
           <div style={S.sliderValue}>
@@ -467,12 +474,13 @@ function EstimateScreenInner({ ocrData, sqft, batteryHours, setBatteryHours, pri
           </div>
           <input
             type="range"
+            className="est-slider"
             min={0}
             max={SLIDER_HOURS.length - 1}
             step={1}
             value={sliderIdx}
             onChange={handleSliderChange}
-            style={{ width: "100%", cursor: "pointer", accentColor: "#F5A623", minHeight: "44px" }}
+            style={{ width: "100%", cursor: "pointer" }}
           />
           <div style={S.sliderTicks}>
             {SLIDER_HOURS.map((h) => (
@@ -486,6 +494,9 @@ function EstimateScreenInner({ ocrData, sqft, batteryHours, setBatteryHours, pri
         </button>
         <button style={S.btnGray} onClick={onNotInterested}>
           No por ahora
+        </button>
+        <button style={{ ...S.btnGray, backgroundColor: "transparent", color: "#1B3F8B", border: "2px solid #1B3F8B", marginTop: "12px" }} onClick={onBack}>
+          Atrás
         </button>
       </div>
     </div>
