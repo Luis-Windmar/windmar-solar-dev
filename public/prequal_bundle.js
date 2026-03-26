@@ -13158,6 +13158,14 @@
               style: { background: "none", border: "none", color: "#9ca3af", fontSize: "12px", cursor: "pointer", textDecoration: "underline" },
               children: "usar datos de prueba"
             }
+          ) }),
+          /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("div", { style: { textAlign: "center", marginTop: "20px" }, children: /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(
+            "button",
+            {
+              onClick: onBack,
+              style: { background: "none", border: "none", color: "#1B3F8B", fontSize: "16px", cursor: "pointer", textDecoration: "underline" },
+              children: "Atr\xE1s"
+            }
           ) })
         ] })
       ] });
@@ -14845,7 +14853,10 @@
       fetch("/api/pricing").then((r) => r.json()).then((data) => setPricing(data)).catch(() => {
       }).finally(() => setPricingLoading(false));
     }, []);
-    const handleContinue = () => setScreen(selection === "si" ? "upload" : "exit");
+    const handleContinue = () => {
+      if (!selection) return;
+      setScreen(selection === "si" ? "upload" : "exit");
+    };
     const handleRestart = () => {
       setSelection("");
       setScreen("welcome");
@@ -14870,7 +14881,15 @@
           /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("img", { src: "/hand_shake.jpg", alt: "", style: { width: "384px", height: "384px", objectFit: "contain", display: "block", margin: "0 auto 16px" } }),
           /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("h2", { style: styles.exitHeading, children: "\xA1Gracias por tu tiempo!" }),
           /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("p", { style: styles.exitText, children: "Entendemos que este no es el momento ideal. Cuando est\xE9s listo para explorar opciones de energ\xEDa solar, estaremos aqu\xED para ayudarte." }),
-          /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("button", { style: styles.btnPrimary, onClick: handleRestart, children: "\u2190 Regresar al inicio" })
+          /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("button", { style: styles.btnPrimary, onClick: handleRestart, children: "\u2190 Regresar al inicio" }),
+          /* @__PURE__ */ (0, import_jsx_runtime8.jsx)(
+            "button",
+            {
+              style: { background: "none", border: "none", color: "#1B3F8B", fontSize: "16px", cursor: "pointer", textDecoration: "underline", marginTop: "8px", display: "block", width: "100%" },
+              onClick: () => setScreen("welcome"),
+              children: "Atr\xE1s"
+            }
+          )
         ] }) })
       ] });
     }
@@ -14996,8 +15015,15 @@
             ]
           }
         ),
-        selection === "si" && /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("button", { style: styles.btnPrimary, onClick: handleContinue, children: "Continuar" }),
-        selection === "no" && /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("button", { style: styles.btnGray, onClick: handleContinue, children: "Entendido \u2192" }),
+        /* @__PURE__ */ (0, import_jsx_runtime8.jsx)(
+          "button",
+          {
+            style: selection ? styles.btnPrimary : styles.btnGray,
+            onClick: handleContinue,
+            disabled: !selection,
+            children: selection === "no" ? "Entendido \u2192" : "Continuar \u2192"
+          }
+        ),
         /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)("div", { style: styles.noteCard, children: [
           /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("div", { style: { width: "100px", height: "100px", overflow: "hidden", flexShrink: 0 }, children: /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("img", { src: "/financing_icon.png", alt: "", style: { width: "100px", height: "100px", objectFit: "contain", transform: "scale(1.6)", transformOrigin: "center" } }) }),
           /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("p", { style: styles.noteText, children: "Windmar Comercial ofrece opciones de financiamiento. Entre ellas, 15 a\xF1os sin pronto. Evaluaremos el sistema ideal para tu negocio, y te daremos un estimado del ahorro." })
