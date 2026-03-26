@@ -235,10 +235,10 @@ export default function WelcomeScreen() {
         <div style={styles.content}>
           <div style={styles.exitCard}>
             <img src="/hand_shake.jpg" alt="" style={{ width: "384px", height: "384px", objectFit: "contain", display: "block", margin: "0 auto 16px" }} />
-            <h2 style={styles.exitHeading}>¡Gracias por su tiempo!</h2>
+            <h2 style={styles.exitHeading}>¡Gracias por tu tiempo!</h2>
             <p style={styles.exitText}>
-              Entendemos que este no es el momento ideal. Cuando esté listo para
-              explorar opciones de energía solar, estaremos aquí para ayudarle.
+              Entendemos que este no es el momento ideal. Cuando estés listo para
+              explorar opciones de energía solar, estaremos aquí para ayudarte.
             </p>
             <button style={styles.btnPrimary} onClick={handleRestart}>
               ← Regresar al inicio
