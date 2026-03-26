@@ -365,7 +365,7 @@ const createZohoLead = async (leadData, token) => {
         PV_System_Size_kW1: p.sistema                              || (leadData.systemKwp ? String(leadData.systemKwp) : null),
         Tipo_de_Tarifa:          p.tarifa                                     || null,
         Quote_Amount:            p.precio ? parseFloat(p.precio) : null,
-        Baterias:                (leadData.batteryHours > 0) ? true : false,
+        Baterias:                leadData.batteryPrice ? parseFloat(leadData.batteryPrice) : null,
         Battery_System_Size_kWh: leadData.batteryKWH != null ? String(leadData.batteryKWH) : null,
         Storage_Size_kWh:        leadData.batteryKWH != null ? String(leadData.batteryKWH) : null,
         Lead_Notes:              condensedNotes,
