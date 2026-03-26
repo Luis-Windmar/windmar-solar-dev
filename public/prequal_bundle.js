@@ -13992,7 +13992,7 @@
       /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(Header, {}),
       /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(ProgressBar, { current: 5, total: 6 }),
       /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)("div", { style: S5.content, children: [
-        /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("h1", { style: S5.h1, children: "Tu estimado solar" }),
+        /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("h1", { style: S5.h1, children: "Tu estimado" }),
         /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)("p", { style: S5.sub, children: [
           municipio,
           " \u2013 ",
@@ -14001,17 +14001,24 @@
         ] }),
         /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)("div", { style: S5.card, children: [
           /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)("div", { style: S5.row, children: [
-            /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("span", { style: S5.rowLabel, children: "Capacidad:" }),
+            /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("span", { style: S5.rowLabel, children: "Generaci\xF3n:" }),
             /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)("span", { style: S5.rowValue, children: [
               est.systemKwp.toLocaleString("en-US"),
               " kWp"
             ] })
           ] }),
-          /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)("div", { style: S5.rowLast, children: [
+          /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)("div", { style: batteryResult ? S5.row : S5.rowLast, children: [
             /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("span", { style: S5.rowLabel, children: "Cubre:" }),
             /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)("span", { style: S5.rowValue, children: [
               est.coverage,
               "% de tu consumo"
+            ] })
+          ] }),
+          batteryResult && /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)("div", { style: S5.rowLast, children: [
+            /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("span", { style: S5.rowLabel, children: "Respaldo estimado:" }),
+            /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)("span", { style: S5.rowValue, children: [
+              batteryResult.actualHours,
+              " horas"
             ] })
           ] })
         ] }),
@@ -14025,7 +14032,7 @@
         /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)("div", { style: S5.card, children: [
           /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)("div", { style: S5.row, children: [
             /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("span", { style: S5.rowLabel, children: "Precio de contado:" }),
-            /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("span", { style: S5.rowValue, children: fmtUSD(est.systemCost) })
+            /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("span", { style: S5.rowValue, children: fmtUSD(totalCost) })
           ] }),
           /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)("div", { style: S5.rowLast, children: [
             /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("span", { style: S5.rowLabel, children: "Recuperas la inversi\xF3n en:" }),
@@ -14046,30 +14053,6 @@
           /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)("div", { style: S5.rowBold, children: [
             /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("span", { style: S5.rowBoldLabel, children: "Ahorro mensual neto:" }),
             /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("span", { style: S5.rowBoldValue, children: fmtUSD(est.savingsFinanced) })
-          ] })
-        ] }),
-        batteryResult && /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)(import_jsx_runtime5.Fragment, { children: [
-          /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)("div", { style: S5.card, children: [
-            /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("div", { style: S5.batteryHeader, children: "Almacenamiento de Energ\xEDa" }),
-            /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)("div", { style: S5.row, children: [
-              /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("span", { style: S5.rowLabel, children: "Sistema:" }),
-              /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("span", { style: S5.rowValue, children: batteryResult.productName })
-            ] }),
-            /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)("div", { style: S5.row, children: [
-              /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("span", { style: S5.rowLabel, children: "Respaldo estimado:" }),
-              /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)("span", { style: S5.rowValue, children: [
-                batteryResult.actualHours,
-                " horas"
-              ] })
-            ] }),
-            /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)("div", { style: S5.rowLast, children: [
-              /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("span", { style: S5.rowLabel, children: "Precio estimado:" }),
-              /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("span", { style: S5.rowValue, children: fmtUSD(batteryResult.totalCost) })
-            ] })
-          ] }),
-          /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)("div", { style: S5.totalCard, children: [
-            /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("span", { style: S5.totalLabel, children: "Total Solar + Bater\xEDas" }),
-            /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("span", { style: S5.totalValue, children: fmtUSD(totalCost) })
           ] })
         ] }),
         /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("style", { children: `

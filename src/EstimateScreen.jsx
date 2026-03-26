@@ -382,19 +382,25 @@ function EstimateScreenInner({ ocrData, sqft, batteryHours, setBatteryHours, pri
       <Header />
       <ProgressBar current={5} total={6} />
       <div style={S.content}>
-        <h1 style={S.h1}>Tu estimado solar</h1>
+        <h1 style={S.h1}>Tu estimado</h1>
         <p style={S.sub}>{municipio} – {sqft.toLocaleString()} p²</p>
 
-        {/* Capacidad + Cubre */}
+        {/* Generación + Cubre + Respaldo (if battery) */}
         <div style={S.card}>
           <div style={S.row}>
-            <span style={S.rowLabel}>Capacidad:</span>
+            <span style={S.rowLabel}>Generación:</span>
             <span style={S.rowValue}>{est.systemKwp.toLocaleString("en-US")} kWp</span>
           </div>
-          <div style={S.rowLast}>
+          <div style={batteryResult ? S.row : S.rowLast}>
             <span style={S.rowLabel}>Cubre:</span>
             <span style={S.rowValue}>{est.coverage}% de tu consumo</span>
           </div>
+          {batteryResult && (
+            <div style={S.rowLast}>
+              <span style={S.rowLabel}>Respaldo estimado:</span>
+              <span style={S.rowValue}>{batteryResult.actualHours} horas</span>
+            </div>
+          )}
         </div>
 
         {/* Savings highlight */}
@@ -410,7 +416,7 @@ function EstimateScreenInner({ ocrData, sqft, batteryHours, setBatteryHours, pri
         <div style={S.card}>
           <div style={S.row}>
             <span style={S.rowLabel}>Precio de contado:</span>
-            <span style={S.rowValue}>{fmtUSD(est.systemCost)}</span>
+            <span style={S.rowValue}>{fmtUSD(totalCost)}</span>
           </div>
           <div style={S.rowLast}>
             <span style={S.rowLabel}>Recuperas la inversión en:</span>
@@ -432,32 +438,6 @@ function EstimateScreenInner({ ocrData, sqft, batteryHours, setBatteryHours, pri
             <span style={S.rowBoldValue}>{fmtUSD(est.savingsFinanced)}</span>
           </div>
         </div>
-
-        {/* Battery section */}
-        {batteryResult && (
-          <>
-            <div style={S.card}>
-              <div style={S.batteryHeader}>Almacenamiento de Energía</div>
-              <div style={S.row}>
-                <span style={S.rowLabel}>Sistema:</span>
-                <span style={S.rowValue}>{batteryResult.productName}</span>
-              </div>
-              <div style={S.row}>
-                <span style={S.rowLabel}>Respaldo estimado:</span>
-                <span style={S.rowValue}>{batteryResult.actualHours} horas</span>
-              </div>
-              <div style={S.rowLast}>
-                <span style={S.rowLabel}>Precio estimado:</span>
-                <span style={S.rowValue}>{fmtUSD(batteryResult.totalCost)}</span>
-              </div>
-            </div>
-
-            <div style={S.totalCard}>
-              <span style={S.totalLabel}>Total Solar + Baterías</span>
-              <span style={S.totalValue}>{fmtUSD(totalCost)}</span>
-            </div>
-          </>
-        )}
 
         {/* Battery fine-tune slider */}
         <style>{`
