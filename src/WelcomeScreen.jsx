@@ -127,6 +127,17 @@ const styles = {
     marginBottom: "12px",
     display: "block",
   },
+  btnGhost: {
+    width: "100%",
+    padding: "14px",
+    fontSize: "16px",
+    color: "#1B3F8B",
+    backgroundColor: "transparent",
+    border: "2px solid #1B3F8B",
+    borderRadius: "10px",
+    cursor: "pointer",
+    display: "block",
+  },
   noteCard: {
     backgroundColor: "#ffffff",
     border: "1px solid #e5e7eb",
@@ -243,13 +254,7 @@ export default function WelcomeScreen() {
               Entendemos que este no es el momento ideal. Cuando estés listo para
               explorar opciones de energía solar, estaremos aquí para ayudarte.
             </p>
-            <button style={styles.btnPrimary} onClick={handleRestart}>
-              ← Regresar al inicio
-            </button>
-            <button
-              style={{ background: "none", border: "none", color: "#1B3F8B", fontSize: "16px", cursor: "pointer", textDecoration: "underline", marginTop: "8px", display: "block", width: "100%" }}
-              onClick={() => setScreen("welcome")}
-            >
+            <button style={styles.btnGhost} onClick={handleRestart}>
               Atrás
             </button>
           </div>

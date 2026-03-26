@@ -14772,6 +14772,17 @@
       marginBottom: "12px",
       display: "block"
     },
+    btnGhost: {
+      width: "100%",
+      padding: "14px",
+      fontSize: "16px",
+      color: "#1B3F8B",
+      backgroundColor: "transparent",
+      border: "2px solid #1B3F8B",
+      borderRadius: "10px",
+      cursor: "pointer",
+      display: "block"
+    },
     noteCard: {
       backgroundColor: "#ffffff",
       border: "1px solid #e5e7eb",
@@ -14874,15 +14885,7 @@
           /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("img", { src: "/hand_shake.jpg", alt: "", style: { width: "384px", height: "384px", objectFit: "contain", display: "block", margin: "0 auto 16px" } }),
           /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("h2", { style: styles.exitHeading, children: "\xA1Gracias por tu tiempo!" }),
           /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("p", { style: styles.exitText, children: "Entendemos que este no es el momento ideal. Cuando est\xE9s listo para explorar opciones de energ\xEDa solar, estaremos aqu\xED para ayudarte." }),
-          /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("button", { style: styles.btnPrimary, onClick: handleRestart, children: "\u2190 Regresar al inicio" }),
-          /* @__PURE__ */ (0, import_jsx_runtime8.jsx)(
-            "button",
-            {
-              style: { background: "none", border: "none", color: "#1B3F8B", fontSize: "16px", cursor: "pointer", textDecoration: "underline", marginTop: "8px", display: "block", width: "100%" },
-              onClick: () => setScreen("welcome"),
-              children: "Atr\xE1s"
-            }
-          )
+          /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("button", { style: styles.btnGhost, onClick: handleRestart, children: "Atr\xE1s" })
         ] }) })
       ] });
     }
