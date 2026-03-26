@@ -234,7 +234,7 @@ export default function WelcomeScreen() {
         <Header />
         <div style={styles.content}>
           <div style={styles.exitCard}>
-            <img src="/hand_shake.jpg" alt="" style={{ width: "96px", height: "96px", objectFit: "contain" }} />
+            <img src="/hand_shake.jpg" alt="" style={{ width: "384px", height: "384px", objectFit: "contain", display: "block", margin: "0 auto 16px" }} />
             <h2 style={styles.exitHeading}>¡Gracias por su tiempo!</h2>
             <p style={styles.exitText}>
               Entendemos que este no es el momento ideal. Cuando esté listo para

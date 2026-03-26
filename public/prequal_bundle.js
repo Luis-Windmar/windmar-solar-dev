@@ -14865,7 +14865,7 @@
       return /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)("div", { style: styles.container, children: [
         /* @__PURE__ */ (0, import_jsx_runtime8.jsx)(Header2, {}),
         /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("div", { style: styles.content, children: /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)("div", { style: styles.exitCard, children: [
-          /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("img", { src: "/hand_shake.jpg", alt: "", style: { width: "96px", height: "96px", objectFit: "contain" } }),
+          /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("img", { src: "/hand_shake.jpg", alt: "", style: { width: "384px", height: "384px", objectFit: "contain", display: "block", margin: "0 auto 16px" } }),
           /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("h2", { style: styles.exitHeading, children: "\xA1Gracias por su tiempo!" }),
           /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("p", { style: styles.exitText, children: "Entendemos que este no es el momento ideal. Cuando est\xE9 listo para explorar opciones de energ\xEDa solar, estaremos aqu\xED para ayudarle." }),
           /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("button", { style: styles.btnPrimary, onClick: handleRestart, children: "\u2190 Regresar al inicio" })
