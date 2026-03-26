@@ -170,7 +170,7 @@ app.get('/api/leads', (req, res) => {
 // GET /api/pricing — returns solar EPC tiers and battery constants
 app.get('/api/pricing', (req, res) => {
   try {
-    res.json(require('./config/pricing.json'));
+    res.json(JSON.parse(fs.readFileSync('./config/pricing.json', 'utf8')));
   } catch (err) {
     res.status(500).json({ error: 'Pricing config unavailable.' });
   }
