@@ -14990,7 +14990,7 @@
             value: selection,
             onChange: (e) => setSelection(e.target.value),
             children: [
-              /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("option", { value: "", children: "\u2014 Seleccione una opci\xF3n \u2014" }),
+              /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("option", { value: "", children: "\u2014 Selecciona una opci\xF3n \u2014" }),
               /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("option", { value: "si", children: "S\xED, tengo la factura" }),
               /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("option", { value: "no", children: "No, en otro momento" })
             ]

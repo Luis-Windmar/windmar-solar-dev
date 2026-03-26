@@ -349,7 +349,7 @@ export default function WelcomeScreen() {
           value={selection}
           onChange={(e) => setSelection(e.target.value)}
         >
-          <option value="">— Seleccione una opción —</option>
+          <option value="">— Selecciona una opción —</option>
           <option value="si">Sí, tengo la factura</option>
           <option value="no">No, en otro momento</option>
         </select>
