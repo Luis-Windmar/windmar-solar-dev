@@ -391,16 +391,14 @@ function EstimateScreenInner({ ocrData, sqft, batteryHours, setBatteryHours, pri
             <span style={S.rowLabel}>Generación:</span>
             <span style={S.rowValue}>{est.systemKwp.toLocaleString("en-US")} kWp</span>
           </div>
-          <div style={batteryResult ? S.row : S.rowLast}>
+          <div style={S.row}>
             <span style={S.rowLabel}>Cubre:</span>
             <span style={S.rowValue}>{est.coverage}% de tu consumo</span>
           </div>
-          {batteryResult && (
-            <div style={S.rowLast}>
-              <span style={S.rowLabel}>Respaldo estimado:</span>
-              <span style={S.rowValue}>{batteryResult.actualHours} horas</span>
-            </div>
-          )}
+          <div style={S.rowLast}>
+            <span style={S.rowLabel}>Respaldo estimado:</span>
+            <span style={S.rowValue}>{batteryResult ? `${batteryResult.actualHours} horas` : "0 horas"}</span>
+          </div>
         </div>
 
         {/* Savings highlight */}

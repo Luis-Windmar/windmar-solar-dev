@@ -14007,19 +14007,16 @@
               " kWp"
             ] })
           ] }),
-          /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)("div", { style: batteryResult ? S5.row : S5.rowLast, children: [
+          /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)("div", { style: S5.row, children: [
             /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("span", { style: S5.rowLabel, children: "Cubre:" }),
             /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)("span", { style: S5.rowValue, children: [
               est.coverage,
               "% de tu consumo"
             ] })
           ] }),
-          batteryResult && /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)("div", { style: S5.rowLast, children: [
+          /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)("div", { style: S5.rowLast, children: [
             /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("span", { style: S5.rowLabel, children: "Respaldo estimado:" }),
-            /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)("span", { style: S5.rowValue, children: [
-              batteryResult.actualHours,
-              " horas"
-            ] })
+            /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("span", { style: S5.rowValue, children: batteryResult ? `${batteryResult.actualHours} horas` : "0 horas" })
           ] })
         ] }),
         /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)("div", { style: S5.highlight, children: [
