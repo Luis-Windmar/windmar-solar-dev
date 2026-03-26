@@ -350,7 +350,9 @@ export default function UploadScreen({ onNext, onBack }) {
   };
 
   const handleMockOCR = () => {
-    onNext(MOCK_OCR, null);
+    setExtractedRaw(MOCK_OCR);
+    setFields(MOCK_OCR);
+    setStage("done");
   };
 
   const resetToIdle = () => {

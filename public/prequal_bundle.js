@@ -13097,7 +13097,9 @@
       if (e.dataTransfer.files.length > 0) handleFileChange(e.dataTransfer.files);
     };
     const handleMockOCR = () => {
-      onNext(MOCK_OCR, null);
+      setExtractedRaw(MOCK_OCR);
+      setFields(MOCK_OCR);
+      setStage("done");
     };
     const resetToIdle = () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
