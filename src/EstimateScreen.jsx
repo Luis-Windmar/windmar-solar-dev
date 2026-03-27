@@ -292,7 +292,7 @@ const S = {
   sliderCard: {
     backgroundColor: "#ffffff",
     borderRadius: "16px",
-    padding: "16px 20px",
+    padding: "10px 20px 14px",
     marginBottom: "12px",
   },
   sliderLabel: { fontSize: "14px", fontWeight: "600", color: "#374151", marginBottom: "8px" },
@@ -453,8 +453,11 @@ function EstimateScreenInner({ ocrData, sqft, batteryHours, setBatteryHours, pri
           .est-slider::-moz-range-track { height: 3px; background: #d1d5db; border-radius: 2px; }
           .est-slider::-moz-range-thumb { width: 28px; height: 28px; border-radius: 50%; background: #1B3F8B; cursor: pointer; border: none; }
         `}</style>
+        <div style={S.sliderValue}>Ajusta el nivel de respaldo</div>
+        <div style={{ fontSize: "14px", color: "#374151", textAlign: "center", marginBottom: "10px", marginTop: "-6px" }}>
+          Decide cuánto quieres ahorrarte en tu factura de LUMA
+        </div>
         <div style={S.sliderCard}>
-          <div style={S.sliderLabel}>Ajusta las horas de respaldo:</div>
           <div style={S.sliderValue}>
             {localBatteryHours === 0 ? "Sin almacenamiento" : `${localBatteryHours} horas de respaldo`}
           </div>

@@ -13917,7 +13917,7 @@
     sliderCard: {
       backgroundColor: "#ffffff",
       borderRadius: "16px",
-      padding: "16px 20px",
+      padding: "10px 20px 14px",
       marginBottom: "12px"
     },
     sliderLabel: { fontSize: "14px", fontWeight: "600", color: "#374151", marginBottom: "8px" },
@@ -14068,8 +14068,9 @@
           .est-slider::-moz-range-track { height: 3px; background: #d1d5db; border-radius: 2px; }
           .est-slider::-moz-range-thumb { width: 28px; height: 28px; border-radius: 50%; background: #1B3F8B; cursor: pointer; border: none; }
         ` }),
+        /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("div", { style: S5.sliderValue, children: "Ajusta el nivel de respaldo" }),
+        /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("div", { style: { fontSize: "14px", color: "#374151", textAlign: "center", marginBottom: "10px", marginTop: "-6px" }, children: "Decide cu\xE1nto quieres ahorrarte en tu factura de LUMA" }),
         /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)("div", { style: S5.sliderCard, children: [
-          /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("div", { style: S5.sliderLabel, children: "Ajusta las horas de respaldo:" }),
           /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("div", { style: S5.sliderValue, children: localBatteryHours === 0 ? "Sin almacenamiento" : `${localBatteryHours} horas de respaldo` }),
           /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(
             "input",
