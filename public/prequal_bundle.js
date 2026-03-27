@@ -14858,6 +14858,7 @@
     const [billFiles, setBillFiles] = (0, import_react6.useState)(null);
     const [pricing, setPricing] = (0, import_react6.useState)(null);
     const [pricingLoading, setPricingLoading] = (0, import_react6.useState)(true);
+    const [preSizing, setPreSizing] = (0, import_react6.useState)(true);
     (0, import_react6.useEffect)(() => {
       fetch("/api/pricing").then((r) => r.json()).then((data) => setPricing(data)).catch(() => {
       }).finally(() => setPricingLoading(false));
@@ -14914,7 +14915,7 @@
         {
           onNext: (s) => {
             setSqft(s);
-            setScreen("battery");
+            setScreen(preSizing ? "battery" : "estimate");
           },
           onBack: () => setScreen("upload")
         }
@@ -14948,7 +14949,7 @@
             setScreen("contact");
           },
           onNotInterested: () => setScreen("thankyou-no"),
-          onBack: () => setScreen("battery")
+          onBack: () => setScreen(preSizing ? "battery" : "roof")
         }
       );
     }
@@ -15028,7 +15029,26 @@
         /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)("div", { style: styles.noteCard, children: [
           /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("div", { style: { width: "100px", height: "100px", overflow: "hidden", flexShrink: 0 }, children: /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("img", { src: "/financing_icon.png", alt: "", style: { width: "100px", height: "100px", objectFit: "contain", transform: "scale(1.6)", transformOrigin: "center" } }) }),
           /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("p", { style: styles.noteText, children: "Windmar Comercial ofrece opciones de financiamiento. Entre ellas, 15 a\xF1os sin pronto. Evaluaremos el sistema ideal para tu negocio, y te daremos un estimado del ahorro." })
-        ] })
+        ] }),
+        /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("div", { style: { marginTop: "32px", textAlign: "center" }, children: /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)(
+          "button",
+          {
+            onClick: () => setPreSizing(!preSizing),
+            style: {
+              fontSize: "12px",
+              color: preSizing ? "#1B3F8B" : "#6b7280",
+              backgroundColor: "transparent",
+              border: `1px solid ${preSizing ? "#1B3F8B" : "#9ca3af"}`,
+              borderRadius: "20px",
+              padding: "6px 14px",
+              cursor: "pointer"
+            },
+            children: [
+              "Demo: pantalla de bater\xEDas ",
+              preSizing ? "ON" : "OFF"
+            ]
+          }
+        ) })
       ] })
     ] });
   }

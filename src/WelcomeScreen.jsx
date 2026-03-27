@@ -216,6 +216,7 @@ export default function WelcomeScreen() {
   const [billFiles, setBillFiles] = useState(null);
   const [pricing, setPricing] = useState(null);
   const [pricingLoading, setPricingLoading] = useState(true);
+  const [preSizing, setPreSizing] = useState(true); // DEMO TOGGLE: true = separate battery screen, false = slider on estimate only
 
   useEffect(() => {
     fetch("/api/pricing")
@@ -276,7 +277,7 @@ export default function WelcomeScreen() {
   if (screen === "roof") {
     return (
       <RoofScreen
-        onNext={(s) => { setSqft(s); setScreen("battery"); }}
+        onNext={(s) => { setSqft(s); setScreen(preSizing ? "battery" : "estimate"); }}
         onBack={() => setScreen("upload")}
       />
     );
@@ -302,7 +303,7 @@ export default function WelcomeScreen() {
         setBatteryHours={setBatteryHours}
         onInterested={(est, batt) => { setEstData(est); setBatteryResult(batt); setScreen("contact"); }}
         onNotInterested={() => setScreen("thankyou-no")}
-        onBack={() => setScreen("battery")}
+        onBack={() => setScreen(preSizing ? "battery" : "roof")}
       />
     );
   }
@@ -385,6 +386,24 @@ export default function WelcomeScreen() {
             15 años sin pronto. Evaluaremos el sistema ideal para tu negocio,
             y te daremos un estimado del ahorro.
           </p>
+        </div>
+
+        {/* DEMO TOGGLE — remove before production */}
+        <div style={{ marginTop: "32px", textAlign: "center" }}>
+          <button
+            onClick={() => setPreSizing(!preSizing)}
+            style={{
+              fontSize: "12px",
+              color: preSizing ? "#1B3F8B" : "#6b7280",
+              backgroundColor: "transparent",
+              border: `1px solid ${preSizing ? "#1B3F8B" : "#9ca3af"}`,
+              borderRadius: "20px",
+              padding: "6px 14px",
+              cursor: "pointer",
+            }}
+          >
+            Demo: pantalla de baterías {preSizing ? "ON" : "OFF"}
+          </button>
         </div>
       </div>
     </div>
