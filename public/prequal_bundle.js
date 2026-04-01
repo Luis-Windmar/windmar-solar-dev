@@ -14046,21 +14046,23 @@
             ] })
           ] })
         ] }),
-        /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("div", { style: S5.sliderValue, children: "\xBFPrefieres financiar?" }),
-        /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)("div", { style: S5.card, children: [
-          /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)("div", { style: S5.row, children: [
-            /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("span", { style: S5.rowLabel, children: "Pronto pago:" }),
-            /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("span", { style: S5.rowValue, children: "$0" })
-          ] }),
-          /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)("div", { style: S5.row, children: [
-            /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("span", { style: S5.rowLabel, children: "Pago mensual:" }),
-            /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("span", { style: S5.rowValue, children: fmtUSD(totalMonthlyPmt) })
-          ] }),
-          /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)("div", { style: S5.rowBold, children: [
-            /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("span", { style: S5.rowBoldLabel, children: "Ahorro mensual neto:" }),
-            /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("span", { style: S5.rowBoldValue, children: fmtUSD(totalSavingsNet) })
+        totalCost >= 6e4 ? /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)(import_jsx_runtime5.Fragment, { children: [
+          /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("div", { style: S5.sliderValue, children: "\xBFPrefieres financiar?" }),
+          /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)("div", { style: S5.card, children: [
+            /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)("div", { style: S5.row, children: [
+              /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("span", { style: S5.rowLabel, children: "Pronto pago:" }),
+              /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("span", { style: S5.rowValue, children: "$0" })
+            ] }),
+            /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)("div", { style: S5.row, children: [
+              /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("span", { style: S5.rowLabel, children: "Pago mensual:" }),
+              /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("span", { style: S5.rowValue, children: fmtUSD(totalMonthlyPmt) })
+            ] }),
+            /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)("div", { style: S5.rowBold, children: [
+              /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("span", { style: S5.rowBoldLabel, children: "Ahorro mensual neto:" }),
+              /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("span", { style: S5.rowBoldValue, children: fmtUSD(totalSavingsNet) })
+            ] })
           ] })
-        ] }),
+        ] }) : /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("div", { style: { fontSize: "13px", color: "#6b7280", textAlign: "center", padding: "12px 0 4px", fontStyle: "italic" }, children: "Financiamiento disponible para sistemas a partir de $60,000. Consulte con su representante." }),
         /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("style", { children: `
           .est-slider { -webkit-appearance: none; appearance: none; width: 100%; height: 28px; background: transparent; outline: none; cursor: pointer; }
           .est-slider::-webkit-slider-runnable-track { height: 3px; background: #d1d5db; border-radius: 2px; }
@@ -14450,7 +14452,7 @@
     pagoMensual: { x: 406, y: 319, size: 10 },
     ahorroFin: { x: 406, y: 282, size: 10 }
   };
-  async function generateEstimatePDF(ocrData, sqft, estData, contactData, commercialLeadName) {
+  async function generateEstimatePDF(ocrData, sqft, estData, contactData, commercialLeadName, batteryResult) {
     const { PDFDocument, rgb, StandardFonts } = window.PDFLib;
     const fetchBytes = async (url) => {
       const res = await fetch(url);
@@ -14477,6 +14479,8 @@
     const negocioName = ocrData?.nombreNegocio || ocrData?.address || ocrData?.direccion || "";
     const firstWord = negocioName.trim().split(/\s+/)[0] || "Negocio";
     const quoteNumber = commercialLeadName || "Pendiente";
+    const totalPrice = (estData.systemCost || 0) + (batteryResult?.totalCost || 0);
+    const showFinancing = totalPrice >= 6e4;
     const fields = {
       numero: quoteNumber,
       cliente: contactData?.nombre || "",
@@ -14486,9 +14490,11 @@
       cubre: estData.coverage + "% de tu consumo",
       precio: fmtUSD2(estData.systemCost),
       ahorro: fmtUSD2(estData.savingsCash),
-      prontoPago: "$0",
-      pagoMensual: fmtUSD2(estData.monthlyPmt) + " / mes",
-      ahorroFin: fmtUSD2(estData.savingsFinanced) + " / mes"
+      ...showFinancing ? {
+        prontoPago: "$0",
+        pagoMensual: fmtUSD2(estData.monthlyPmt) + " / mes",
+        ahorroFin: fmtUSD2(estData.savingsFinanced) + " / mes"
+      } : {}
     };
     for (const [key, value] of Object.entries(fields)) {
       const c = COORDS[key];
@@ -14502,6 +14508,18 @@
         x = 310 + (245 - textWidth) / 2;
       }
       estimatePage.drawText(value, { x, y: c.y, font, size, color });
+    }
+    if (!showFinancing) {
+      estimatePage.drawRectangle({ x: 290, y: 258, width: 265, height: 140, color: rgb(1, 1, 1) });
+      const msg1 = "Financiamiento disponible";
+      const msg2 = "para sistemas \u2265 $60,000.";
+      const msg3 = "Consulte con su representante.";
+      const msgSize = 8;
+      for (const [i, line] of [msg1, msg2, msg3].entries()) {
+        const tw = fontReg.widthOfTextAtSize(line, msgSize);
+        const lx = 290 + (265 - tw) / 2;
+        estimatePage.drawText(line, { x: lx, y: 358 - i * 16, font: fontReg, size: msgSize, color: grey });
+      }
     }
     const numWrapper = wrapperDoc.getPageCount();
     if (numWrapper >= 2) {
@@ -14580,7 +14598,7 @@
           const leadName = data.commercialLeadName;
           leadNameRef.current = leadName;
           if (!window.PDFLib) return;
-          const pdfBytes = await generateEstimatePDF(ocrData, sqft, estData, contactData, leadName);
+          const pdfBytes = await generateEstimatePDF(ocrData, sqft, estData, contactData, leadName, batteryResult);
           const blob = new Blob([pdfBytes], { type: "application/pdf" });
           blobRef.current = blob;
           setPdfReady(true);

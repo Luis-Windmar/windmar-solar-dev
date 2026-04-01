@@ -96,7 +96,7 @@ const COORDS = {
 };
 
 // ─── PDF generation ───────────────────────────────────────────────────────────
-async function generateEstimatePDF(ocrData, sqft, estData, contactData, commercialLeadName) {
+async function generateEstimatePDF(ocrData, sqft, estData, contactData, commercialLeadName, batteryResult) {
   const { PDFDocument, rgb, StandardFonts } = window.PDFLib;
 
   const fetchBytes = async (url) => {
@@ -135,6 +135,9 @@ async function generateEstimatePDF(ocrData, sqft, estData, contactData, commerci
   const firstWord    = negocioName.trim().split(/\s+/)[0] || "Negocio";
   const quoteNumber  = commercialLeadName || "Pendiente";
 
+  const totalPrice = (estData.systemCost || 0) + (batteryResult?.totalCost || 0);
+  const showFinancing = totalPrice >= 60000;
+
   const fields = {
     numero:      quoteNumber,
     cliente:     contactData?.nombre  || "",
@@ -144,9 +147,11 @@ async function generateEstimatePDF(ocrData, sqft, estData, contactData, commerci
     cubre:       estData.coverage + "% de tu consumo",
     precio:      fmtUSD(estData.systemCost),
     ahorro:      fmtUSD(estData.savingsCash),
-    prontoPago:  "$0",
-    pagoMensual: fmtUSD(estData.monthlyPmt) + " / mes",
-    ahorroFin:   fmtUSD(estData.savingsFinanced) + " / mes",
+    ...(showFinancing ? {
+      prontoPago:  "$0",
+      pagoMensual: fmtUSD(estData.monthlyPmt) + " / mes",
+      ahorroFin:   fmtUSD(estData.savingsFinanced) + " / mes",
+    } : {}),
   };
 
   // ── Draw each field ───────────────────────────────────────────────────────
@@ -165,6 +170,21 @@ async function generateEstimatePDF(ocrData, sqft, estData, contactData, commerci
     }
 
     estimatePage.drawText(value, { x, y: c.y, font, size, color });
+  }
+
+  // ── No-financing message ──────────────────────────────────────────────────
+  if (!showFinancing) {
+    // Cover template labels with a white rectangle
+    estimatePage.drawRectangle({ x: 290, y: 258, width: 265, height: 140, color: rgb(1, 1, 1) });
+    const msg1 = "Financiamiento disponible";
+    const msg2 = "para sistemas \u2265 $60,000.";
+    const msg3 = "Consulte con su representante.";
+    const msgSize = 8;
+    for (const [i, line] of [msg1, msg2, msg3].entries()) {
+      const tw = fontReg.widthOfTextAtSize(line, msgSize);
+      const lx = 290 + (265 - tw) / 2;
+      estimatePage.drawText(line, { x: lx, y: 358 - (i * 16), font: fontReg, size: msgSize, color: grey });
+    }
   }
 
   // Pages 3+: remaining wrapper pages (map + facilities)
@@ -263,7 +283,7 @@ export default function ThankYouScreen({ interested, contactData, ocrData, sqft,
 
         // Step 2: Generate PDF with Com_Lead_Name as the número
         if (!window.PDFLib) return;
-        const pdfBytes = await generateEstimatePDF(ocrData, sqft, estData, contactData, leadName);
+        const pdfBytes = await generateEstimatePDF(ocrData, sqft, estData, contactData, leadName, batteryResult);
         const blob = new Blob([pdfBytes], { type: "application/pdf" });
         blobRef.current = blob;
         setPdfReady(true);

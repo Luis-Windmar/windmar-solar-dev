@@ -429,21 +429,29 @@ function EstimateScreenInner({ ocrData, sqft, batteryHours, setBatteryHours, pri
         </div>
 
         {/* Financing */}
-        <div style={S.sliderValue}>¿Prefieres financiar?</div>
-        <div style={S.card}>
-          <div style={S.row}>
-            <span style={S.rowLabel}>Pronto pago:</span>
-            <span style={S.rowValue}>$0</span>
+        {totalCost >= 60000 ? (
+          <>
+            <div style={S.sliderValue}>¿Prefieres financiar?</div>
+            <div style={S.card}>
+              <div style={S.row}>
+                <span style={S.rowLabel}>Pronto pago:</span>
+                <span style={S.rowValue}>$0</span>
+              </div>
+              <div style={S.row}>
+                <span style={S.rowLabel}>Pago mensual:</span>
+                <span style={S.rowValue}>{fmtUSD(totalMonthlyPmt)}</span>
+              </div>
+              <div style={S.rowBold}>
+                <span style={S.rowBoldLabel}>Ahorro mensual neto:</span>
+                <span style={S.rowBoldValue}>{fmtUSD(totalSavingsNet)}</span>
+              </div>
+            </div>
+          </>
+        ) : (
+          <div style={{ fontSize: "13px", color: "#6b7280", textAlign: "center", padding: "12px 0 4px", fontStyle: "italic" }}>
+            Financiamiento disponible para sistemas a partir de $60,000. Consulte con su representante.
           </div>
-          <div style={S.row}>
-            <span style={S.rowLabel}>Pago mensual:</span>
-            <span style={S.rowValue}>{fmtUSD(totalMonthlyPmt)}</span>
-          </div>
-          <div style={S.rowBold}>
-            <span style={S.rowBoldLabel}>Ahorro mensual neto:</span>
-            <span style={S.rowBoldValue}>{fmtUSD(totalSavingsNet)}</span>
-          </div>
-        </div>
+        )}
 
         {/* Battery fine-tune slider */}
         <style>{`
