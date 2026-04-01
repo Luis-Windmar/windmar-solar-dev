@@ -139,19 +139,13 @@ async function generateEstimatePDF(ocrData, sqft, estData, contactData, commerci
   let estimatePage;
   let COORDS;
 
-  if (showFinancing) {
-    const templateBytes = await fetchBytes("/Estimate_template_financing.pdf");
+  {
+    const templateUrl   = showFinancing ? "/Estimate_template_loan.pdf" : "/Estimate_template_cash.pdf";
+    const templateBytes = await fetchBytes(templateUrl);
     const templateDoc   = await PDFDocument.load(templateBytes);
     [estimatePage]      = await outDoc.copyPages(templateDoc, [0]);
     outDoc.addPage(estimatePage);
-    COORDS = COORDS_FINANCING;
-  } else {
-    const jpgBytes  = await fetchBytes("/Estimate_template_cash.jpg");
-    const jpgImage  = await outDoc.embedJpg(jpgBytes);
-    const { width, height } = jpgImage.scale(1);
-    estimatePage    = outDoc.addPage([width, height]);
-    estimatePage.drawImage(jpgImage, { x: 0, y: 0, width, height });
-    COORDS = COORDS_CASH;
+    COORDS = showFinancing ? COORDS_FINANCING : COORDS_CASH;
   }
 
   // ── Build field values ────────────────────────────────────────────────────

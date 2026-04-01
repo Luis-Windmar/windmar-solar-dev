@@ -447,11 +447,7 @@ function EstimateScreenInner({ ocrData, sqft, batteryHours, setBatteryHours, pri
               </div>
             </div>
           </>
-        ) : (
-          <div style={{ fontSize: "13px", color: "#6b7280", textAlign: "center", padding: "12px 0 4px", fontStyle: "italic" }}>
-            Financiamiento disponible para sistemas a partir de $60,000. Consulte con su representante.
-          </div>
-        )}
+        ) : null}
 
         {/* Battery fine-tune slider */}
         <style>{`

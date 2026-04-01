@@ -14062,7 +14062,7 @@
               /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("span", { style: S5.rowBoldValue, children: fmtUSD(totalSavingsNet) })
             ] })
           ] })
-        ] }) : /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("div", { style: { fontSize: "13px", color: "#6b7280", textAlign: "center", padding: "12px 0 4px", fontStyle: "italic" }, children: "Financiamiento disponible para sistemas a partir de $60,000. Consulte con su representante." }),
+        ] }) : null,
         /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("style", { children: `
           .est-slider { -webkit-appearance: none; appearance: none; width: 100%; height: 28px; background: transparent; outline: none; cursor: pointer; }
           .est-slider::-webkit-slider-runnable-track { height: 3px; background: #d1d5db; border-radius: 2px; }
@@ -14486,19 +14486,13 @@
     const grey = rgb(0.25, 0.25, 0.25);
     let estimatePage;
     let COORDS;
-    if (showFinancing) {
-      const templateBytes = await fetchBytes("/Estimate_template_financing.pdf");
+    {
+      const templateUrl = showFinancing ? "/Estimate_template_loan.pdf" : "/Estimate_template_cash.pdf";
+      const templateBytes = await fetchBytes(templateUrl);
       const templateDoc = await PDFDocument.load(templateBytes);
       [estimatePage] = await outDoc.copyPages(templateDoc, [0]);
       outDoc.addPage(estimatePage);
-      COORDS = COORDS_FINANCING;
-    } else {
-      const jpgBytes = await fetchBytes("/Estimate_template_cash.jpg");
-      const jpgImage = await outDoc.embedJpg(jpgBytes);
-      const { width, height } = jpgImage.scale(1);
-      estimatePage = outDoc.addPage([width, height]);
-      estimatePage.drawImage(jpgImage, { x: 0, y: 0, width, height });
-      COORDS = COORDS_CASH;
+      COORDS = showFinancing ? COORDS_FINANCING : COORDS_CASH;
     }
     const negocioName = ocrData?.nombreNegocio || ocrData?.address || ocrData?.direccion || "";
     const quoteNumber = commercialLeadName || "Pendiente";
