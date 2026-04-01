@@ -72,27 +72,40 @@ const S = {
 const fmtUSD = (n) =>
   "$" + Number(n).toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 });
 
-// ─── PDF coordinate map (origin = bottom-left) ────────────────────────────────
-// Calibrated from first output: each section was shifted up by ~18-25pt.
-// ─── PDF coordinate map — derived from user-filled reference template ─────────
-// Pixel positions measured from estimate_template_filled.pdf, converted at
-// 612×792pt page rendered ~930×1207px (scale 0.658x / 0.656y).
-const COORDS = {
-  // ── Info section ─────────────────────────────────────────────────────────
+// ─── PDF coordinate maps (origin = bottom-left, 612×792pt page) ──────────────
+// Calibrated against each template. Adjust after first test output if needed.
+
+const COORDS_FINANCING = {
+  // ── Info section ───────────────────────────────────────────────────────────
   numero:      { x: 355, y: 631, size: 9  },
   cliente:     { x: 355, y: 609, size: 9  },
   negocio:     { x: 355, y: 587, size: 9  },
   telefono:    { x: 355, y: 565, size: 9  },
-  // ── Tu Estimado — left column ────────────────────────────────────────────
+  // ── Tu Estimado — left column ──────────────────────────────────────────────
   capacidad:   { x: 143, y: 505, size: 10 },
   cubre:       { x: 143, y: 467, size: 10 },
   precio:      { x: 143, y: 429, size: 10 },
-  // ── Tu Estimado — savings highlight (centered in navy box) ───────────────
+  // ── Tu Estimado — savings highlight (centered in navy box) ─────────────────
   ahorro:      { x: 432, y: 458, size: 34, center: true },
-  // ── Prefieres Financiar — right column ───────────────────────────────────
+  // ── Prefieres Financiar — right column ─────────────────────────────────────
   prontoPago:  { x: 406, y: 359, size: 10 },
   pagoMensual: { x: 406, y: 319, size: 10 },
   ahorroFin:   { x: 406, y: 282, size: 10 },
+};
+
+// Cash template coordinates — calibrate after first test output
+const COORDS_CASH = {
+  // ── Info section ───────────────────────────────────────────────────────────
+  numero:      { x: 355, y: 631, size: 9  },
+  cliente:     { x: 355, y: 609, size: 9  },
+  negocio:     { x: 355, y: 587, size: 9  },
+  telefono:    { x: 355, y: 565, size: 9  },
+  // ── Tu Estimado — left column ──────────────────────────────────────────────
+  capacidad:   { x: 143, y: 505, size: 10 },
+  cubre:       { x: 143, y: 467, size: 10 },
+  precio:      { x: 143, y: 429, size: 10 },
+  // ── Tu Estimado — savings highlight (centered in navy box) ─────────────────
+  ahorro:      { x: 432, y: 458, size: 34, center: true },
 };
 
 // ─── PDF generation ───────────────────────────────────────────────────────────
@@ -105,38 +118,45 @@ async function generateEstimatePDF(ocrData, sqft, estData, contactData, commerci
     return new Uint8Array(await res.arrayBuffer());
   };
 
-  const [wrapperBytes, templateBytes] = await Promise.all([
-    fetchBytes("/cotizacion_wrapper.pdf"),
-    fetchBytes("/Estimate Template 3.pdf"),
-  ]);
+  const totalPrice    = (estData.systemCost || 0) + (batteryResult?.totalCost || 0);
+  const showFinancing = totalPrice >= 60000;
 
-  const wrapperDoc  = await PDFDocument.load(wrapperBytes);
-  const templateDoc = await PDFDocument.load(templateBytes);
-  const outDoc      = await PDFDocument.create();
+  const wrapperBytes = await fetchBytes("/cotizacion_wrapper.pdf");
+  const wrapperDoc   = await PDFDocument.load(wrapperBytes);
+  const outDoc       = await PDFDocument.create();
 
   // Page 1: wrapper cover
   const [coverPage] = await outDoc.copyPages(wrapperDoc, [0]);
   outDoc.addPage(coverPage);
 
-  // Page 2: estimate template + drawn values
-  const [estimatePage] = await outDoc.copyPages(templateDoc, [0]);
-  outDoc.addPage(estimatePage);
-
   const fontBold = await outDoc.embedFont(StandardFonts.HelveticaBold);
   const fontReg  = await outDoc.embedFont(StandardFonts.Helvetica);
+  const navy   = rgb(0.106, 0.247, 0.545);
+  const orange = rgb(0.961, 0.651, 0.137);
+  const grey   = rgb(0.25,  0.25,  0.25);
 
-  const navy   = rgb(0.106, 0.247, 0.545);  // #1B3F8B
-  const orange = rgb(0.961, 0.651, 0.137);  // #F5A623
-  const grey   = rgb(0.25,  0.25,  0.25);   // dark grey for values
+  // Page 2: estimate template (financing = PDF, cash = JPG)
+  let estimatePage;
+  let COORDS;
+
+  if (showFinancing) {
+    const templateBytes = await fetchBytes("/Estimate_template_financing.pdf");
+    const templateDoc   = await PDFDocument.load(templateBytes);
+    [estimatePage]      = await outDoc.copyPages(templateDoc, [0]);
+    outDoc.addPage(estimatePage);
+    COORDS = COORDS_FINANCING;
+  } else {
+    const jpgBytes  = await fetchBytes("/Estimate_template_cash.jpg");
+    const jpgImage  = await outDoc.embedJpg(jpgBytes);
+    const { width, height } = jpgImage.scale(1);
+    estimatePage    = outDoc.addPage([width, height]);
+    estimatePage.drawImage(jpgImage, { x: 0, y: 0, width, height });
+    COORDS = COORDS_CASH;
+  }
 
   // ── Build field values ────────────────────────────────────────────────────
-  const municipio    = ocrData?.municipio    || "";
-  const negocioName  = ocrData?.nombreNegocio || ocrData?.address || ocrData?.direccion || "";
-  const firstWord    = negocioName.trim().split(/\s+/)[0] || "Negocio";
-  const quoteNumber  = commercialLeadName || "Pendiente";
-
-  const totalPrice = (estData.systemCost || 0) + (batteryResult?.totalCost || 0);
-  const showFinancing = totalPrice >= 60000;
+  const negocioName = ocrData?.nombreNegocio || ocrData?.address || ocrData?.direccion || "";
+  const quoteNumber = commercialLeadName || "Pendiente";
 
   const fields = {
     numero:      quoteNumber,
@@ -164,27 +184,11 @@ async function generateEstimatePDF(ocrData, sqft, estData, contactData, commerci
 
     let x = c.x;
     if (c.center) {
-      // Center the text within the navy box (box spans roughly x=310 to x=555)
       const textWidth = font.widthOfTextAtSize(value, size);
       x = 310 + (245 - textWidth) / 2;
     }
 
     estimatePage.drawText(value, { x, y: c.y, font, size, color });
-  }
-
-  // ── No-financing message ──────────────────────────────────────────────────
-  if (!showFinancing) {
-    // Cover template labels with a white rectangle
-    estimatePage.drawRectangle({ x: 290, y: 258, width: 265, height: 140, color: rgb(1, 1, 1) });
-    const msg1 = "Financiamiento disponible";
-    const msg2 = "para sistemas >= $60,000.";
-    const msg3 = "Consulte con su representante.";
-    const msgSize = 8;
-    for (const [i, line] of [msg1, msg2, msg3].entries()) {
-      const tw = fontReg.widthOfTextAtSize(line, msgSize);
-      const lx = 290 + (265 - tw) / 2;
-      estimatePage.drawText(line, { x: lx, y: 358 - (i * 16), font: fontReg, size: msgSize, color: grey });
-    }
   }
 
   // Pages 3+: remaining wrapper pages (map + facilities)
