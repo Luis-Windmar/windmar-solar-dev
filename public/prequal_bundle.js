@@ -14512,7 +14512,7 @@
     if (!showFinancing) {
       estimatePage.drawRectangle({ x: 290, y: 258, width: 265, height: 140, color: rgb(1, 1, 1) });
       const msg1 = "Financiamiento disponible";
-      const msg2 = "para sistemas \u2265 $60,000.";
+      const msg2 = "para sistemas >= $60,000.";
       const msg3 = "Consulte con su representante.";
       const msgSize = 8;
       for (const [i, line] of [msg1, msg2, msg3].entries()) {
