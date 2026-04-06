@@ -14662,6 +14662,14 @@
             /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("img", { src: "/listo_icon.jpg", alt: "", style: { width: "72px", height: "72px", objectFit: "contain" } }),
             pdfStatus
           ] }),
+          /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(
+            "button",
+            {
+              style: S7.btnOrange,
+              onClick: () => window.open("https://app.smartsheet.com/b/form/9f6e441c850e439a9ea42a82e46b774e", "_blank"),
+              children: "Completar cuestionario completo \u2192"
+            }
+          ),
           /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("button", { style: S7.btnGhost, onClick: onRestart, children: "Nueva consulta" })
         ] }) })
       ] });

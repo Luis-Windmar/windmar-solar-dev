@@ -353,10 +353,18 @@ export default function ThankYouScreen({ interested, contactData, ocrData, sqft,
               </div>
             )}
 
-            {/* 2. Continuar al cuestionario completo — disabled for now, re-activate later */}
+            {/* TODO: Re-enable Deal questionnaire when ready to launch */}
             {/* <a href="https://windmar-solar-production.up.railway.app/deal" style={S.btnNavy}>
               Continuar al cuestionario completo
             </a> */}
+
+            {/* 2. SmartSheet form */}
+            <button
+              style={S.btnOrange}
+              onClick={() => window.open("https://app.smartsheet.com/b/form/9f6e441c850e439a9ea42a82e46b774e", "_blank")}
+            >
+              Completar cuestionario completo →
+            </button>
 
             {/* 3. Nueva consulta */}
             <button style={S.btnGhost} onClick={onRestart}>
