@@ -13001,8 +13001,10 @@
     const avgEnergyOnly = avgMonthlyBill - cargoCliente - cargoDemanda - excesoUSD;
     const effectiveRate = consumoPromedio > 0 ? avgEnergyOnly / consumoPromedio : 0;
     return {
-      nombreNegocio: data.nombre_negocio ?? "",
-      direccion: data.address ?? "",
+      nombreNegocio: data.nombre_negocio ? "TEST - " + data.nombre_negocio : "TEST - ",
+      // TODO: remove before production
+      direccion: data.address ? "TEST - " + data.address : "TEST - ",
+      // TODO: remove before production
       municipio: data.municipio ?? "",
       tariff: data.tarifa ?? "",
       consumoKWH: consumoPromedio > 0 ? fmtNum(consumoPromedio, 0, 0) + " kWh" : "",
@@ -13017,8 +13019,10 @@
     };
   }
   var MOCK_OCR = {
-    nombreNegocio: "MOC OCR BIZ NAME",
-    direccion: "PONCE BY PASS PONCE, PONCE PR 00730",
+    nombreNegocio: "TEST - MOC OCR BIZ NAME",
+    // TODO: remove before production
+    direccion: "TEST - PONCE BY PASS PONCE, PONCE PR 00730",
+    // TODO: remove before production
     municipio: "Ponce",
     tariff: "Servicio Comercial General a Distribuci\xF3n Primaria",
     consumoKWH: "38,880 kWh",
@@ -14208,7 +14212,7 @@
   function ContactScreen({ ocrData, sqft, onNext, onBack }) {
     const [nombre, setNombre] = (0, import_react4.useState)("TEST - ");
     const [phone, setPhone] = (0, import_react4.useState)("");
-    const [consultorNombre, setConsultor] = (0, import_react4.useState)("");
+    const [consultorNombre, setConsultor] = (0, import_react4.useState)("TEST - ");
     const [consultorEmail, setConsultorEmail] = (0, import_react4.useState)("");
     const [loading, setLoading] = (0, import_react4.useState)(false);
     const [error, setError] = (0, import_react4.useState)("");

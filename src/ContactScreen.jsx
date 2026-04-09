@@ -100,7 +100,7 @@ const S = {
 export default function ContactScreen({ ocrData, sqft, onNext, onBack }) {
   const [nombre, setNombre]           = useState("TEST - "); // TODO: remove before production
   const [phone, setPhone]             = useState("");
-  const [consultorNombre, setConsultor] = useState("");
+  const [consultorNombre, setConsultor] = useState("TEST - "); // TODO: remove before production
   const [consultorEmail, setConsultorEmail] = useState("");
   const [loading, setLoading]         = useState(false);
   const [error, setError]             = useState("");
