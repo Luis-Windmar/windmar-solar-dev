@@ -14880,7 +14880,7 @@
   };
   function WelcomeScreen() {
     const [selection, setSelection] = (0, import_react6.useState)("");
-    const [serviceType, setServiceType] = (0, import_react6.useState)("");
+    const [serviceType, setServiceType] = (0, import_react6.useState)("no_se");
     const [screen, setScreen] = (0, import_react6.useState)("welcome");
     const [contactData, setContactData] = (0, import_react6.useState)(null);
     const [ocrData, setOcrData] = (0, import_react6.useState)(null);
@@ -14902,7 +14902,7 @@
     };
     const handleRestart = () => {
       setSelection("");
-      setServiceType("");
+      setServiceType("no_se");
       setScreen("welcome");
       setOcrData(null);
       setSqft(null);

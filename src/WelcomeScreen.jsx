@@ -206,7 +206,7 @@ const ProgressBar = ({ current, total }) => {
 
 export default function WelcomeScreen() {
   const [selection, setSelection] = useState("");
-  const [serviceType, setServiceType] = useState("");
+  const [serviceType, setServiceType] = useState("no_se");
   const [screen, setScreen]       = useState("welcome"); // welcome | exit | upload | roof | battery | estimate | contact | thankyou-yes | thankyou-no
   const [contactData, setContactData] = useState(null);
   const [ocrData, setOcrData]     = useState(null);
@@ -231,7 +231,7 @@ export default function WelcomeScreen() {
     if (!selection) return;
     setScreen(selection === "si" ? "upload" : "exit");
   };
-  const handleRestart  = () => { setSelection(""); setServiceType(""); setScreen("welcome"); setOcrData(null); setSqft(null); setEstData(null); setContactData(null); setBillFiles(null); setBatteryHours(0); setBatteryResult(null); };
+  const handleRestart  = () => { setSelection(""); setServiceType("no_se"); setScreen("welcome"); setOcrData(null); setSqft(null); setEstData(null); setContactData(null); setBillFiles(null); setBatteryHours(0); setBatteryResult(null); };
 
   if (pricingLoading) {
     return (
