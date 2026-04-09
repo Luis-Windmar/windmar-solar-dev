@@ -206,6 +206,7 @@ const ProgressBar = ({ current, total }) => {
 
 export default function WelcomeScreen() {
   const [selection, setSelection] = useState("");
+  const [serviceType, setServiceType] = useState("");
   const [screen, setScreen]       = useState("welcome"); // welcome | exit | upload | roof | battery | estimate | contact | thankyou-yes | thankyou-no
   const [contactData, setContactData] = useState(null);
   const [ocrData, setOcrData]     = useState(null);
@@ -230,7 +231,7 @@ export default function WelcomeScreen() {
     if (!selection) return;
     setScreen(selection === "si" ? "upload" : "exit");
   };
-  const handleRestart  = () => { setSelection(""); setScreen("welcome"); setOcrData(null); setSqft(null); setEstData(null); setContactData(null); setBillFiles(null); setBatteryHours(0); setBatteryResult(null); };
+  const handleRestart  = () => { setSelection(""); setServiceType(""); setScreen("welcome"); setOcrData(null); setSqft(null); setEstData(null); setContactData(null); setBillFiles(null); setBatteryHours(0); setBatteryResult(null); };
 
   if (pricingLoading) {
     return (
@@ -268,7 +269,7 @@ export default function WelcomeScreen() {
     return (
       <UploadScreen
         resumeData={ocrData}
-        onNext={(data, files) => { setOcrData(data); setBillFiles(files); setScreen("roof"); }}
+        onNext={(data, files) => { setOcrData({ ...data, serviceType }); setBillFiles(files); setScreen("roof"); }}
         onBack={handleRestart}
       />
     );
@@ -367,6 +368,22 @@ export default function WelcomeScreen() {
           <option value="">— Selecciona una opción —</option>
           <option value="si">Sí, tengo la factura</option>
           <option value="no">No, en otro momento</option>
+        </select>
+
+        <label style={styles.label}>
+          ¿Sabes qué tipo de servicio eléctrico tienes?
+        </label>
+
+        <select
+          style={serviceType ? { ...styles.select, ...styles.selectSelected } : styles.select}
+          value={serviceType}
+          onChange={(e) => setServiceType(e.target.value)}
+        >
+          <option value="">— Selecciona una opción —</option>
+          <option value="bifasico_240">Bifásico (240V L-L)</option>
+          <option value="trifasico_208">Trifásico (208V)</option>
+          <option value="trifasico_480">Trifásico (480V)</option>
+          <option value="no_se">No lo sé</option>
         </select>
 
         <button

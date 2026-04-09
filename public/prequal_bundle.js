@@ -14880,6 +14880,7 @@
   };
   function WelcomeScreen() {
     const [selection, setSelection] = (0, import_react6.useState)("");
+    const [serviceType, setServiceType] = (0, import_react6.useState)("");
     const [screen, setScreen] = (0, import_react6.useState)("welcome");
     const [contactData, setContactData] = (0, import_react6.useState)(null);
     const [ocrData, setOcrData] = (0, import_react6.useState)(null);
@@ -14901,6 +14902,7 @@
     };
     const handleRestart = () => {
       setSelection("");
+      setServiceType("");
       setScreen("welcome");
       setOcrData(null);
       setSqft(null);
@@ -14933,7 +14935,7 @@
         {
           resumeData: ocrData,
           onNext: (data, files) => {
-            setOcrData(data);
+            setOcrData({ ...data, serviceType });
             setBillFiles(files);
             setScreen("roof");
           },
@@ -15046,6 +15048,22 @@
               /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("option", { value: "", children: "\u2014 Selecciona una opci\xF3n \u2014" }),
               /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("option", { value: "si", children: "S\xED, tengo la factura" }),
               /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("option", { value: "no", children: "No, en otro momento" })
+            ]
+          }
+        ),
+        /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("label", { style: styles.label, children: "\xBFSabes qu\xE9 tipo de servicio el\xE9ctrico tienes?" }),
+        /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)(
+          "select",
+          {
+            style: serviceType ? { ...styles.select, ...styles.selectSelected } : styles.select,
+            value: serviceType,
+            onChange: (e) => setServiceType(e.target.value),
+            children: [
+              /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("option", { value: "", children: "\u2014 Selecciona una opci\xF3n \u2014" }),
+              /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("option", { value: "bifasico_240", children: "Bif\xE1sico (240V L-L)" }),
+              /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("option", { value: "trifasico_208", children: "Trif\xE1sico (208V)" }),
+              /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("option", { value: "trifasico_480", children: "Trif\xE1sico (480V)" }),
+              /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("option", { value: "no_se", children: "No lo s\xE9" })
             ]
           }
         ),
