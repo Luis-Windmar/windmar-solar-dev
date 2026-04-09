@@ -13251,10 +13251,10 @@
   var import_react2 = __toESM(require_react());
   var import_jsx_runtime3 = __toESM(require_jsx_runtime());
   var SIZES = [
-    { key: "small", img: "/small_business_icon.jpg", label: "Peque\xF1o", sqft: 1e3, desc: "~1,000 sq ft" },
-    { key: "medium", img: "/med_business_icon.jpg", label: "Mediano", sqft: 2500, desc: "~2,500 sq ft" },
-    { key: "large", img: "/large_business_icon.jpg", label: "Grande", sqft: 5e3, desc: "~5,000 sq ft" },
-    { key: "industrial", img: "/ind_business_icon.jpg", label: "Industrial", sqft: 1e4, desc: "~10,000 sq ft" }
+    { key: "small", img: "/small_business_icon.jpg", label: "Peque\xF1o", sqft: 2e3 },
+    { key: "medium", img: "/med_business_icon.jpg", label: "Mediano", sqft: 7500 },
+    { key: "large", img: "/large_business_icon.jpg", label: "Grande", sqft: 15e3 },
+    { key: "industrial", img: "/ind_business_icon.jpg", label: "Industrial", sqft: 5e4 }
   ];
   var S3 = {
     page: {
@@ -13378,35 +13378,31 @@
     const [selected, setSelected] = (0, import_react2.useState)(null);
     const [custom, setCustom] = (0, import_react2.useState)("");
     const customNum = parseFloat(custom.replace(/,/g, ""));
-    const effectiveSqft = custom.trim() !== "" && !isNaN(customNum) ? customNum : SIZES.find((s) => s.key === selected)?.sqft ?? null;
-    const canContinue = effectiveSqft !== null && effectiveSqft > 0;
+    const effectiveSqft = custom.trim() !== "" && !isNaN(customNum) && customNum > 0 ? customNum : null;
+    const canContinue = effectiveSqft !== null;
     return /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("div", { style: S3.page, children: [
       /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(Header, {}),
       /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(ProgressBar, { current: 3, total: 6 }),
       /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("div", { style: S3.content, children: [
         /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("h1", { style: S3.h1, children: "\xBFCu\xE1nto techo tienes disponible?" }),
         /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("p", { style: S3.sub, children: "Selecciona la opci\xF3n que mejor describe tu negocio, o ingresa el \xE1rea exacta abajo." }),
-        /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("div", { style: S3.grid, children: SIZES.map(({ key, img, label, desc }) => {
-          const isSelected = selected === key && custom.trim() === "";
-          return /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)(
-            "div",
-            {
-              style: { ...S3.card, ...isSelected ? S3.cardSelected : {} },
-              onClick: () => {
-                setSelected(key);
-                setCustom("");
-              },
-              children: [
-                /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("img", { src: img, alt: label, style: S3.cardIcon }),
-                /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("div", { style: S3.cardLabel, children: label }),
-                /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("div", { style: S3.cardDesc, children: desc })
-              ]
+        /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("div", { style: S3.grid, children: SIZES.map(({ key, img, label, sqft }) => /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)(
+          "div",
+          {
+            style: { ...S3.card, ...selected === key ? S3.cardSelected : {} },
+            onClick: () => {
+              setSelected(key);
+              setCustom(String(sqft));
             },
-            key
-          );
-        }) }),
+            children: [
+              /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("img", { src: img, alt: label, style: S3.cardIcon }),
+              /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("div", { style: S3.cardLabel, children: label })
+            ]
+          },
+          key
+        )) }),
         /* @__PURE__ */ (0, import_jsx_runtime3.jsxs)("div", { style: S3.overrideWrap, children: [
-          /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("label", { style: S3.overrideLabel, children: "O ingresa el \xE1rea exacta (sq ft)" }),
+          /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("label", { style: S3.overrideLabel, children: "Ingresa o ajusta el \xE1rea exacta (sq ft)" }),
           /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(
             "input",
             {
@@ -13415,7 +13411,10 @@
               min: "1",
               placeholder: "ej. 3,500",
               value: custom,
-              onChange: (e) => setCustom(e.target.value)
+              onChange: (e) => {
+                setCustom(e.target.value);
+                setSelected(null);
+              }
             }
           )
         ] }),

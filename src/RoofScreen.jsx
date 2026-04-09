@@ -2,10 +2,10 @@ import { useState } from "react";
 import { Header, ProgressBar } from "./shared.jsx";
 
 const SIZES = [
-  { key: "small",      img: "/small_business_icon.jpg",  label: "Pequeño",    sqft: 1000,  desc: "~1,000 sq ft" },
-  { key: "medium",     img: "/med_business_icon.jpg",    label: "Mediano",    sqft: 2500,  desc: "~2,500 sq ft" },
-  { key: "large",      img: "/large_business_icon.jpg",  label: "Grande",     sqft: 5000,  desc: "~5,000 sq ft" },
-  { key: "industrial", img: "/ind_business_icon.jpg",    label: "Industrial", sqft: 10000, desc: "~10,000 sq ft" },
+  { key: "small",      img: "/small_business_icon.jpg",  label: "Pequeño",    sqft: 2000  },
+  { key: "medium",     img: "/med_business_icon.jpg",    label: "Mediano",    sqft: 7500  },
+  { key: "large",      img: "/large_business_icon.jpg",  label: "Grande",     sqft: 15000 },
+  { key: "industrial", img: "/ind_business_icon.jpg",    label: "Industrial", sqft: 50000 },
 ];
 
 const S = {
@@ -131,13 +131,9 @@ export default function RoofScreen({ onNext, onBack }) {
   const [selected, setSelected] = useState(null);  // key of selected size card
   const [custom, setCustom]     = useState("");     // free-text override
 
-  // Effective sqft: custom input wins if filled, otherwise card preset
-  const customNum  = parseFloat(custom.replace(/,/g, ""));
-  const effectiveSqft = custom.trim() !== "" && !isNaN(customNum)
-    ? customNum
-    : SIZES.find((s) => s.key === selected)?.sqft ?? null;
-
-  const canContinue = effectiveSqft !== null && effectiveSqft > 0;
+  const customNum     = parseFloat(custom.replace(/,/g, ""));
+  const effectiveSqft = custom.trim() !== "" && !isNaN(customNum) && customNum > 0 ? customNum : null;
+  const canContinue   = effectiveSqft !== null;
 
   return (
     <div style={S.page}>
@@ -150,25 +146,21 @@ export default function RoofScreen({ onNext, onBack }) {
         </p>
 
         <div style={S.grid}>
-          {SIZES.map(({ key, img, label, desc }) => {
-            const isSelected = selected === key && custom.trim() === "";
-            return (
-              <div
-                key={key}
-                style={{ ...S.card, ...(isSelected ? S.cardSelected : {}) }}
-                onClick={() => { setSelected(key); setCustom(""); }}
-              >
-                <img src={img} alt={label} style={S.cardIcon} />
-                <div style={S.cardLabel}>{label}</div>
-                <div style={S.cardDesc}>{desc}</div>
-              </div>
-            );
-          })}
+          {SIZES.map(({ key, img, label, sqft }) => (
+            <div
+              key={key}
+              style={{ ...S.card, ...(selected === key ? S.cardSelected : {}) }}
+              onClick={() => { setSelected(key); setCustom(String(sqft)); }}
+            >
+              <img src={img} alt={label} style={S.cardIcon} />
+              <div style={S.cardLabel}>{label}</div>
+            </div>
+          ))}
         </div>
 
         <div style={S.overrideWrap}>
           <label style={S.overrideLabel}>
-            O ingresa el área exacta (sq ft)
+            Ingresa o ajusta el área exacta (sq ft)
           </label>
           <input
             style={S.overrideInput}
@@ -176,7 +168,7 @@ export default function RoofScreen({ onNext, onBack }) {
             min="1"
             placeholder="ej. 3,500"
             value={custom}
-            onChange={(e) => setCustom(e.target.value)}
+            onChange={(e) => { setCustom(e.target.value); setSelected(null); }}
           />
         </div>
 
