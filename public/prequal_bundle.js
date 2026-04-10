@@ -14597,7 +14597,10 @@
           };
           const fd = new FormData();
           fd.append("leadData", JSON.stringify(leadData));
-          if (billFiles) Array.from(billFiles).forEach((f) => fd.append("billFile", f));
+          if (billFiles) Array.from(billFiles).forEach((f) => {
+            const renamed = new File([f], `PreQual - ${f.name}`, { type: f.type });
+            fd.append("billFile", renamed);
+          });
           const res = await fetch("/api/zoho-lead", { method: "POST", body: fd });
           const data = await res.json();
           if (!data.success) throw new Error(data.error);
