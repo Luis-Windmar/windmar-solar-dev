@@ -14554,7 +14554,7 @@
     street = street.replace(/[,\s]+$/, "").replace(/\s{2,}/g, " ").trim();
     return { street, zip };
   };
-  function ThankYouScreen({ interested, contactData, ocrData, sqft, estData, batteryHours, batteryResult, billFiles, onRestart }) {
+  function ThankYouScreen({ interested, generateLead = true, contactData, ocrData, sqft, estData, batteryHours, batteryResult, billFiles, onRestart }) {
     const [pdfStatus, setPdfStatus] = (0, import_react5.useState)("");
     const [pdfError, setPdfError] = (0, import_react5.useState)("");
     const [pdfReady, setPdfReady] = (0, import_react5.useState)(false);
@@ -14595,27 +14595,36 @@
             totalPrice: (estData?.systemCost || 0) + (batteryResult?.totalCost || 0),
             notes
           };
-          const fd = new FormData();
-          fd.append("leadData", JSON.stringify(leadData));
-          if (billFiles) Array.from(billFiles).forEach((f) => {
-            const renamed = new File([f], `PreQual - ${f.name}`, { type: f.type });
-            fd.append("billFile", renamed);
-          });
-          const res = await fetch("/api/zoho-lead", { method: "POST", body: fd });
-          const data = await res.json();
-          if (!data.success) throw new Error(data.error);
-          const leadName = data.commercialLeadName;
-          leadNameRef.current = leadName;
-          if (!window.PDFLib) return;
-          const pdfBytes = await generateEstimatePDF(ocrData, sqft, estData, contactData, leadName, batteryResult);
-          const blob = new Blob([pdfBytes], { type: "application/pdf" });
-          blobRef.current = blob;
-          setPdfReady(true);
-          const fd2 = new FormData();
-          fd2.append("leadId", data.zohoLeadId);
-          const fileName = `Windmar_Estimado_${leadName || "Solar"}.pdf`;
-          fd2.append("file", blob, fileName);
-          await fetch("/api/zoho-attach", { method: "POST", body: fd2 });
+          let leadName = null;
+          if (generateLead) {
+            const fd = new FormData();
+            fd.append("leadData", JSON.stringify(leadData));
+            if (billFiles) Array.from(billFiles).forEach((f) => {
+              const renamed = new File([f], `PreQual - ${f.name}`, { type: f.type });
+              fd.append("billFile", renamed);
+            });
+            const res = await fetch("/api/zoho-lead", { method: "POST", body: fd });
+            const data = await res.json();
+            if (!data.success) throw new Error(data.error);
+            leadName = data.commercialLeadName;
+            leadNameRef.current = leadName;
+            if (!window.PDFLib) return;
+            const pdfBytes = await generateEstimatePDF(ocrData, sqft, estData, contactData, leadName, batteryResult);
+            const blob = new Blob([pdfBytes], { type: "application/pdf" });
+            blobRef.current = blob;
+            setPdfReady(true);
+            const fd2 = new FormData();
+            fd2.append("leadId", data.zohoLeadId);
+            const fileName = `Windmar_Estimado_${leadName || "Solar"}.pdf`;
+            fd2.append("file", blob, fileName);
+            await fetch("/api/zoho-attach", { method: "POST", body: fd2 });
+          } else {
+            if (!window.PDFLib) return;
+            const pdfBytes = await generateEstimatePDF(ocrData, sqft, estData, contactData, null, batteryResult);
+            const blob = new Blob([pdfBytes], { type: "application/pdf" });
+            blobRef.current = blob;
+            setPdfReady(true);
+          }
         } catch (err) {
           console.error("Zoho error:", err);
         }
@@ -14895,6 +14904,7 @@
     const [pricing, setPricing] = (0, import_react6.useState)(null);
     const [pricingLoading, setPricingLoading] = (0, import_react6.useState)(true);
     const [preSizing, setPreSizing] = (0, import_react6.useState)(true);
+    const [generateLead, setGenerateLead] = (0, import_react6.useState)(true);
     (0, import_react6.useEffect)(() => {
       fetch("/api/pricing").then((r) => r.json()).then((data) => setPricing(data)).catch(() => {
       }).finally(() => setPricingLoading(false));
@@ -15009,6 +15019,7 @@
         ThankYouScreen,
         {
           interested: true,
+          generateLead,
           contactData,
           ocrData,
           sqft,
@@ -15083,25 +15094,46 @@
           /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("div", { style: { width: "100px", height: "100px", overflow: "hidden", flexShrink: 0 }, children: /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("img", { src: "/financing_icon.png", alt: "", style: { width: "100px", height: "100px", objectFit: "contain", transform: "scale(1.6)", transformOrigin: "center" } }) }),
           /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("p", { style: styles.noteText, children: "Windmar Comercial ofrece opciones de financiamiento. Entre ellas, 15 a\xF1os sin pronto. Evaluaremos el sistema ideal para tu negocio, y te daremos un estimado del ahorro." })
         ] }),
-        /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("div", { style: { marginTop: "32px", textAlign: "center" }, children: /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)(
-          "button",
-          {
-            onClick: () => setPreSizing(!preSizing),
-            style: {
-              fontSize: "12px",
-              color: preSizing ? "#1B3F8B" : "#6b7280",
-              backgroundColor: "transparent",
-              border: `1px solid ${preSizing ? "#1B3F8B" : "#9ca3af"}`,
-              borderRadius: "20px",
-              padding: "6px 14px",
-              cursor: "pointer"
-            },
-            children: [
-              "Demo: pantalla de bater\xEDas ",
-              preSizing ? "ON" : "OFF"
-            ]
-          }
-        ) })
+        /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)("div", { style: { marginTop: "32px", display: "flex", gap: "10px", justifyContent: "center", flexWrap: "wrap" }, children: [
+          /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)(
+            "button",
+            {
+              onClick: () => setPreSizing(!preSizing),
+              style: {
+                fontSize: "12px",
+                color: preSizing ? "#1B3F8B" : "#6b7280",
+                backgroundColor: "transparent",
+                border: `1px solid ${preSizing ? "#1B3F8B" : "#9ca3af"}`,
+                borderRadius: "20px",
+                padding: "6px 14px",
+                cursor: "pointer"
+              },
+              children: [
+                "Demo: pantalla de bater\xEDas ",
+                preSizing ? "ON" : "OFF"
+              ]
+            }
+          ),
+          /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)(
+            "button",
+            {
+              onClick: () => setGenerateLead(!generateLead),
+              style: {
+                fontSize: "12px",
+                color: generateLead ? "#1B3F8B" : "#6b7280",
+                backgroundColor: "transparent",
+                border: `1px solid ${generateLead ? "#1B3F8B" : "#9ca3af"}`,
+                borderRadius: "20px",
+                padding: "6px 14px",
+                cursor: "pointer"
+              },
+              children: [
+                "Generar lead ",
+                generateLead ? "SI" : "NO"
+              ]
+            }
+          )
+        ] })
       ] })
     ] });
   }

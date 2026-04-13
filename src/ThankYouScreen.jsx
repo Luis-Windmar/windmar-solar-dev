@@ -221,7 +221,7 @@ const parseAddress = (fullAddress, municipio) => {
   return { street, zip };
 };
 
-export default function ThankYouScreen({ interested, contactData, ocrData, sqft, estData, batteryHours, batteryResult, billFiles, onRestart }) {
+export default function ThankYouScreen({ interested, generateLead = true, contactData, ocrData, sqft, estData, batteryHours, batteryResult, billFiles, onRestart }) {
   const [pdfStatus,  setPdfStatus]  = useState("");
   const [pdfError,   setPdfError]   = useState("");
   const [pdfReady,          setPdfReady]          = useState(false);
@@ -267,34 +267,46 @@ export default function ThankYouScreen({ interested, contactData, ocrData, sqft,
           notes,
         };
 
-        // Step 1: Create lead + attach bill
-        const fd = new FormData();
-        fd.append("leadData", JSON.stringify(leadData));
-        if (billFiles) Array.from(billFiles).forEach((f) => {
-          const renamed = new File([f], `PreQual - ${f.name}`, { type: f.type });
-          fd.append("billFile", renamed);
-        });
+        let leadName = null;
 
-        const res  = await fetch("/api/zoho-lead", { method: "POST", body: fd });
-        const data = await res.json();
-        if (!data.success) throw new Error(data.error);
+        if (generateLead) {
+          // Step 1: Create lead + attach bill
+          const fd = new FormData();
+          fd.append("leadData", JSON.stringify(leadData));
+          if (billFiles) Array.from(billFiles).forEach((f) => {
+            const renamed = new File([f], `PreQual - ${f.name}`, { type: f.type });
+            fd.append("billFile", renamed);
+          });
 
-        const leadName = data.commercialLeadName;
-        leadNameRef.current = leadName;
+          const res  = await fetch("/api/zoho-lead", { method: "POST", body: fd });
+          const data = await res.json();
+          if (!data.success) throw new Error(data.error);
 
-        // Step 2: Generate PDF with Com_Lead_Name as the número
-        if (!window.PDFLib) return;
-        const pdfBytes = await generateEstimatePDF(ocrData, sqft, estData, contactData, leadName, batteryResult);
-        const blob = new Blob([pdfBytes], { type: "application/pdf" });
-        blobRef.current = blob;
-        setPdfReady(true);
+          leadName = data.commercialLeadName;
+          leadNameRef.current = leadName;
 
-        // Step 3: Attach PDF to lead
-        const fd2 = new FormData();
-        fd2.append("leadId", data.zohoLeadId);
-        const fileName = `Windmar_Estimado_${leadName || "Solar"}.pdf`;
-        fd2.append("file", blob, fileName);
-        await fetch("/api/zoho-attach", { method: "POST", body: fd2 });
+          // Step 2: Generate PDF
+          if (!window.PDFLib) return;
+          const pdfBytes = await generateEstimatePDF(ocrData, sqft, estData, contactData, leadName, batteryResult);
+          const blob = new Blob([pdfBytes], { type: "application/pdf" });
+          blobRef.current = blob;
+          setPdfReady(true);
+
+          // Step 3: Attach PDF to lead
+          const fd2 = new FormData();
+          fd2.append("leadId", data.zohoLeadId);
+          const fileName = `Windmar_Estimado_${leadName || "Solar"}.pdf`;
+          fd2.append("file", blob, fileName);
+          await fetch("/api/zoho-attach", { method: "POST", body: fd2 });
+
+        } else {
+          // generateLead=false: skip Zoho entirely, generate PDF for download only
+          if (!window.PDFLib) return;
+          const pdfBytes = await generateEstimatePDF(ocrData, sqft, estData, contactData, null, batteryResult);
+          const blob = new Blob([pdfBytes], { type: "application/pdf" });
+          blobRef.current = blob;
+          setPdfReady(true);
+        }
 
       } catch (err) {
         console.error("Zoho error:", err);

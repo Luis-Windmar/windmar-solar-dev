@@ -217,7 +217,8 @@ export default function WelcomeScreen() {
   const [billFiles, setBillFiles] = useState(null);
   const [pricing, setPricing] = useState(null);
   const [pricingLoading, setPricingLoading] = useState(true);
-  const [preSizing, setPreSizing] = useState(true); // DEMO TOGGLE: true = separate battery screen, false = slider on estimate only
+  const [preSizing, setPreSizing] = useState(true);     // DEMO TOGGLE: true = separate battery screen, false = slider on estimate only
+  const [generateLead, setGenerateLead] = useState(true); // DEMO TOGGLE: false = skip Zoho lead creation + attachments
 
   useEffect(() => {
     fetch("/api/pricing")
@@ -324,6 +325,7 @@ export default function WelcomeScreen() {
     return (
       <ThankYouScreen
         interested={true}
+        generateLead={generateLead}
         contactData={contactData}
         ocrData={ocrData}
         sqft={sqft}
@@ -405,8 +407,8 @@ export default function WelcomeScreen() {
           </p>
         </div>
 
-        {/* DEMO TOGGLE — remove before production */}
-        <div style={{ marginTop: "32px", textAlign: "center" }}>
+        {/* DEMO TOGGLES — remove before production */}
+        <div style={{ marginTop: "32px", display: "flex", gap: "10px", justifyContent: "center", flexWrap: "wrap" }}>
           <button
             onClick={() => setPreSizing(!preSizing)}
             style={{
@@ -420,6 +422,20 @@ export default function WelcomeScreen() {
             }}
           >
             Demo: pantalla de baterías {preSizing ? "ON" : "OFF"}
+          </button>
+          <button
+            onClick={() => setGenerateLead(!generateLead)}
+            style={{
+              fontSize: "12px",
+              color: generateLead ? "#1B3F8B" : "#6b7280",
+              backgroundColor: "transparent",
+              border: `1px solid ${generateLead ? "#1B3F8B" : "#9ca3af"}`,
+              borderRadius: "20px",
+              padding: "6px 14px",
+              cursor: "pointer",
+            }}
+          >
+            Generar lead {generateLead ? "SI" : "NO"}
           </button>
         </div>
       </div>
