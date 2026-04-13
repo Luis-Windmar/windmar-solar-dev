@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import UploadScreen from "./UploadScreen.jsx";
 import RoofScreen from "./RoofScreen.jsx";
-import BatteryIntentScreen from "./BatteryIntentScreen.jsx";
 import EstimateScreen from "./EstimateScreen.jsx";
 import ContactScreen from "./ContactScreen.jsx";
 import ThankYouScreen from "./ThankYouScreen.jsx";
@@ -207,7 +206,7 @@ const ProgressBar = ({ current, total }) => {
 export default function WelcomeScreen() {
   const [selection, setSelection] = useState("");
   const [serviceType, setServiceType] = useState("no_se");
-  const [screen, setScreen]       = useState("welcome"); // welcome | exit | upload | roof | battery | estimate | contact | thankyou-yes | thankyou-no
+  const [screen, setScreen]       = useState("welcome"); // welcome | exit | upload | roof | estimate | contact | thankyou-yes | thankyou-no
   const [contactData, setContactData] = useState(null);
   const [ocrData, setOcrData]     = useState(null);
   const [sqft, setSqft]           = useState(null);
@@ -217,7 +216,6 @@ export default function WelcomeScreen() {
   const [billFiles, setBillFiles] = useState(null);
   const [pricing, setPricing] = useState(null);
   const [pricingLoading, setPricingLoading] = useState(true);
-  const [preSizing, setPreSizing] = useState(true);     // DEMO TOGGLE: true = separate battery screen, false = slider on estimate only
   const [generateLead, setGenerateLead] = useState(true); // DEMO TOGGLE: false = skip Zoho lead creation + attachments
 
   useEffect(() => {
@@ -279,21 +277,12 @@ export default function WelcomeScreen() {
   if (screen === "roof") {
     return (
       <RoofScreen
-        onNext={(s) => { setSqft(s); setScreen(preSizing ? "battery" : "estimate"); }}
+        onNext={(s) => { setSqft(s); setScreen("estimate"); }}
         onBack={() => setScreen("upload")}
       />
     );
   }
 
-  if (screen === "battery") {
-    return (
-      <BatteryIntentScreen
-        batteryHours={batteryHours}
-        onNext={(hours) => { setBatteryHours(hours); setScreen("estimate"); }}
-        onBack={() => setScreen("roof")}
-      />
-    );
-  }
 
   if (screen === "estimate") {
     return (
@@ -305,7 +294,7 @@ export default function WelcomeScreen() {
         setBatteryHours={setBatteryHours}
         onInterested={(est, batt) => { setEstData(est); setBatteryResult(batt); setScreen("contact"); }}
         onNotInterested={() => setScreen("thankyou-no")}
-        onBack={() => setScreen(preSizing ? "battery" : "roof")}
+        onBack={() => setScreen("roof")}
       />
     );
   }
@@ -407,22 +396,8 @@ export default function WelcomeScreen() {
           </p>
         </div>
 
-        {/* DEMO TOGGLES — remove before production */}
-        <div style={{ marginTop: "32px", display: "flex", gap: "10px", justifyContent: "center", flexWrap: "wrap" }}>
-          <button
-            onClick={() => setPreSizing(!preSizing)}
-            style={{
-              fontSize: "12px",
-              color: preSizing ? "#1B3F8B" : "#6b7280",
-              backgroundColor: "transparent",
-              border: `1px solid ${preSizing ? "#1B3F8B" : "#9ca3af"}`,
-              borderRadius: "20px",
-              padding: "6px 14px",
-              cursor: "pointer",
-            }}
-          >
-            Demo: pantalla de baterías {preSizing ? "ON" : "OFF"}
-          </button>
+        {/* DEMO TOGGLE — remove before production */}
+        <div style={{ marginTop: "32px", textAlign: "center" }}>
           <button
             onClick={() => setGenerateLead(!generateLead)}
             style={{

@@ -12748,11 +12748,11 @@
   });
 
   // src/prequal_main.jsx
-  var import_react7 = __toESM(require_react());
+  var import_react6 = __toESM(require_react());
   var import_client = __toESM(require_client());
 
   // src/WelcomeScreen.jsx
-  var import_react6 = __toESM(require_react());
+  var import_react5 = __toESM(require_react());
 
   // src/UploadScreen.jsx
   var import_react = __toESM(require_react());
@@ -13432,149 +13432,8 @@
     ] });
   }
 
-  // src/BatteryIntentScreen.jsx
-  var import_react3 = __toESM(require_react());
-  var import_jsx_runtime4 = __toESM(require_jsx_runtime());
-  var SLIDER_HOURS = [0, 4, 8, 12, 16, 24];
-  var S4 = {
-    page: {
-      minHeight: "100vh",
-      backgroundColor: "#EBF1FF",
-      display: "flex",
-      flexDirection: "column",
-      fontFamily: "'Segoe UI', system-ui, -apple-system, sans-serif"
-    },
-    content: {
-      flex: 1,
-      padding: "32px 24px 48px",
-      maxWidth: "480px",
-      margin: "0 auto",
-      width: "100%",
-      boxSizing: "border-box"
-    },
-    h1: {
-      fontSize: "26px",
-      fontWeight: "700",
-      color: "#1B3F8B",
-      marginBottom: "12px",
-      marginTop: 0
-    },
-    sub: {
-      fontSize: "16px",
-      color: "#374151",
-      lineHeight: "1.6",
-      marginBottom: "32px",
-      marginTop: 0
-    },
-    sliderLabel: {
-      fontSize: "15px",
-      fontWeight: "600",
-      color: "#374151",
-      marginBottom: "12px",
-      display: "block"
-    },
-    sliderValue: {
-      fontSize: "28px",
-      fontWeight: "800",
-      color: "#1B3F8B",
-      textAlign: "center",
-      marginBottom: "16px"
-    },
-    sliderWrap: {
-      backgroundColor: "#ffffff",
-      borderRadius: "16px",
-      padding: "20px",
-      marginBottom: "32px"
-    },
-    sliderTicks: {
-      display: "flex",
-      justifyContent: "space-between",
-      fontSize: "12px",
-      color: "#6b7280",
-      marginTop: "8px"
-    },
-    btnOrange: {
-      width: "100%",
-      padding: "16px",
-      fontSize: "18px",
-      fontWeight: "600",
-      color: "#ffffff",
-      backgroundColor: "#F5A623",
-      border: "none",
-      borderRadius: "10px",
-      cursor: "pointer",
-      marginBottom: "12px",
-      display: "block"
-    },
-    btnGhost: {
-      width: "100%",
-      padding: "16px",
-      fontSize: "18px",
-      fontWeight: "600",
-      color: "#1B3F8B",
-      backgroundColor: "transparent",
-      border: "2px solid #1B3F8B",
-      borderRadius: "10px",
-      cursor: "pointer",
-      marginBottom: "12px",
-      display: "block"
-    },
-    btnBack: {
-      width: "100%",
-      padding: "14px",
-      fontSize: "16px",
-      fontWeight: "600",
-      color: "#1B3F8B",
-      backgroundColor: "transparent",
-      border: "2px solid #1B3F8B",
-      borderRadius: "10px",
-      cursor: "pointer",
-      display: "block"
-    }
-  };
-  function BatteryIntentScreen({ batteryHours, onNext, onBack }) {
-    const initIdx = Math.max(0, SLIDER_HOURS.indexOf(batteryHours));
-    const [sliderIdx, setSliderIdx] = (0, import_react3.useState)(initIdx);
-    const hours = SLIDER_HOURS[sliderIdx];
-    return /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)("div", { style: S4.page, children: [
-      /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("style", { children: `
-        .battery-slider { -webkit-appearance: none; appearance: none; width: 100%; height: 28px; background: transparent; outline: none; cursor: pointer; }
-        .battery-slider::-webkit-slider-runnable-track { height: 3px; background: #d1d5db; border-radius: 2px; }
-        .battery-slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 28px; height: 28px; border-radius: 50%; background: #1B3F8B; cursor: pointer; margin-top: -12.5px; }
-        .battery-slider::-moz-range-track { height: 3px; background: #d1d5db; border-radius: 2px; }
-        .battery-slider::-moz-range-thumb { width: 28px; height: 28px; border-radius: 50%; background: #1B3F8B; cursor: pointer; border: none; }
-      ` }),
-      /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Header, {}),
-      /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(ProgressBar, { current: 4, total: 6 }),
-      /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)("div", { style: S4.content, children: [
-        /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("h1", { style: S4.h1, children: "\xBFDeseas incluir almacenamiento de energ\xEDa?" }),
-        /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("p", { style: S4.sub, children: "Las bater\xEDas te dan respaldo el\xE9ctrico durante apagones. No reducen tu factura, pero mantienen tu negocio operando." }),
-        /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("span", { style: S4.sliderLabel, children: "\xBFCu\xE1ntas horas de respaldo deseas?" }),
-        /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)("div", { style: S4.sliderWrap, children: [
-          /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("div", { style: S4.sliderValue, children: hours === 0 ? "Sin almacenamiento" : `${hours} horas de respaldo` }),
-          /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(
-            "input",
-            {
-              type: "range",
-              className: "battery-slider",
-              min: 0,
-              max: SLIDER_HOURS.length - 1,
-              step: 1,
-              value: sliderIdx,
-              onChange: (e) => setSliderIdx(Number(e.target.value)),
-              style: { width: "100%", cursor: "pointer" }
-            }
-          ),
-          /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("div", { style: S4.sliderTicks, children: SLIDER_HOURS.map((h) => /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("span", { children: h === 0 ? "0" : `${h}h` }, h)) })
-        ] }),
-        /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("button", { style: S4.btnOrange, onClick: () => onNext(hours), children: hours > 0 ? "Ver estimado con bater\xEDas" : "Ver estimado" }),
-        /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("button", { style: S4.btnBack, onClick: onBack, children: "Atr\xE1s" })
-      ] })
-    ] });
-  }
-
   // src/EstimateScreen.jsx
-  var import_jsx_runtime5 = __toESM(require_jsx_runtime());
+  var import_jsx_runtime4 = __toESM(require_jsx_runtime());
   var MUNICIPIO_YIELDS = {
     "Adjuntas": 1530,
     "Aguada": 1530,
@@ -13812,10 +13671,10 @@
       capped: numBatteries === maxBatteries
     };
   };
-  var SLIDER_HOURS2 = [0, 4, 8, 12, 16, 24];
+  var SLIDER_HOURS = [0, 4, 8, 12, 16, 24];
   var parseNum = (s) => parseFloat(String(s ?? "").replace(/,/g, "").replace(/[^0-9.-]/g, "")) || 0;
   var fmtUSD = (n) => "$" + Number(n).toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 });
-  var S5 = {
+  var S4 = {
     page: {
       minHeight: "100vh",
       backgroundColor: "#EBF1FF",
@@ -13994,126 +13853,126 @@
     const totalMonthlyPmt = totalFin.monthlyPmt;
     const totalSavingsNet = Math.round(est.savingsCash - totalMonthlyPmt);
     const paybackYears = est.savingsCash > 0 ? Math.ceil(totalCost / (est.savingsCash * 12)) : "\u2014";
-    const sliderIdx = Math.max(0, SLIDER_HOURS2.indexOf(localBatteryHours));
+    const sliderIdx = Math.max(0, SLIDER_HOURS.indexOf(localBatteryHours));
     const handleSliderChange = (e) => {
-      setBatteryHours(SLIDER_HOURS2[Number(e.target.value)]);
+      setBatteryHours(SLIDER_HOURS[Number(e.target.value)]);
     };
-    return /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)("div", { style: S5.page, children: [
-      /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(Header, {}),
-      /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(ProgressBar, { current: 5, total: 6 }),
-      /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)("div", { style: S5.content, children: [
-        /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("h1", { style: S5.h1, children: "Tu estimado" }),
-        /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)("p", { style: S5.sub, children: [
+    return /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)("div", { style: S4.page, children: [
+      /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(Header, {}),
+      /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(ProgressBar, { current: 5, total: 6 }),
+      /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)("div", { style: S4.content, children: [
+        /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("h1", { style: S4.h1, children: "Tu estimado" }),
+        /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)("p", { style: S4.sub, children: [
           municipio,
           " \u2013 ",
           sqft.toLocaleString(),
           " p\xB2"
         ] }),
-        /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)("div", { style: S5.card, children: [
-          /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)("div", { style: S5.row, children: [
-            /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("span", { style: S5.rowLabel, children: "Generaci\xF3n:" }),
-            /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)("span", { style: S5.rowValue, children: [
+        /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)("div", { style: S4.card, children: [
+          /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)("div", { style: S4.row, children: [
+            /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("span", { style: S4.rowLabel, children: "Generaci\xF3n:" }),
+            /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)("span", { style: S4.rowValue, children: [
               est.systemKwp.toLocaleString("en-US"),
               " kWp"
             ] })
           ] }),
-          /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)("div", { style: S5.row, children: [
-            /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("span", { style: S5.rowLabel, children: "Cubre:" }),
-            /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)("span", { style: S5.rowValue, children: [
+          /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)("div", { style: S4.row, children: [
+            /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("span", { style: S4.rowLabel, children: "Cubre:" }),
+            /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)("span", { style: S4.rowValue, children: [
               est.coverage,
               "% de tu consumo"
             ] })
           ] }),
-          /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)("div", { style: S5.rowLast, children: [
-            /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("span", { style: S5.rowLabel, children: "Respaldo estimado:" }),
-            /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("span", { style: S5.rowValue, children: batteryResult ? `${batteryResult.actualHours} horas` : "0 horas" })
+          /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)("div", { style: S4.rowLast, children: [
+            /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("span", { style: S4.rowLabel, children: "Respaldo estimado:" }),
+            /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("span", { style: S4.rowValue, children: batteryResult ? `${batteryResult.actualHours} horas` : "0 horas" })
           ] })
         ] }),
-        /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)("div", { style: S5.highlight, children: [
-          /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)("div", { children: [
-            /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("div", { style: S5.highlightLabel, children: "Ahorro mensual*" }),
-            /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("div", { style: S5.highlightFootnote, children: "*compra de contado" })
+        /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)("div", { style: S4.highlight, children: [
+          /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)("div", { children: [
+            /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("div", { style: S4.highlightLabel, children: "Ahorro mensual*" }),
+            /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("div", { style: S4.highlightFootnote, children: "*compra de contado" })
           ] }),
-          /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("div", { style: S5.highlightValue, children: fmtUSD(est.savingsCash) })
+          /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("div", { style: S4.highlightValue, children: fmtUSD(est.savingsCash) })
         ] }),
-        /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)("div", { style: S5.card, children: [
-          /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)("div", { style: S5.row, children: [
-            /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("span", { style: S5.rowLabel, children: "Precio de contado:" }),
-            /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("span", { style: S5.rowValue, children: fmtUSD(totalCost) })
+        /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)("div", { style: S4.card, children: [
+          /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)("div", { style: S4.row, children: [
+            /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("span", { style: S4.rowLabel, children: "Precio de contado:" }),
+            /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("span", { style: S4.rowValue, children: fmtUSD(totalCost) })
           ] }),
-          /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)("div", { style: S5.rowLast, children: [
-            /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("span", { style: S5.rowLabel, children: "Recuperas la inversi\xF3n en:" }),
-            /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)("span", { style: S5.rowValue, children: [
+          /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)("div", { style: S4.rowLast, children: [
+            /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("span", { style: S4.rowLabel, children: "Recuperas la inversi\xF3n en:" }),
+            /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)("span", { style: S4.rowValue, children: [
               paybackYears,
               " a\xF1os"
             ] })
           ] })
         ] }),
-        totalCost >= 6e4 ? /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)(import_jsx_runtime5.Fragment, { children: [
-          /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("div", { style: S5.sliderValue, children: "\xBFPrefieres financiar?" }),
-          /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)("div", { style: S5.card, children: [
-            /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)("div", { style: S5.row, children: [
-              /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("span", { style: S5.rowLabel, children: "Pronto pago:" }),
-              /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("span", { style: S5.rowValue, children: "$0" })
+        totalCost >= 6e4 ? /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)(import_jsx_runtime4.Fragment, { children: [
+          /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("div", { style: S4.sliderValue, children: "\xBFPrefieres financiar?" }),
+          /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)("div", { style: S4.card, children: [
+            /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)("div", { style: S4.row, children: [
+              /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("span", { style: S4.rowLabel, children: "Pronto pago:" }),
+              /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("span", { style: S4.rowValue, children: "$0" })
             ] }),
-            /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)("div", { style: S5.row, children: [
-              /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("span", { style: S5.rowLabel, children: "Pago mensual:" }),
-              /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("span", { style: S5.rowValue, children: fmtUSD(totalMonthlyPmt) })
+            /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)("div", { style: S4.row, children: [
+              /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("span", { style: S4.rowLabel, children: "Pago mensual:" }),
+              /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("span", { style: S4.rowValue, children: fmtUSD(totalMonthlyPmt) })
             ] }),
-            /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)("div", { style: S5.rowBold, children: [
-              /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("span", { style: S5.rowBoldLabel, children: "Ahorro mensual neto:" }),
-              /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("span", { style: S5.rowBoldValue, children: fmtUSD(totalSavingsNet) })
+            /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)("div", { style: S4.rowBold, children: [
+              /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("span", { style: S4.rowBoldLabel, children: "Ahorro mensual neto:" }),
+              /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("span", { style: S4.rowBoldValue, children: fmtUSD(totalSavingsNet) })
             ] })
           ] })
         ] }) : null,
-        /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("style", { children: `
+        /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("style", { children: `
           .est-slider { -webkit-appearance: none; appearance: none; width: 100%; height: 28px; background: transparent; outline: none; cursor: pointer; }
           .est-slider::-webkit-slider-runnable-track { height: 3px; background: #d1d5db; border-radius: 2px; }
           .est-slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 28px; height: 28px; border-radius: 50%; background: #1B3F8B; cursor: pointer; margin-top: -12.5px; }
           .est-slider::-moz-range-track { height: 3px; background: #d1d5db; border-radius: 2px; }
           .est-slider::-moz-range-thumb { width: 28px; height: 28px; border-radius: 50%; background: #1B3F8B; cursor: pointer; border: none; }
         ` }),
-        /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("div", { style: S5.sliderValue, children: "Ajusta el nivel de respaldo" }),
-        /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("div", { style: { fontSize: "14px", color: "#374151", textAlign: "center", marginBottom: "10px", marginTop: "-6px" }, children: "Decide cu\xE1nto quieres ahorrarte en tu factura de LUMA" }),
-        /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)("div", { style: S5.sliderCard, children: [
-          /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("div", { style: S5.sliderValue, children: localBatteryHours === 0 ? "Sin almacenamiento" : `${localBatteryHours} horas de respaldo` }),
-          /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(
+        /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("div", { style: S4.sliderValue, children: "Ajusta el nivel de respaldo" }),
+        /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("div", { style: { fontSize: "14px", color: "#374151", textAlign: "center", marginBottom: "10px", marginTop: "-6px" }, children: "Decide cu\xE1nto quieres ahorrarte en tu factura de LUMA" }),
+        /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)("div", { style: S4.sliderCard, children: [
+          /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("div", { style: S4.sliderValue, children: localBatteryHours === 0 ? "Sin almacenamiento" : `${localBatteryHours} horas de respaldo` }),
+          /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(
             "input",
             {
               type: "range",
               className: "est-slider",
               min: 0,
-              max: SLIDER_HOURS2.length - 1,
+              max: SLIDER_HOURS.length - 1,
               step: 1,
               value: sliderIdx,
               onChange: handleSliderChange,
               style: { width: "100%", cursor: "pointer" }
             }
           ),
-          /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("div", { style: S5.sliderTicks, children: SLIDER_HOURS2.map((h) => /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("span", { children: h === 0 ? "0" : `${h}h` }, h)) })
+          /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("div", { style: S4.sliderTicks, children: SLIDER_HOURS.map((h) => /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("span", { children: h === 0 ? "0" : `${h}h` }, h)) })
         ] }),
-        /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("button", { style: S5.btnOrange, onClick: () => onInterested(est, batteryResult), children: "S\xED me interesa" }),
-        /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("button", { style: S5.btnGray, onClick: onNotInterested, children: "No por ahora" }),
-        /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("button", { style: { ...S5.btnGray, backgroundColor: "transparent", color: "#1B3F8B", border: "2px solid #1B3F8B", marginTop: "12px" }, onClick: onBack, children: "Atr\xE1s" })
+        /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("button", { style: S4.btnOrange, onClick: () => onInterested(est, batteryResult), children: "S\xED me interesa" }),
+        /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("button", { style: S4.btnGray, onClick: onNotInterested, children: "No por ahora" }),
+        /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("button", { style: { ...S4.btnGray, backgroundColor: "transparent", color: "#1B3F8B", border: "2px solid #1B3F8B", marginTop: "12px" }, onClick: onBack, children: "Atr\xE1s" })
       ] })
     ] });
   }
   function EstimateScreen(props) {
     try {
-      return /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(EstimateScreenInner, { ...props });
+      return /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(EstimateScreenInner, { ...props });
     } catch (err) {
-      return /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)("div", { style: { padding: "24px", backgroundColor: "#fff3cd", minHeight: "100vh" }, children: [
-        /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("h2", { style: { color: "#dc2626", marginTop: 0 }, children: "Error en Estimado" }),
-        /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("pre", { style: { fontSize: "13px", whiteSpace: "pre-wrap", color: "#7f1d1d" }, children: String(err) }),
-        /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("pre", { style: { fontSize: "11px", whiteSpace: "pre-wrap", color: "#6b7280" }, children: err?.stack })
+      return /* @__PURE__ */ (0, import_jsx_runtime4.jsxs)("div", { style: { padding: "24px", backgroundColor: "#fff3cd", minHeight: "100vh" }, children: [
+        /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("h2", { style: { color: "#dc2626", marginTop: 0 }, children: "Error en Estimado" }),
+        /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("pre", { style: { fontSize: "13px", whiteSpace: "pre-wrap", color: "#7f1d1d" }, children: String(err) }),
+        /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("pre", { style: { fontSize: "11px", whiteSpace: "pre-wrap", color: "#6b7280" }, children: err?.stack })
       ] });
     }
   }
 
   // src/ContactScreen.jsx
-  var import_react4 = __toESM(require_react());
-  var import_jsx_runtime6 = __toESM(require_jsx_runtime());
-  var S6 = {
+  var import_react3 = __toESM(require_react());
+  var import_jsx_runtime5 = __toESM(require_jsx_runtime());
+  var S5 = {
     page: {
       minHeight: "100vh",
       backgroundColor: "#EBF1FF",
@@ -14209,13 +14068,13 @@
     }
   };
   function ContactScreen({ ocrData, sqft, onNext, onBack }) {
-    const [nombre, setNombre] = (0, import_react4.useState)("TEST - ");
-    const [phone, setPhone] = (0, import_react4.useState)("");
-    const [consultorNombre, setConsultor] = (0, import_react4.useState)("TEST - ");
-    const [consultorEmail, setConsultorEmail] = (0, import_react4.useState)("");
-    const [loading, setLoading] = (0, import_react4.useState)(false);
-    const [error, setError] = (0, import_react4.useState)("");
-    const [focusedField, setFocusedField] = (0, import_react4.useState)(null);
+    const [nombre, setNombre] = (0, import_react3.useState)("TEST - ");
+    const [phone, setPhone] = (0, import_react3.useState)("");
+    const [consultorNombre, setConsultor] = (0, import_react3.useState)("TEST - ");
+    const [consultorEmail, setConsultorEmail] = (0, import_react3.useState)("");
+    const [loading, setLoading] = (0, import_react3.useState)(false);
+    const [error, setError] = (0, import_react3.useState)("");
+    const [focusedField, setFocusedField] = (0, import_react3.useState)(null);
     const canSubmit = nombre.trim().length > 1 && phone.trim().length >= 7;
     const handleSubmit = async () => {
       if (!canSubmit || loading) return;
@@ -14247,18 +14106,18 @@
       }
     };
     const inputStyle = (field) => ({
-      ...S6.input,
-      ...focusedField === field ? S6.inputFocus : {}
+      ...S5.input,
+      ...focusedField === field ? S5.inputFocus : {}
     });
-    return /* @__PURE__ */ (0, import_jsx_runtime6.jsxs)("div", { style: S6.page, children: [
-      /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(Header, {}),
-      /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(ProgressBar, { current: 5, total: 6 }),
-      /* @__PURE__ */ (0, import_jsx_runtime6.jsxs)("div", { style: S6.content, children: [
-        /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("h1", { style: S6.h1, children: "Un paso m\xE1s" }),
-        /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("p", { style: S6.sub, children: "Comp\xE1rtenos tus datos y un consultor de Windmar se pondr\xE1 en contacto para discutir tu inter\xE9s." }),
-        /* @__PURE__ */ (0, import_jsx_runtime6.jsxs)("div", { style: S6.fieldGroup, children: [
-          /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("label", { style: S6.label, children: "Nombre completo" }),
-          /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(
+    return /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)("div", { style: S5.page, children: [
+      /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(Header, {}),
+      /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(ProgressBar, { current: 5, total: 6 }),
+      /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)("div", { style: S5.content, children: [
+        /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("h1", { style: S5.h1, children: "Un paso m\xE1s" }),
+        /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("p", { style: S5.sub, children: "Comp\xE1rtenos tus datos y un consultor de Windmar se pondr\xE1 en contacto para discutir tu inter\xE9s." }),
+        /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)("div", { style: S5.fieldGroup, children: [
+          /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("label", { style: S5.label, children: "Nombre completo" }),
+          /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(
             "input",
             {
               style: inputStyle("nombre"),
@@ -14271,9 +14130,9 @@
             }
           )
         ] }),
-        /* @__PURE__ */ (0, import_jsx_runtime6.jsxs)("div", { style: S6.fieldGroup, children: [
-          /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("label", { style: S6.label, children: "Tel\xE9fono" }),
-          /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(
+        /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)("div", { style: S5.fieldGroup, children: [
+          /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("label", { style: S5.label, children: "Tel\xE9fono" }),
+          /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(
             "input",
             {
               style: inputStyle("phone"),
@@ -14286,10 +14145,10 @@
             }
           )
         ] }),
-        /* @__PURE__ */ (0, import_jsx_runtime6.jsxs)("div", { style: S6.fieldGroup, children: [
-          /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("label", { style: S6.label, children: "\xBFQui\xE9n es tu consultor?" }),
-          /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("p", { style: { fontSize: "14px", color: "#374151", lineHeight: "1.5", margin: "0 0 8px" }, children: "\xBFYa est\xE1s trabajando con un consultor de Windmar? Comp\xE1rtenos su nombre, o deja el espacio en blanco si no est\xE1s trabajando a\xFAn con nadie." }),
-          /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(
+        /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)("div", { style: S5.fieldGroup, children: [
+          /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("label", { style: S5.label, children: "\xBFQui\xE9n es tu consultor?" }),
+          /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("p", { style: { fontSize: "14px", color: "#374151", lineHeight: "1.5", margin: "0 0 8px" }, children: "\xBFYa est\xE1s trabajando con un consultor de Windmar? Comp\xE1rtenos su nombre, o deja el espacio en blanco si no est\xE1s trabajando a\xFAn con nadie." }),
+          /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(
             "input",
             {
               style: inputStyle("consultor"),
@@ -14302,9 +14161,9 @@
             }
           )
         ] }),
-        /* @__PURE__ */ (0, import_jsx_runtime6.jsxs)("div", { style: S6.fieldGroup, children: [
-          /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("label", { style: S6.label, children: "\xBFTienes su correo electr\xF3nico?" }),
-          /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(
+        /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)("div", { style: S5.fieldGroup, children: [
+          /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("label", { style: S5.label, children: "\xBFTienes su correo electr\xF3nico?" }),
+          /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(
             "input",
             {
               style: inputStyle("consultorEmail"),
@@ -14317,25 +14176,25 @@
             }
           )
         ] }),
-        error && /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("div", { style: S6.errorMsg, children: error }),
-        /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(
+        error && /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("div", { style: S5.errorMsg, children: error }),
+        /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(
           "button",
           {
-            style: { ...S6.btnNavy, ...canSubmit ? {} : S6.btnNavyDisabled },
+            style: { ...S5.btnNavy, ...canSubmit ? {} : S5.btnNavyDisabled },
             disabled: !canSubmit || loading,
             onClick: handleSubmit,
             children: loading ? "Enviando\u2026" : "Continuar"
           }
         ),
-        /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("button", { style: S6.btnGhost, onClick: onBack, children: "Atr\xE1s" })
+        /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("button", { style: S5.btnGhost, onClick: onBack, children: "Atr\xE1s" })
       ] })
     ] });
   }
 
   // src/ThankYouScreen.jsx
-  var import_react5 = __toESM(require_react());
-  var import_jsx_runtime7 = __toESM(require_jsx_runtime());
-  var S7 = {
+  var import_react4 = __toESM(require_react());
+  var import_jsx_runtime6 = __toESM(require_jsx_runtime());
+  var S6 = {
     page: {
       minHeight: "100vh",
       backgroundColor: "#EBF1FF",
@@ -14555,12 +14414,12 @@
     return { street, zip };
   };
   function ThankYouScreen({ interested, generateLead = true, contactData, ocrData, sqft, estData, batteryHours, batteryResult, billFiles, onRestart }) {
-    const [pdfStatus, setPdfStatus] = (0, import_react5.useState)("");
-    const [pdfError, setPdfError] = (0, import_react5.useState)("");
-    const [pdfReady, setPdfReady] = (0, import_react5.useState)(false);
-    const blobRef = (0, import_react5.useRef)(null);
-    const leadNameRef = (0, import_react5.useRef)(null);
-    (0, import_react5.useEffect)(() => {
+    const [pdfStatus, setPdfStatus] = (0, import_react4.useState)("");
+    const [pdfError, setPdfError] = (0, import_react4.useState)("");
+    const [pdfReady, setPdfReady] = (0, import_react4.useState)(false);
+    const blobRef = (0, import_react4.useRef)(null);
+    const leadNameRef = (0, import_react4.useRef)(null);
+    (0, import_react4.useEffect)(() => {
       if (!interested || !contactData) return;
       const run = async () => {
         try {
@@ -14649,10 +14508,10 @@
       setPdfStatus("PDF descargado.");
     };
     if (interested) {
-      return /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("div", { style: S7.page, children: [
-        /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(Header, {}),
-        /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("div", { style: S7.content, children: /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("div", { style: S7.card, children: [
-          /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("div", { style: { width: "192px", height: "192px", overflow: "hidden", margin: "0 auto 4px" }, children: /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(
+      return /* @__PURE__ */ (0, import_jsx_runtime6.jsxs)("div", { style: S6.page, children: [
+        /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(Header, {}),
+        /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("div", { style: S6.content, children: /* @__PURE__ */ (0, import_jsx_runtime6.jsxs)("div", { style: S6.card, children: [
+          /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("div", { style: { width: "192px", height: "192px", overflow: "hidden", margin: "0 auto 4px" }, children: /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(
             "img",
             {
               src: "/todo_listo_icon.png",
@@ -14660,48 +14519,48 @@
               style: { width: "192px", height: "192px", objectFit: "contain", transform: "scale(2.0)", transformOrigin: "center" }
             }
           ) }),
-          /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("h1", { style: S7.h1, children: "\xA1Todo listo!" }),
-          /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("p", { style: S7.sub, children: "Un consultor certificado de Windmar Comercial se pondr\xE1 en contacto para generarte una propuesta firme." }),
-          /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("p", { style: { ...S7.sub, fontSize: "18px", fontWeight: "700", color: "#1B3F8B", marginBottom: "28px" }, children: "\xA1Gracias por tu inter\xE9s en un sistema con Energ\xEDa de la Buena\u2122!" }),
-          /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(
+          /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("h1", { style: S6.h1, children: "\xA1Todo listo!" }),
+          /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("p", { style: S6.sub, children: "Un consultor certificado de Windmar Comercial se pondr\xE1 en contacto para generarte una propuesta firme." }),
+          /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("p", { style: { ...S6.sub, fontSize: "18px", fontWeight: "700", color: "#1B3F8B", marginBottom: "28px" }, children: "\xA1Gracias por tu inter\xE9s en un sistema con Energ\xEDa de la Buena\u2122!" }),
+          /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(
             "button",
             {
-              style: !pdfReady ? S7.btnOrangeDisabled : S7.btnOrange,
+              style: !pdfReady ? S6.btnOrangeDisabled : S6.btnOrange,
               onClick: handleDownload,
               disabled: !pdfReady,
               children: pdfReady ? "\u2B07 Descargar estimado" : "Preparando estimado\u2026"
             }
           ),
-          pdfError && /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("div", { style: S7.pdfStatusError, children: pdfError }),
-          !pdfError && pdfStatus && /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("div", { style: S7.pdfStatus, children: [
-            /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("img", { src: "/listo_icon.jpg", alt: "", style: { width: "72px", height: "72px", objectFit: "contain" } }),
+          pdfError && /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("div", { style: S6.pdfStatusError, children: pdfError }),
+          !pdfError && pdfStatus && /* @__PURE__ */ (0, import_jsx_runtime6.jsxs)("div", { style: S6.pdfStatus, children: [
+            /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("img", { src: "/listo_icon.jpg", alt: "", style: { width: "72px", height: "72px", objectFit: "contain" } }),
             pdfStatus
           ] }),
-          /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(
+          /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(
             "button",
             {
-              style: S7.btnOrange,
+              style: S6.btnOrange,
               onClick: () => window.open("https://app.smartsheet.com/b/form/9f6e441c850e439a9ea42a82e46b774e", "_blank"),
               children: "Completar cuestionario completo \u2192"
             }
           ),
-          /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("button", { style: S7.btnGhost, onClick: onRestart, children: "Nueva consulta" })
+          /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("button", { style: S6.btnGhost, onClick: onRestart, children: "Nueva consulta" })
         ] }) })
       ] });
     }
-    return /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("div", { style: S7.page, children: [
-      /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(Header, {}),
-      /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("div", { style: S7.content, children: /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("div", { style: S7.card, children: [
-        /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("div", { style: { display: "flex", justifyContent: "center", margin: "0 auto 20px" }, children: /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("img", { src: "/hand_shake.jpg", alt: "", style: { width: "288px", height: "288px", objectFit: "contain" } }) }),
-        /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("h1", { style: S7.h1, children: "\xA1Gracias por tu tiempo!" }),
-        /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("p", { style: S7.sub, children: "Entendemos que este no es el momento ideal. Cuando est\xE9s listo para explorar opciones de energ\xEDa solar, estaremos aqu\xED para ayudarte." }),
-        /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("button", { style: S7.btnNavy, onClick: onRestart, children: "Volver al inicio" })
+    return /* @__PURE__ */ (0, import_jsx_runtime6.jsxs)("div", { style: S6.page, children: [
+      /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(Header, {}),
+      /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("div", { style: S6.content, children: /* @__PURE__ */ (0, import_jsx_runtime6.jsxs)("div", { style: S6.card, children: [
+        /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("div", { style: { display: "flex", justifyContent: "center", margin: "0 auto 20px" }, children: /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("img", { src: "/hand_shake.jpg", alt: "", style: { width: "288px", height: "288px", objectFit: "contain" } }) }),
+        /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("h1", { style: S6.h1, children: "\xA1Gracias por tu tiempo!" }),
+        /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("p", { style: S6.sub, children: "Entendemos que este no es el momento ideal. Cuando est\xE9s listo para explorar opciones de energ\xEDa solar, estaremos aqu\xED para ayudarte." }),
+        /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("button", { style: S6.btnNavy, onClick: onRestart, children: "Volver al inicio" })
       ] }) })
     ] });
   }
 
   // src/WelcomeScreen.jsx
-  var import_jsx_runtime8 = __toESM(require_jsx_runtime());
+  var import_jsx_runtime7 = __toESM(require_jsx_runtime());
   var styles = {
     container: {
       minHeight: "100vh",
@@ -14877,35 +14736,34 @@
       marginBottom: "32px"
     }
   };
-  var Header2 = () => /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("div", { style: styles.header, children: /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("img", { src: "/logo.png", alt: "Windmar Commercial", style: styles.logo }) });
+  var Header2 = () => /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("div", { style: styles.header, children: /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("img", { src: "/logo.png", alt: "Windmar Commercial", style: styles.logo }) });
   var ProgressBar2 = ({ current, total }) => {
     const pct = Math.round(current / total * 100);
-    return /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)("div", { style: styles.progressWrap, children: [
-      /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)("div", { style: styles.progressLabel, children: [
+    return /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("div", { style: styles.progressWrap, children: [
+      /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("div", { style: styles.progressLabel, children: [
         "Paso ",
         current,
         " de ",
         total
       ] }),
-      /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("div", { style: styles.progressBar, children: /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("div", { style: { ...styles.progressFill, width: `${pct}%` } }) })
+      /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("div", { style: styles.progressBar, children: /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("div", { style: { ...styles.progressFill, width: `${pct}%` } }) })
     ] });
   };
   function WelcomeScreen() {
-    const [selection, setSelection] = (0, import_react6.useState)("");
-    const [serviceType, setServiceType] = (0, import_react6.useState)("no_se");
-    const [screen, setScreen] = (0, import_react6.useState)("welcome");
-    const [contactData, setContactData] = (0, import_react6.useState)(null);
-    const [ocrData, setOcrData] = (0, import_react6.useState)(null);
-    const [sqft, setSqft] = (0, import_react6.useState)(null);
-    const [estData, setEstData] = (0, import_react6.useState)(null);
-    const [batteryHours, setBatteryHours] = (0, import_react6.useState)(0);
-    const [batteryResult, setBatteryResult] = (0, import_react6.useState)(null);
-    const [billFiles, setBillFiles] = (0, import_react6.useState)(null);
-    const [pricing, setPricing] = (0, import_react6.useState)(null);
-    const [pricingLoading, setPricingLoading] = (0, import_react6.useState)(true);
-    const [preSizing, setPreSizing] = (0, import_react6.useState)(true);
-    const [generateLead, setGenerateLead] = (0, import_react6.useState)(true);
-    (0, import_react6.useEffect)(() => {
+    const [selection, setSelection] = (0, import_react5.useState)("");
+    const [serviceType, setServiceType] = (0, import_react5.useState)("no_se");
+    const [screen, setScreen] = (0, import_react5.useState)("welcome");
+    const [contactData, setContactData] = (0, import_react5.useState)(null);
+    const [ocrData, setOcrData] = (0, import_react5.useState)(null);
+    const [sqft, setSqft] = (0, import_react5.useState)(null);
+    const [estData, setEstData] = (0, import_react5.useState)(null);
+    const [batteryHours, setBatteryHours] = (0, import_react5.useState)(0);
+    const [batteryResult, setBatteryResult] = (0, import_react5.useState)(null);
+    const [billFiles, setBillFiles] = (0, import_react5.useState)(null);
+    const [pricing, setPricing] = (0, import_react5.useState)(null);
+    const [pricingLoading, setPricingLoading] = (0, import_react5.useState)(true);
+    const [generateLead, setGenerateLead] = (0, import_react5.useState)(true);
+    (0, import_react5.useEffect)(() => {
       fetch("/api/pricing").then((r) => r.json()).then((data) => setPricing(data)).catch(() => {
       }).finally(() => setPricingLoading(false));
     }, []);
@@ -14926,24 +14784,24 @@
       setBatteryResult(null);
     };
     if (pricingLoading) {
-      return /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)("div", { style: styles.container, children: [
-        /* @__PURE__ */ (0, import_jsx_runtime8.jsx)(Header2, {}),
-        /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("div", { style: { display: "flex", justifyContent: "center", alignItems: "center", flex: 1, minHeight: "200px" }, children: /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("p", { style: { color: "#6b7280", fontSize: "16px" }, children: "Cargando\u2026" }) })
+      return /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("div", { style: styles.container, children: [
+        /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(Header2, {}),
+        /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("div", { style: { display: "flex", justifyContent: "center", alignItems: "center", flex: 1, minHeight: "200px" }, children: /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("p", { style: { color: "#6b7280", fontSize: "16px" }, children: "Cargando\u2026" }) })
       ] });
     }
     if (screen === "exit") {
-      return /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)("div", { style: styles.container, children: [
-        /* @__PURE__ */ (0, import_jsx_runtime8.jsx)(Header2, {}),
-        /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("div", { style: styles.content, children: /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)("div", { style: styles.exitCard, children: [
-          /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("img", { src: "/hand_shake.jpg", alt: "", style: { width: "384px", height: "384px", objectFit: "contain", display: "block", margin: "0 auto 16px" } }),
-          /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("h2", { style: styles.exitHeading, children: "\xA1Gracias por tu tiempo!" }),
-          /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("p", { style: styles.exitText, children: "Entendemos que este no es el momento ideal. Cuando est\xE9s listo para explorar opciones de energ\xEDa solar, estaremos aqu\xED para ayudarte." }),
-          /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("button", { style: styles.btnGhost, onClick: handleRestart, children: "Atr\xE1s" })
+      return /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("div", { style: styles.container, children: [
+        /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(Header2, {}),
+        /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("div", { style: styles.content, children: /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("div", { style: styles.exitCard, children: [
+          /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("img", { src: "/hand_shake.jpg", alt: "", style: { width: "384px", height: "384px", objectFit: "contain", display: "block", margin: "0 auto 16px" } }),
+          /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("h2", { style: styles.exitHeading, children: "\xA1Gracias por tu tiempo!" }),
+          /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("p", { style: styles.exitText, children: "Entendemos que este no es el momento ideal. Cuando est\xE9s listo para explorar opciones de energ\xEDa solar, estaremos aqu\xED para ayudarte." }),
+          /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("button", { style: styles.btnGhost, onClick: handleRestart, children: "Atr\xE1s" })
         ] }) })
       ] });
     }
     if (screen === "upload") {
-      return /* @__PURE__ */ (0, import_jsx_runtime8.jsx)(
+      return /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(
         UploadScreen,
         {
           resumeData: ocrData,
@@ -14957,32 +14815,19 @@
       );
     }
     if (screen === "roof") {
-      return /* @__PURE__ */ (0, import_jsx_runtime8.jsx)(
+      return /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(
         RoofScreen,
         {
           onNext: (s) => {
             setSqft(s);
-            setScreen(preSizing ? "battery" : "estimate");
+            setScreen("estimate");
           },
           onBack: () => setScreen("upload")
         }
       );
     }
-    if (screen === "battery") {
-      return /* @__PURE__ */ (0, import_jsx_runtime8.jsx)(
-        BatteryIntentScreen,
-        {
-          batteryHours,
-          onNext: (hours) => {
-            setBatteryHours(hours);
-            setScreen("estimate");
-          },
-          onBack: () => setScreen("roof")
-        }
-      );
-    }
     if (screen === "estimate") {
-      return /* @__PURE__ */ (0, import_jsx_runtime8.jsx)(
+      return /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(
         EstimateScreen,
         {
           ocrData,
@@ -14996,12 +14841,12 @@
             setScreen("contact");
           },
           onNotInterested: () => setScreen("thankyou-no"),
-          onBack: () => setScreen(preSizing ? "battery" : "roof")
+          onBack: () => setScreen("roof")
         }
       );
     }
     if (screen === "contact") {
-      return /* @__PURE__ */ (0, import_jsx_runtime8.jsx)(
+      return /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(
         ContactScreen,
         {
           ocrData,
@@ -15015,7 +14860,7 @@
       );
     }
     if (screen === "thankyou-yes") {
-      return /* @__PURE__ */ (0, import_jsx_runtime8.jsx)(
+      return /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(
         ThankYouScreen,
         {
           interested: true,
@@ -15032,7 +14877,7 @@
       );
     }
     if (screen === "thankyou-no") {
-      return /* @__PURE__ */ (0, import_jsx_runtime8.jsx)(
+      return /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(
         ThankYouScreen,
         {
           interested: false,
@@ -15040,48 +14885,48 @@
         }
       );
     }
-    return /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)("div", { style: styles.container, children: [
-      /* @__PURE__ */ (0, import_jsx_runtime8.jsx)(Header2, {}),
-      /* @__PURE__ */ (0, import_jsx_runtime8.jsx)(ProgressBar2, { current: 1, total: 6 }),
-      /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)("div", { style: styles.content, children: [
-        /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("h1", { style: styles.heading, children: "\xA1Bienvenido!" }),
-        /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("h2", { style: styles.subheading, children: "Estimado Solar Comercial" }),
-        /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)("p", { style: styles.bodyText, children: [
+    return /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("div", { style: styles.container, children: [
+      /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(Header2, {}),
+      /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(ProgressBar2, { current: 1, total: 6 }),
+      /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("div", { style: styles.content, children: [
+        /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("h1", { style: styles.heading, children: "\xA1Bienvenido!" }),
+        /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("h2", { style: styles.subheading, children: "Estimado Solar Comercial" }),
+        /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("p", { style: styles.bodyText, children: [
           "En ",
-          /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("strong", { children: "menos de 5 minutos" }),
+          /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("strong", { children: "menos de 5 minutos" }),
           " te vamos a decir cu\xE1nto te puedes ahorrar con un sistema solar fotovoltaico Windmar\u2122. Para ello necesitamos tu factura de LUMA m\xE1s reciente."
         ] }),
-        /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("label", { style: styles.label, children: "\xBFTienes la factura de LUMA de tu negocio a la mano?" }),
-        /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)(
+        /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("label", { style: styles.label, children: "\xBFTienes la factura de LUMA de tu negocio a la mano?" }),
+        /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)(
           "select",
           {
             style: selection ? { ...styles.select, ...styles.selectSelected } : styles.select,
             value: selection,
             onChange: (e) => setSelection(e.target.value),
             children: [
-              /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("option", { value: "", children: "\u2014 Selecciona una opci\xF3n \u2014" }),
-              /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("option", { value: "si", children: "S\xED, tengo la factura" }),
-              /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("option", { value: "no", children: "No, en otro momento" })
+              /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("option", { value: "", children: "\u2014 Selecciona una opci\xF3n \u2014" }),
+              /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("option", { value: "si", children: "S\xED, tengo la factura" }),
+              /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("option", { value: "no", children: "No, en otro momento" })
             ]
           }
         ),
-        /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("label", { style: styles.label, children: "\xBFSabes qu\xE9 tipo de servicio el\xE9ctrico tienes?" }),
-        /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)(
+        /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("label", { style: styles.label, children: "\xBFSabes qu\xE9 tipo de servicio el\xE9ctrico tienes?" }),
+        /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)(
           "select",
           {
             style: serviceType ? { ...styles.select, ...styles.selectSelected } : styles.select,
             value: serviceType,
             onChange: (e) => setServiceType(e.target.value),
             children: [
-              /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("option", { value: "", children: "\u2014 Selecciona una opci\xF3n \u2014" }),
-              /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("option", { value: "bifasico_240", children: "Bif\xE1sico (240V L-L)" }),
-              /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("option", { value: "trifasico_208", children: "Trif\xE1sico (208V)" }),
-              /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("option", { value: "trifasico_480", children: "Trif\xE1sico (480V)" }),
-              /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("option", { value: "no_se", children: "No lo s\xE9" })
+              /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("option", { value: "", children: "\u2014 Selecciona una opci\xF3n \u2014" }),
+              /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("option", { value: "bifasico_240", children: "Bif\xE1sico (240V L-L)" }),
+              /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("option", { value: "trifasico_208", children: "Trif\xE1sico (208V)" }),
+              /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("option", { value: "trifasico_480", children: "Trif\xE1sico (480V)" }),
+              /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("option", { value: "no_se", children: "No lo s\xE9" })
             ]
           }
         ),
-        /* @__PURE__ */ (0, import_jsx_runtime8.jsx)(
+        /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(
           "button",
           {
             style: selection ? styles.btnPrimary : styles.btnGray,
@@ -15090,58 +14935,37 @@
             children: selection === "no" ? "Entendido" : "Continuar"
           }
         ),
-        /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)("div", { style: styles.noteCard, children: [
-          /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("div", { style: { width: "100px", height: "100px", overflow: "hidden", flexShrink: 0 }, children: /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("img", { src: "/financing_icon.png", alt: "", style: { width: "100px", height: "100px", objectFit: "contain", transform: "scale(1.6)", transformOrigin: "center" } }) }),
-          /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("p", { style: styles.noteText, children: "Windmar Comercial ofrece opciones de financiamiento. Entre ellas, 15 a\xF1os sin pronto. Evaluaremos el sistema ideal para tu negocio, y te daremos un estimado del ahorro." })
+        /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)("div", { style: styles.noteCard, children: [
+          /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("div", { style: { width: "100px", height: "100px", overflow: "hidden", flexShrink: 0 }, children: /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("img", { src: "/financing_icon.png", alt: "", style: { width: "100px", height: "100px", objectFit: "contain", transform: "scale(1.6)", transformOrigin: "center" } }) }),
+          /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("p", { style: styles.noteText, children: "Windmar Comercial ofrece opciones de financiamiento. Entre ellas, 15 a\xF1os sin pronto. Evaluaremos el sistema ideal para tu negocio, y te daremos un estimado del ahorro." })
         ] }),
-        /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)("div", { style: { marginTop: "32px", display: "flex", gap: "10px", justifyContent: "center", flexWrap: "wrap" }, children: [
-          /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)(
-            "button",
-            {
-              onClick: () => setPreSizing(!preSizing),
-              style: {
-                fontSize: "12px",
-                color: preSizing ? "#1B3F8B" : "#6b7280",
-                backgroundColor: "transparent",
-                border: `1px solid ${preSizing ? "#1B3F8B" : "#9ca3af"}`,
-                borderRadius: "20px",
-                padding: "6px 14px",
-                cursor: "pointer"
-              },
-              children: [
-                "Demo: pantalla de bater\xEDas ",
-                preSizing ? "ON" : "OFF"
-              ]
-            }
-          ),
-          /* @__PURE__ */ (0, import_jsx_runtime8.jsxs)(
-            "button",
-            {
-              onClick: () => setGenerateLead(!generateLead),
-              style: {
-                fontSize: "12px",
-                color: generateLead ? "#1B3F8B" : "#6b7280",
-                backgroundColor: "transparent",
-                border: `1px solid ${generateLead ? "#1B3F8B" : "#9ca3af"}`,
-                borderRadius: "20px",
-                padding: "6px 14px",
-                cursor: "pointer"
-              },
-              children: [
-                "Generar lead ",
-                generateLead ? "SI" : "NO"
-              ]
-            }
-          )
-        ] })
+        /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("div", { style: { marginTop: "32px", textAlign: "center" }, children: /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)(
+          "button",
+          {
+            onClick: () => setGenerateLead(!generateLead),
+            style: {
+              fontSize: "12px",
+              color: generateLead ? "#1B3F8B" : "#6b7280",
+              backgroundColor: "transparent",
+              border: `1px solid ${generateLead ? "#1B3F8B" : "#9ca3af"}`,
+              borderRadius: "20px",
+              padding: "6px 14px",
+              cursor: "pointer"
+            },
+            children: [
+              "Generar lead ",
+              generateLead ? "SI" : "NO"
+            ]
+          }
+        ) })
       ] })
     ] });
   }
 
   // src/prequal_main.jsx
-  var import_jsx_runtime9 = __toESM(require_jsx_runtime());
+  var import_jsx_runtime8 = __toESM(require_jsx_runtime());
   var root = import_client.default.createRoot(document.getElementById("root"));
-  root.render(/* @__PURE__ */ (0, import_jsx_runtime9.jsx)(WelcomeScreen, {}));
+  root.render(/* @__PURE__ */ (0, import_jsx_runtime8.jsx)(WelcomeScreen, {}));
 })();
 /*! Bundled license information:
 
