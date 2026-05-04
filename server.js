@@ -167,12 +167,41 @@ app.get('/api/leads', (req, res) => {
 });
 
 // ─── API: PRICING CONFIG ──────────────────────────────────────────────────────
-// GET /api/pricing — returns solar EPC tiers and battery constants
-app.get('/api/pricing', (req, res) => {
+// GET /api/pricing — proxies Tool Belt API for live EPC tiers; falls back to hardcoded defaults
+app.get('/api/pricing', async (req, res) => {
   try {
-    res.json(JSON.parse(fs.readFileSync('./config/pricing.json', 'utf8')));
+    const TOOLBELT_BASE = 'https://windmar-commercial-toolbelt.vercel.app/api/v1';
+    const API_KEY = process.env.TOOLBELT_API_KEY;
+    const headers = { 'X-API-Key': API_KEY };
+
+    const tiersRes = await fetch(`${TOOLBELT_BASE}/epc-tiers`, { headers });
+    if (!tiersRes.ok) throw new Error('EPC tiers fetch failed: ' + tiersRes.status);
+    const tiersData = await tiersRes.json();
+
+    res.json({
+      solar: {
+        epc_tiers: tiersData.tiers,
+      },
+    });
   } catch (err) {
-    res.status(500).json({ error: 'Pricing config unavailable.' });
+    console.error('Pricing fetch error:', err.message);
+    res.json({
+      solar: {
+        epc_tiers: [
+          { kw_from:     0, kw_to:      5, base_epc: 3.20, misc_adder_pct: 0.10, effective_price_per_w: 3.52 },
+          { kw_from:     5, kw_to:     35, base_epc: 2.90, misc_adder_pct: 0.08, effective_price_per_w: 3.132 },
+          { kw_from:    35, kw_to:     50, base_epc: 2.80, misc_adder_pct: 0.08, effective_price_per_w: 3.024 },
+          { kw_from:    50, kw_to:    100, base_epc: 2.70, misc_adder_pct: 0.06, effective_price_per_w: 2.862 },
+          { kw_from:   100, kw_to:    500, base_epc: 2.50, misc_adder_pct: 0.05, effective_price_per_w: 2.625 },
+          { kw_from:   500, kw_to:   1000, base_epc: 2.40, misc_adder_pct: 0.05, effective_price_per_w: 2.52 },
+          { kw_from:  1000, kw_to:   2000, base_epc: 2.30, misc_adder_pct: 0.04, effective_price_per_w: 2.392 },
+          { kw_from:  2000, kw_to:   6000, base_epc: 2.20, misc_adder_pct: 0.04, effective_price_per_w: 2.288 },
+          { kw_from:  6000, kw_to:  12000, base_epc: 2.10, misc_adder_pct: 0.04, effective_price_per_w: 2.184 },
+          { kw_from: 12000, kw_to:  24000, base_epc: 1.95, misc_adder_pct: 0.04, effective_price_per_w: 2.028 },
+          { kw_from: 24000, kw_to: 100000, base_epc: 1.70, misc_adder_pct: 0.04, effective_price_per_w: 1.768 },
+        ],
+      },
+    });
   }
 });
 
@@ -535,18 +564,17 @@ app.get(/.*/, (req, res) => {
   res.status(404).send('Not found. Try <a href="/prequal">/prequal</a> or <a href="/deal">/deal</a>');
 });
 
-const PORT = process.env.PORT || 3001;
-app.listen(PORT, () => {
-  console.log(`\n🌞 Windmar server running on http://localhost:${PORT}`);
-  console.log(`   PreQual  → http://localhost:${PORT}/prequal`);
-  console.log(`   Deal     → http://localhost:${PORT}/deal`);
-  console.log(`   API Key  : ${process.env.ANTHROPIC_API_KEY          ? '✅ configured' : '❌ MISSING'}`);
-  console.log(`   Encrypt  : ${process.env.ENCRYPTION_KEY             ? '✅ configured' : '❌ MISSING'}`);
-  console.log(`   Zoho CID : ${process.env.ZOHO_WRITE_CLIENT_ID       ? '✅ configured' : '❌ MISSING'}`);
-  console.log(`   Zoho SEC : ${process.env.ZOHO_WRITE_CLIENT_SECRET   ? '✅ configured' : '❌ MISSING'}`);
-  console.log(`   Zoho RT  : ${process.env.ZOHO_WRITE_REFRESH_TOKEN   ? '✅ configured' : '❌ MISSING'}`);
-  console.log(`   Zoho OWN : ${process.env.ZOHO_OWNER_USER_ID         ? '✅ configured' : '❌ MISSING'}`);
-  console.log(`   Zoho RCID: ${process.env.ZOHO_READ_CLIENT_ID        ? '✅ configured' : '❌ MISSING'}`);
-  console.log(`   Zoho RSEC: ${process.env.ZOHO_READ_CLIENT_SECRET    ? '✅ configured' : '❌ MISSING'}`);
-  console.log(`   Zoho RRT : ${process.env.ZOHO_READ_REFRESH_TOKEN    ? '✅ configured' : '❌ MISSING'}\n`);
-});
+if (require.main === module) {
+  const PORT = process.env.PORT || 3001;
+  app.listen(PORT, () => {
+    console.log(`\n🌞 Windmar server running on http://localhost:${PORT}`);
+    console.log(`   PreQual  → http://localhost:${PORT}/prequal`);
+    console.log(`   API Key  : ${process.env.ANTHROPIC_API_KEY          ? '✅ configured' : '❌ MISSING'}`);
+    console.log(`   Toolbelt : ${process.env.TOOLBELT_API_KEY           ? '✅ configured' : '❌ MISSING'}`);
+    console.log(`   Encrypt  : ${process.env.ENCRYPTION_KEY             ? '✅ configured' : '❌ MISSING'}`);
+    console.log(`   Zoho CID : ${process.env.ZOHO_WRITE_CLIENT_ID       ? '✅ configured' : '❌ MISSING'}`);
+    console.log(`   Zoho OWN : ${process.env.ZOHO_OWNER_USER_ID         ? '✅ configured' : '❌ MISSING'}\n`);
+  });
+}
+
+module.exports = app;
