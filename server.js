@@ -15,9 +15,17 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Ensure leads directory exists
+// Ensure leads directory exists (gracefully skipped on Vercel's read-only filesystem)
 const LEADS_DIR = path.join(__dirname, 'leads');
-if (!fs.existsSync(LEADS_DIR)) fs.mkdirSync(LEADS_DIR);
+const LEADS_AVAILABLE = (() => {
+  try {
+    if (!fs.existsSync(LEADS_DIR)) fs.mkdirSync(LEADS_DIR);
+    return true;
+  } catch (e) {
+    console.warn('⚠️  leads/ directory not writable (read-only fs) — local lead saving disabled');
+    return false;
+  }
+})();
 
 // ─── ENCRYPTION HELPERS ───────────────────────────────────────────────────────
 // Shared key in .env: ENCRYPTION_KEY=any-long-random-string
@@ -104,7 +112,11 @@ const getNextQuoteNumber = () => {
     try { counter = JSON.parse(fs.readFileSync(COUNTER_FILE, 'utf8')); } catch (e) {}
   }
   const num = counter.next;
-  fs.writeFileSync(COUNTER_FILE, JSON.stringify({ next: num + 1 }));
+  try {
+    fs.writeFileSync(COUNTER_FILE, JSON.stringify({ next: num + 1 }));
+  } catch (e) {
+    // read-only fs on Vercel — counter will reset each invocation, acceptable
+  }
   return num;
 };
 
@@ -128,8 +140,12 @@ app.post('/api/leads', (req, res) => {
     const quoteNum    = getNextQuoteNumber();
     const quoteNumber = 'C' + String(quoteNum).padStart(5, '0');
 
-    fs.writeFileSync(leadFile, JSON.stringify({ ...data, leadId, quoteNumber, savedAt: new Date().toISOString() }, null, 2));
-    console.log(`✅ Lead saved: ${leadId} (${quoteNumber})`);
+    if (LEADS_AVAILABLE) {
+      fs.writeFileSync(leadFile, JSON.stringify({ ...data, leadId, quoteNumber, savedAt: new Date().toISOString() }, null, 2));
+      console.log(`✅ Lead saved: ${leadId} (${quoteNumber})`);
+    } else {
+      console.log(`ℹ️  Lead not saved to disk (read-only fs): ${leadId} (${quoteNumber})`);
+    }
     res.json({ success: true, leadId, quoteNumber });
   } catch (err) {
     console.error('Lead save error:', err.message);
