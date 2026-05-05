@@ -281,12 +281,41 @@ const MOCK_OCR = {
   excesoKVA:     0,
 };
 
+// ─── Client-side image compression ──────────────────────────────────────────
+// Vercel serverless functions have a 4.5 MB inbound edge limit.
+// Images (phone photos) are compressed to fit. PDFs cannot be compressed here.
+const MAX_OCR_BYTES = 4 * 1024 * 1024; // 4 MB — leave 0.5 MB margin
+
+async function compressImageFile(file) {
+  if (!file.type.startsWith('image/') || file.size <= MAX_OCR_BYTES) return file;
+  return new Promise((resolve) => {
+    const img = new Image();
+    const objectUrl = URL.createObjectURL(file);
+    img.onload = () => {
+      URL.revokeObjectURL(objectUrl);
+      const scale = Math.sqrt(MAX_OCR_BYTES / file.size) * 0.92; // extra margin
+      const canvas = document.createElement('canvas');
+      canvas.width  = Math.round(img.width  * scale);
+      canvas.height = Math.round(img.height * scale);
+      canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+      canvas.toBlob(
+        (blob) => resolve(new File([blob], file.name.replace(/\.[^.]+$/, '.jpg'), { type: 'image/jpeg' })),
+        'image/jpeg',
+        0.88
+      );
+    };
+    img.onerror = () => { URL.revokeObjectURL(objectUrl); resolve(file); };
+    img.src = objectUrl;
+  });
+}
+
 // ─── UploadScreen ───────────────────────────────────────────────────────────
 export default function UploadScreen({ onNext, onBack, resumeData }) {
   const [stage, setStage]           = useState(resumeData ? "done" : "idle");
   const [file, setFile]             = useState(null);
   const [isDragging, setIsDragging] = useState(false);
   const [progress, setProgress]     = useState(0);
+  const [uploadError, setUploadError] = useState("");
   const [fields, setFields]         = useState(resumeData || {
     nombreNegocio: "", direccion: "", municipio: "", tariff: "",
     consumoKWH: "", demandaKVA: "", totalFactura: "", costoPorKWH: "",
@@ -337,10 +366,23 @@ export default function UploadScreen({ onNext, onBack, resumeData }) {
     }, 100);
   };
 
-  const handleFileChange = (files) => {
+  const handleFileChange = async (files) => {
     if (!files || files.length === 0) return;
-    setFile(files);
-    runProcessing(files);
+    setUploadError("");
+    const arr = Array.from(files);
+
+    // PDFs over the limit can't be compressed in-browser — block early
+    const bigPdf = arr.find(f => f.type === 'application/pdf' && f.size > MAX_OCR_BYTES);
+    if (bigPdf) {
+      const mb = (bigPdf.size / 1024 / 1024).toFixed(1);
+      setUploadError(`El PDF es demasiado grande (${mb} MB). Sube una versión de menor resolución, o toma una foto de la factura en su lugar.`);
+      return;
+    }
+
+    // Compress large images (phone photos) before upload
+    const compressed = await Promise.all(arr.map(compressImageFile));
+    setFile(compressed);
+    runProcessing(compressed);
   };
 
   const handleDrop = (e) => {
@@ -360,6 +402,7 @@ export default function UploadScreen({ onNext, onBack, resumeData }) {
     setStage("idle");
     setFile(null);
     setProgress(0);
+    setUploadError("");
   };
 
   // ── IDLE ─────────────────────────────────────────────────────────────────
@@ -374,6 +417,12 @@ export default function UploadScreen({ onNext, onBack, resumeData }) {
             Toma una foto, o selecciona un PDF de tu factura más reciente.
             Nosotros nos encargamos del resto.
           </p>
+
+          {uploadError && (
+            <div style={{ backgroundColor: "#fee2e2", border: "1px solid #fca5a5", borderRadius: "10px", padding: "12px 16px", fontSize: "14px", color: "#dc2626", marginBottom: "16px" }}>
+              {uploadError}
+            </div>
+          )}
 
           <input
             ref={fileInputRef}
