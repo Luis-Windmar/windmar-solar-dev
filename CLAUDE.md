@@ -1,6 +1,6 @@
 # Windmar Commercial — PreQual Solar Wizard
 ## Claude Code Project README
-
+## Last updated: 2026-05-05
 ---
 
 ## Project Overview
@@ -9,30 +9,45 @@ A mobile-first, tablet-facing solar pre-qualification wizard for Windmar Commerc
 Reps walk prospects through a flow on a tablet to determine solar viability and capture leads.
 Built in Spanish, Puerto Rico-specific (LUMA utility, 78 municipios, local solar yield data).
 
-**Deployed at:** windmar-solar-production.up.railway.app  
-**Stack:** Node.js / Express backend + React frontend (single-page, no router)  
-**AI:** Anthropic API for OCR of LUMA electricity bills
+**Deployed at:** https://windmar-commercial-estimator.vercel.app  
+**Vercel project:** `windmar-commercial-estimator` (team: `windmar`)  
+**GitHub:** https://github.com/Windmar-Home/windmar-commercial-estimator-dev  
+**Stack:** Node.js / Express backend + React frontend (single-page, no router), hosted on Vercel (`@vercel/node`)  
+**AI:** Anthropic API (`claude-opus-4-6`) for OCR of LUMA electricity bills  
+**Pricing/Solar data:** Windmar Commercial Tool Belt API (`windmar-commercial-toolbelt.vercel.app/api/v1`)
 
 ---
 
 ## Directory Structure
 
 ```
-/Users/luismorales/Desktop/IQ_Claude/PreQual_Deal/windmar/
-├── server.js                        # Express server, serves React as HTML, OCR endpoint, Zoho integration
-├── package.json
-├── patch_and_build.sh               # Build + deploy script (run with: ./patch_and_build.sh prequal)
-├── .env                             # ANTHROPIC_API_KEY, Zoho credentials — never commit
-├── PreQual_Solar.jsx                # LEGACY chat-style UI (52KB) — DO NOT DELETE, mines business logic
-├── Cuestionario_Solar_INTEGRATED.jsx # Deal section questionnaire (263KB) — separate flow
-├── src/                             # React source
-│   └── (wizard screen components)
-├── public/                          # Built output served by Express
-├── docs/                            # Design docs and wireframes
-│   ├── README_ZOHO_INTEGRATION.md   # Zoho integration spec — credentials, field map, server.js code
-│   ├── ZOHO_FILE_ATTACHMENT_INSTRUCTIONS.md  # File attachment implementation details
-│   └── ZOHO_LEADS_FIELD_MAP.md     # Complete API name ↔ UI label map for Commercial_Lead module
-└── leads/                           # CSV lead captures
+/Users/luismorales/Desktop/IQ_Claude/PreQual_Deal/windmar_dev/
+├── server.js                        # Express server: OCR, Zoho, PDF gen, Tool Belt proxies
+├── build.js                         # esbuild script → public/prequal.bundle.js + prequal.html
+├── package.json                     # name: windmar-prequal; pdf-lib, multer, express, etc.
+├── vercel.json                      # Vercel deployment config
+├── patch_and_build.sh               # Thin wrapper: runs node build.js
+├── .env                             # Secrets — never commit
+├── .claude/commands/wrap-up.md      # Custom /wrap-up slash command
+├── src/
+│   ├── prequal_main.jsx             # React entry point
+│   ├── WelcomeScreen.jsx            # App root + all screen routing + pricing/solar fetches
+│   ├── UploadScreen.jsx             # Bill upload, OCR, review
+│   ├── RoofScreen.jsx               # Roof size selector
+│   ├── EstimateScreen.jsx           # System sizing, pricing, battery slider
+│   ├── ContactScreen.jsx            # Lead capture form
+│   ├── ThankYouScreen.jsx           # PDF download, Zoho confirmation, SmartSheet link
+│   └── shared.jsx                   # Header, ProgressBar components
+├── public/                          # Built output + static assets served by Express
+│   ├── prequal.bundle.js            # Built React bundle
+│   ├── prequal.html                 # HTML shell with cache-busting ?v= query string
+│   ├── Estimate_template_loan.pdf   # PDF template for systems >= $60k
+│   ├── Estimate_template_cash.pdf   # PDF template for systems < $60k
+│   └── cotizacion_wrapper.pdf       # Multi-page wrapper (cover + facilities pages)
+├── docs/                            # Session notes, integration specs
+│   ├── session_notes_YYYY-MM-DD.md  # Per-session changelogs
+│   └── toolbelt_migration_brief.md  # Tool Belt API integration spec
+└── leads/                           # Local lead JSON files (not writable on Vercel)
 ```
 
 ---
@@ -40,14 +55,18 @@ Built in Spanish, Puerto Rico-specific (LUMA utility, 78 municipios, local solar
 ## How to Run Locally
 
 ```bash
-cd /Users/luismorales/Desktop/IQ_Claude/PreQual_Deal/windmar
-node server.js
+cd /Users/luismorales/Desktop/IQ_Claude/PreQual_Deal/windmar_dev
+node build.js        # bundles React → public/prequal.bundle.js
+node server.js       # starts on http://localhost:3001
 # Visit: http://localhost:3001/prequal
 ```
 
-To build and deploy to Railway:
+To deploy to Vercel production:
 ```bash
-./patch_and_build.sh prequal
+npx vercel --prod
+# Deploys to: https://windmar-commercial-estimator.vercel.app
+# Requires .vercel/project.json linked to windmar-commercial-estimator (windmar team)
+# GitHub auto-deploy is NOT configured — must run CLI manually
 ```
 
 ---
@@ -55,11 +74,24 @@ To build and deploy to Railway:
 ## Implementation Status
 
 ### PreQual Wizard — ✅ COMPLETE
-All screens built and deployed to Railway.
+All screens built and deployed to Vercel (`windmar-commercial-estimator.vercel.app`).
 
 ### Zoho CRM Integration — ✅ COMPLETE
-Implemented in `server.js`. Creates leads, populates fields, attaches both files.
-See `docs/README_ZOHO_INTEGRATION.md` for full details.
+Implemented in `server.js`. Creates `Commercial_Lead` record, attaches LUMA bill and
+estimate PDF. PDF is generated server-side via `POST /api/generate-and-attach-pdf`.
+
+### Tool Belt API Integration — ✅ COMPLETE (2026-05-05)
+All three estimation inputs now pull from the Tool Belt:
+- EPC pricing tiers — `GET /api/v1/epc-tiers` → proxied via `/api/pricing`
+- Solar yield by municipio — `GET /api/v1/solar-resource` → proxied via `/api/solar-resource`
+- Max kW from roof area — `GET /api/v1/area-to-system` → proxied via `/api/area-to-system`
+All proxies have hardcoded fallbacks. TOOLBELT_API_KEY stays server-side only.
+
+### Known Follow-ups
+- Panel count display (`numPanels`) still uses hardcoded 410W; live module is 585-600W
+- Zoho credential consolidation (ZOHO_READ_* / ZOHO_WRITE_* → single ZOHO_CLIENT_*)
+- `serviceType` field captured in WelcomeScreen but not yet mapped to a Zoho field
+- TEST prefix fields in ContactScreen/UploadScreen must be removed before production launch
 
 ---
 
@@ -80,9 +112,31 @@ Max content width: 480px centered
 ```
 
 ### Logo
-File: `1772488938446_image.png` (JPEG, 872×138px) — Windmar Commercial logo.
-Embed as base64 in the Header component for Railway deployment.
-Use text placeholder `WINDMAR / COMMERCIAL` during local dev to avoid file size issues.
+Served as `/logo.png` from `public/`. Referenced in `shared.jsx` Header component.
+
+---
+
+## Tool Belt API Architecture
+
+**Base URL:** `https://windmar-commercial-toolbelt.vercel.app/api/v1`  
+**Auth:** `X-API-Key` header — stored in `TOOLBELT_API_KEY` env var, never sent to browser
+
+All Tool Belt calls are server-side proxies in `server.js`. The client calls
+`/api/pricing`, `/api/solar-resource`, `/api/area-to-system` on the wizard server,
+which forwards to the Tool Belt with the API key.
+
+| Wizard endpoint | Tool Belt endpoint | Data returned | When fetched |
+|---|---|---|---|
+| `GET /api/pricing` | `/api/v1/epc-tiers` | EPC $/W tiers | WelcomeScreen mount |
+| `GET /api/solar-resource` | `/api/v1/solar-resource` | `specific_yield` kWh/kWp/yr | EstimateScreen mount |
+| `GET /api/area-to-system` | `/api/v1/area-to-system` | `kw` (max system from roof) | EstimateScreen mount |
+
+**Tool Belt endpoints that exist but are NOT yet wired:**
+- `POST /api/v1/price` — per-job price calc (wizard uses `/epc-tiers` + local lookup instead)
+- `POST /api/v1/system-to-area` — not needed (wizard goes sqft→system, not reverse)
+
+**Fallback behavior:** All three proxy routes return hardcoded defaults if the Tool Belt
+is unreachable, so the wizard never breaks due to Tool Belt downtime.
 
 ---
 
@@ -250,3 +304,413 @@ Hardcoded: `Lead_Status: "New Lead"`, `Lead_Source: "PreQual Wizard"`, `Owner: Z
 | Attachment endpoint | `POST /crm/v3/Commercial_Lead/{id}/Attachments` |
 | Owner user ID | `4258103001863220103` |
 | Lead_Source picklist value | `"PreQual Wizard"` ✅ confirmed |
+
+---
+# Tool Belt API v1 — Migration Brief for PreQual Estimator
+**Created:** May 4, 2026  
+**Purpose:** Connect the PreQual estimator to the Windmar Commercial Tool Belt pricing API, replacing the hardcoded `config/pricing.json`.
+
+---
+
+## What Is the Tool Belt API?
+
+The Windmar Commercial Tool Belt is a live Express/Vercel app that manages pricing data centrally. It exposes a versioned public API (`/api/v1`) that external apps can call to get live pricing, solar resource data, and system sizing calculations.
+
+**Base URL:** `https://windmar-commercial-toolbelt.vercel.app/api/v1`
+
+---
+
+## Authentication
+
+Every API call requires an API key. Include it using **any one** of these methods:
+
+```
+Header:      X-API-Key: wmc_live_...
+Header:      Authorization: Bearer wmc_live_...
+Query param: ?api_key=wmc_live_...
+```
+
+Store the key as an environment variable:
+```
+TOOLBELT_API_KEY=wmc_live_...
+```
+
+Never hardcode the key in source files.
+
+---
+
+## Available Endpoints
+
+### 1. POST /api/v1/price
+Get EPC price for a PV system.
+
+**Request:**
+```json
+{
+  "surfaces": [
+    { "kw": 100, "surface_type": "flat_roof" },
+    { "kw": 50,  "surface_type": "carport" }
+  ]
+}
+```
+
+**Response:**
+```json
+{
+  "surfaces": [
+    {
+      "kw": 100,
+      "surface_type": "flat_roof",
+      "price_per_watt": 2.704,
+      "base_epc": 2.6,
+      "misc_adder_pct": 0.04,
+      "total_price": 270400,
+      "currency": "USD"
+    }
+  ],
+  "total_kw": 150,
+  "total_price": 405600,
+  "currency": "USD"
+}
+```
+
+**Valid surface_type values:** `flat_roof`, `carport`, `ground_mount`, `multistory` (more may be added without versioning)
+
+---
+
+### 2. GET /api/v1/solar-resource
+Get solar yield for a Puerto Rico municipality.
+
+**Request:**
+```
+GET /api/v1/solar-resource?municipality=Ponce
+```
+
+**Response:**
+```json
+{
+  "municipality": "Ponce",
+  "specific_yield": 1700,
+  "unit": "kWh/kWp/year"
+}
+```
+
+---
+
+### 3. GET /api/v1/area-to-system
+Given a roof area, calculate the system that fits.
+
+**Request:**
+```
+GET /api/v1/area-to-system?sqft=2000&municipality=Ponce&buffer=true
+```
+
+**Response:**
+```json
+{
+  "sqft": 2000,
+  "effective_sqft": 1666.7,
+  "buffer": true,
+  "modules": 57,
+  "kw": 33.63,
+  "monthly_gen_kwh": 4764,
+  "municipality": "Ponce",
+  "specific_yield": 1700,
+  "module": "Qcells Q.PEAK DUO BLK ML-G10+"
+}
+```
+
+---
+
+### 4. POST /api/v1/system-to-area
+Given a system size, calculate the required roof area.
+
+**Request:**
+```json
+{ "kw": 100, "municipality": "Ponce", "buffer": true }
+```
+
+**Response:**
+```json
+{
+  "kw": 100,
+  "modules": 244,
+  "sqft": 4397.2,
+  "sqft_with_buffer": 5276.6,
+  "buffer": true,
+  "monthly_gen_kwh": 14167,
+  "municipality": "Ponce",
+  "specific_yield": 1700,
+  "module": "Qcells Q.PEAK DUO BLK ML-G10+"
+}
+```
+
+---
+
+## Migration Plan — What to Change
+
+### Replace (pricing-related)
+
+| File | Location | Current behavior | New behavior |
+|------|----------|-----------------|--------------|
+| `server.js` | Line 170 — `GET /api/pricing` | Reads `config/pricing.json` | Call `POST /api/v1/price` |
+| `server.js` | Any municipality yield lookup | Hardcoded or not present | Call `GET /api/v1/solar-resource` |
+| `src/EstimateScreen.jsx` | Price calculation logic | Uses pricing.json tiers | Uses Tool Belt API response |
+| `src/prequal_main.jsx` | Solar yield / system sizing | Hardcoded yields | Uses Tool Belt API |
+
+### Leave Untouched
+
+- **Zoho CRM integration** — works independently, no changes needed
+- **OCR endpoint** (`POST /api/ocr`) — uses app's own Anthropic key, no changes needed
+- **All UI screens** — WelcomeScreen, UploadScreen, RoofScreen, BatteryIntentScreen, ContactScreen, ThankYouScreen
+- **esbuild pipeline** — no changes needed
+- **Tailwind CSS** — no changes needed
+
+---
+
+## Environment Variables to Add
+
+Add to `.env` and to the Vercel deployment:
+
+```
+TOOLBELT_API_KEY=wmc_live_33f164de88eee4dfb72519876691df0c6483765d7bdd3044c3f065f096b047e4
+```
+
+---
+
+## Deployment Target
+
+Deploy as a **standalone Vercel app** — NOT inside the Tool Belt shell. The estimator is used by sales reps in the field; the Tool Belt is used by the internal commercial team. Different audiences, different apps.
+
+---
+# Tool Belt API v1 — Migration Brief for PreQual Estimator
+**Created:** May 4, 2026  
+**Purpose:** Connect the PreQual estimator to the Windmar Commercial Tool Belt pricing API, replacing the hardcoded `config/pricing.json`.
+
+---
+
+## What Is the Tool Belt API?
+
+The Windmar Commercial Tool Belt is a live Express/Vercel app that manages pricing data centrally. It exposes a versioned public API (`/api/v1`) that external apps can call to get live pricing, solar resource data, and system sizing calculations.
+
+**Base URL:** `https://windmar-commercial-toolbelt.vercel.app/api/v1`
+
+---
+
+## Authentication
+
+Every API call requires an API key. Include it using **any one** of these methods:
+
+```
+Header:      X-API-Key: wmc_live_...
+Header:      Authorization: Bearer wmc_live_...
+Query param: ?api_key=wmc_live_...
+```
+
+Store the key as an environment variable:
+```
+TOOLBELT_API_KEY=wmc_live_33f164de88eee4dfb72519876691df0c6483765d7bdd3044c3f065f096b047e4
+```
+
+Never hardcode the key in source files.
+
+---
+
+## Available Endpoints
+
+### 1. POST /api/v1/price
+Get EPC (Engineering, Procurement & Construction) price for a PV system. This is the primary replacement for the local `getEPC()` function and `config/pricing.json` tier lookups.
+
+**Request:**
+```json
+{
+  "surfaces": [
+    { "kw": 100, "surface_type": "flat_roof" }
+  ]
+}
+```
+
+**Response:**
+```json
+{
+  "surfaces": [
+    {
+      "kw": 100,
+      "surface_type": "flat_roof",
+      "price_per_watt": 2.704,
+      "base_epc": 2.6,
+      "misc_adder_pct": 0.04,
+      "total_price": 270400,
+      "currency": "USD"
+    }
+  ],
+  "total_kw": 100,
+  "total_price": 270400,
+  "currency": "USD"
+}
+```
+
+**Valid surface_type values:** `flat_roof`, `carport`, `ground_mount`, `multistory`, `unknown`  
+**Note on `unknown`:** The PreQual estimator does not collect surface type. Pass `"unknown"` — the API maps it to `flat_roof` pricing automatically. This is the correct value for a generic commercial rooftop quote.
+
+---
+
+### 2. GET /api/v1/epc-tiers
+Returns the full EPC tier table. Use this if the frontend needs to display pricing tiers or do its own tier lookup. **For per-job pricing, use `/api/v1/price` instead** — it's simpler and always uses the latest data.
+
+**Request:**
+```
+GET /api/v1/epc-tiers
+```
+
+**Response:**
+```json
+{
+  "tiers": [
+    { "kw_from": 0, "kw_to": 4.9999, "base_epc": 3.20, "misc_adder_pct": 0.10, "effective_price_per_w": 3.52 },
+    { "kw_from": 5, "kw_to": 34.9999, "base_epc": 2.90, "misc_adder_pct": 0.08, "effective_price_per_w": 3.132 }
+  ]
+}
+```
+
+**When to use this vs /price:**
+- Use `/price` when you have a specific system size and want a computed price (replaces `getEPC()`)
+- Use `/epc-tiers` only if you need to display the full table to the user
+
+---
+
+### 3. GET /api/v1/solar-resource
+Get solar yield for a Puerto Rico municipality. Replaces the hardcoded `MUNICIPIO_YIELDS` table and `getYield()` function.
+
+**Request:**
+```
+GET /api/v1/solar-resource?municipality=Ponce
+```
+
+**Response:**
+```json
+{
+  "municipality": "Ponce",
+  "specific_yield": 1700,
+  "unit": "kWh/kWp/year"
+}
+```
+
+**Municipality names:** Must match exactly (case-insensitive). Use full Spanish names — e.g. `"San Juan"`, `"Juana Díaz"`, `"Añasco"`. All 78 PR municipalities are supported.
+
+---
+
+### 4. GET /api/v1/area-to-system
+Given a roof area, calculate the system that fits. Useful for the RoofScreen → EstimateScreen transition.
+
+**Request:**
+```
+GET /api/v1/area-to-system?sqft=2000&municipality=Ponce&buffer=true
+```
+
+**Response:**
+```json
+{
+  "sqft": 2000,
+  "effective_sqft": 1666.7,
+  "buffer": true,
+  "modules": 57,
+  "kw": 33.63,
+  "monthly_gen_kwh": 4764,
+  "municipality": "Ponce",
+  "specific_yield": 1700,
+  "module": "Qcells Q.PEAK DUO BLK ML-G10+"
+}
+```
+
+---
+
+### 5. POST /api/v1/system-to-area
+Given a system size, calculate the required roof area.
+
+**Request:**
+```json
+{ "kw": 100, "municipality": "Ponce", "buffer": true }
+```
+
+**Response:**
+```json
+{
+  "kw": 100,
+  "modules": 244,
+  "sqft": 4397.2,
+  "sqft_with_buffer": 5276.6,
+  "buffer": true,
+  "monthly_gen_kwh": 14167,
+  "municipality": "Ponce",
+  "specific_yield": 1700,
+  "module": "Qcells Q.PEAK DUO BLK ML-G10+"
+}
+```
+
+---
+
+## Migration Plan — What to Change
+
+### Replace (pricing-related)
+
+| File | Location | Current behavior | New behavior |
+|------|----------|-----------------|--------------|
+| `server.js` | Line 170 — `GET /api/pricing` | Reads `config/pricing.json` | Call `POST /api/v1/price` |
+| `server.js` | Any municipality yield lookup | Hardcoded or not present | Call `GET /api/v1/solar-resource` |
+| `src/EstimateScreen.jsx` | `getEPC(kwp)` call | Uses local pricing.json tiers | Call `POST /api/v1/price` with `surface_type: "unknown"` |
+| `src/prequal_main.jsx` | `getYield(municipio)` call | Hardcoded MUNICIPIO_YIELDS table | Call `GET /api/v1/solar-resource` |
+
+### Key migration note on getEPC()
+The current `getEPC(kwp)` does a client-side tier lookup. Replace the entire function with a single API call:
+
+```javascript
+async function getEPC(kwp, municipio) {
+  const res = await fetch('https://windmar-commercial-toolbelt.vercel.app/api/v1/price', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-API-Key': process.env.TOOLBELT_API_KEY
+    },
+    body: JSON.stringify({
+      surfaces: [{ kw: kwp, surface_type: 'unknown' }]
+    })
+  });
+  const data = await res.json();
+  return data.surfaces[0]; // { price_per_watt, total_price, ... }
+}
+```
+
+### Leave Untouched
+
+- **Zoho CRM integration** — works independently, no changes needed
+- **OCR endpoint** (`POST /api/ocr`) — uses app's own Anthropic key, no changes needed
+- **All UI screens** — WelcomeScreen, UploadScreen, RoofScreen, BatteryIntentScreen, ContactScreen, ThankYouScreen
+- **esbuild pipeline** — no changes needed
+- **Tailwind CSS** — no changes needed
+
+---
+
+## Environment Variables to Add
+
+Add to `.env` and to the Vercel deployment:
+
+```
+TOOLBELT_API_KEY=wmc_live_33f164de88eee4dfb72519876691df0c6483765d7bdd3044c3f065f096b047e4
+```
+
+---
+
+## Deployment Target
+
+Deploy as a **standalone Vercel app** — NOT inside the Tool Belt shell. The estimator is used by sales reps in the field; the Tool Belt is used by the internal commercial team. Different audiences, different apps.
+
+---
+
+## Notes
+
+- The Tool Belt API key is managed at `/app/admin → API Keys tab` on the Tool Belt
+- If pricing tiers change in the Tool Belt Admin panel, the estimator automatically gets the new prices — no redeploy needed
+- The `buffer` parameter defaults to `true` (20% safety margin) — pass `buffer=false` to disable
+- `surface_type: "unknown"` is the correct value for the estimator — it maps to flat_roof pricing
+- The full tier table is available at `GET /api/v1/epc-tiers` but prefer `POST /api/v1/price` for per-job calculations

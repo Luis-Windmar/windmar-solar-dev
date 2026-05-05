@@ -131,3 +131,21 @@ All production deployments require running `npx vercel --prod` from the repo dir
 The `.vercel/project.json` file (gitignored) must be present and point to the correct
 project. If it's missing, run `npx vercel link` and select `windmar-commercial-estimator`
 under the `windmar` team.
+
+---
+
+## Addendum — Session close
+
+### New file: `.claude/commands/wrap-up.md`
+Created custom Claude Code slash command `/wrap-up`. When typed in a future session,
+it instructs Claude to: write session notes to `docs/session_notes_YYYY-MM-DD.md`,
+update `CLAUDE.md` implementation status and architecture sections, commit and push
+both files to GitHub, and print a summary with follow-up reminders.
+
+### `CLAUDE.md` updated
+- Deployment URL updated from Railway to Vercel
+- Directory structure updated to reflect `windmar_dev/` layout
+- How to Run section updated with correct paths and deploy command
+- Implementation Status updated with Tool Belt integration complete + known follow-ups
+- New Tool Belt API Architecture section added (endpoint table, fallback behavior)
+- Logo note updated (now served as `/logo.png`, not base64)
