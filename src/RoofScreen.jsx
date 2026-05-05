@@ -87,6 +87,7 @@ const S = {
     width: "100%",
     padding: "13px 16px",
     fontSize: "16px",
+    fontWeight: "600",
     border: "2px solid #d1d5db",
     borderRadius: "10px",
     backgroundColor: "#ffffff",
@@ -94,6 +95,7 @@ const S = {
     boxSizing: "border-box",
     fontFamily: "inherit",
     outline: "none",
+    textAlign: "right",
   },
   btnNavy: {
     width: "100%",
@@ -127,11 +129,14 @@ const S = {
   },
 };
 
-export default function RoofScreen({ onNext, onBack }) {
-  const [selected, setSelected] = useState(null);  // key of selected size card
-  const [custom, setCustom]     = useState("");     // free-text override
+const fmtSqft = (n) => Number(n).toLocaleString("en-US") + " Sq Ft";
+const parseSqft = (s) => parseFloat(String(s).replace(/[^\d.]/g, ""));
 
-  const customNum     = parseFloat(custom.replace(/,/g, ""));
+export default function RoofScreen({ onNext, onBack }) {
+  const [selected, setSelected] = useState(null);
+  const [custom, setCustom]     = useState("");
+
+  const customNum     = parseSqft(custom);
   const effectiveSqft = custom.trim() !== "" && !isNaN(customNum) && customNum > 0 ? customNum : null;
   const canContinue   = effectiveSqft !== null;
 
@@ -150,7 +155,7 @@ export default function RoofScreen({ onNext, onBack }) {
             <div
               key={key}
               style={{ ...S.card, ...(selected === key ? S.cardSelected : {}) }}
-              onClick={() => { setSelected(key); setCustom(String(sqft)); }}
+              onClick={() => { setSelected(key); setCustom(fmtSqft(sqft)); }}
             >
               <img src={img} alt={label} style={S.cardIcon} />
               <div style={S.cardLabel}>{label}</div>
@@ -164,11 +169,19 @@ export default function RoofScreen({ onNext, onBack }) {
           </label>
           <input
             style={S.overrideInput}
-            type="number"
-            min="1"
-            placeholder="ej. 3,500"
+            type="text"
+            inputMode="numeric"
+            placeholder="ej. 3,500 Sq Ft"
             value={custom}
             onChange={(e) => { setCustom(e.target.value); setSelected(null); }}
+            onFocus={(e) => {
+              const n = parseSqft(e.target.value);
+              if (!isNaN(n) && n > 0) setCustom(String(n));
+            }}
+            onBlur={(e) => {
+              const n = parseSqft(e.target.value);
+              if (!isNaN(n) && n > 0) setCustom(fmtSqft(n));
+            }}
           />
         </div>
 
