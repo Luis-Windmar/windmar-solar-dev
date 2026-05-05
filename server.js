@@ -16,11 +16,16 @@ app.use(express.json({ limit: '25mb' }));
 app.use(express.urlencoded({ extended: true, limit: '25mb' }));
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Ensure leads directory exists (gracefully skipped on Vercel's read-only filesystem)
+// Ensure leads directory exists and is writable (gracefully skipped on Vercel's read-only filesystem)
+// NOTE: leads/ is included in the deployment, so existsSync returns true even on Vercel.
+// We must probe actual write access, not just directory existence.
 const LEADS_DIR = path.join(__dirname, 'leads');
 const LEADS_AVAILABLE = (() => {
   try {
     if (!fs.existsSync(LEADS_DIR)) fs.mkdirSync(LEADS_DIR);
+    const probe = path.join(LEADS_DIR, '.write_probe');
+    fs.writeFileSync(probe, '');
+    fs.unlinkSync(probe);
     return true;
   } catch (e) {
     console.warn('⚠️  leads/ directory not writable (read-only fs) — local lead saving disabled');
