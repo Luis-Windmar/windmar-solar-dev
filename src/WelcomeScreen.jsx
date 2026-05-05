@@ -319,6 +319,7 @@ export default function WelcomeScreen() {
       <ContactScreen
         ocrData={ocrData}
         sqft={sqft}
+        generateLead={generateLead}
         onNext={(contact) => { setContactData(contact); setScreen("thankyou-yes"); }}
         onBack={() => setScreen("estimate")}
       />

@@ -97,7 +97,7 @@ const S = {
   },
 };
 
-export default function ContactScreen({ ocrData, sqft, onNext, onBack }) {
+export default function ContactScreen({ ocrData, sqft, onNext, onBack, generateLead = true }) {
   const [nombre, setNombre]           = useState("TEST - "); // TODO: remove before production
   const [phone, setPhone]             = useState("");
   const [consultorNombre, setConsultor] = useState("TEST - "); // TODO: remove before production
@@ -112,6 +112,20 @@ export default function ContactScreen({ ocrData, sqft, onNext, onBack }) {
     if (!canSubmit || loading) return;
     setLoading(true);
     setError("");
+
+    const contactPayload = {
+      leadId:          null,
+      nombre:          nombre.trim(),
+      phone:           phone.trim(),
+      consultorNombre: consultorNombre.trim(),
+      consultorEmail:  consultorEmail.trim(),
+    };
+
+    // Test/demo mode: skip the local lead save entirely and continue
+    if (!generateLead) {
+      onNext(contactPayload);
+      return;
+    }
 
     try {
       const res = await fetch("/api/leads", {
@@ -131,10 +145,11 @@ export default function ContactScreen({ ocrData, sqft, onNext, onBack }) {
         }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Error al guardar.");
-      onNext({ leadId: data.leadId, nombre: nombre.trim(), phone: phone.trim(), consultorNombre: consultorNombre.trim(), consultorEmail: consultorEmail.trim() });
+      if (!res.ok) throw new Error(data.error || "Error del servidor.");
+      onNext({ ...contactPayload, leadId: data.leadId, quoteNumber: data.quoteNumber });
     } catch (err) {
-      setError(err.message);
+      // Non-blocking: show the error but still allow continuing
+      setError(`No se pudo registrar la visita (${err.message}). Puedes continuar — el estimado PDF se generará de todas formas.`);
       setLoading(false);
     }
   };
@@ -210,7 +225,17 @@ export default function ContactScreen({ ocrData, sqft, onNext, onBack }) {
           />
         </div>
 
-        {error && <div style={S.errorMsg}>{error}</div>}
+        {error && (
+          <>
+            <div style={S.errorMsg}>{error}</div>
+            <button
+              style={{ ...S.btnNavy, marginBottom: "8px" }}
+              onClick={() => onNext({ leadId: null, nombre: nombre.trim(), phone: phone.trim(), consultorNombre: consultorNombre.trim(), consultorEmail: consultorEmail.trim() })}
+            >
+              Continuar de todas formas →
+            </button>
+          </>
+        )}
 
         <button
           style={{ ...S.btnNavy, ...(canSubmit ? {} : S.btnNavyDisabled) }}
