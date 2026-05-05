@@ -375,7 +375,7 @@ export default function UploadScreen({ onNext, onBack, resumeData }) {
     const bigPdf = arr.find(f => f.type === 'application/pdf' && f.size > MAX_OCR_BYTES);
     if (bigPdf) {
       const mb = (bigPdf.size / 1024 / 1024).toFixed(1);
-      setUploadError(`El PDF es demasiado grande (${mb} MB). Sube una versión de menor resolución, o toma una foto de la factura en su lugar.`);
+      setUploadError(`El PDF es demasiado grande (${mb} MB). Las facturas de LUMA no deben exceder 4 MB. Descarga la factura directamente desde luma.com, o toma una foto con tu teléfono y súbela como imagen.`);
       return;
     }
 
