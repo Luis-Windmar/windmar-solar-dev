@@ -379,6 +379,12 @@ const getZohoReadToken = async () => {
   return token;
 };
 
+const cleanPhone = (raw) => {
+  if (!raw) return null;
+  const cleaned = String(raw).replace(/[^\d+\-().\s]/g, '').trim();
+  return cleaned.length >= 7 ? cleaned : null;
+};
+
 const createZohoLead = async (leadData, token) => {
   const p = parseLeadNotes(leadData.notes);
   const condensedNotes = [
@@ -398,8 +404,8 @@ const createZohoLead = async (leadData, token) => {
       data: [{
         Primary_Contact:    leadData.customerName                              || null,
         Account_Name:       leadData.businessName                             || null,
-        Phone_2:            leadData.phone                                    || null,
-        Phone_3:            leadData.phoneSecondary                           || null,
+        Phone_2:            cleanPhone(leadData.phone),
+        Phone_3:            cleanPhone(leadData.phoneSecondary),
         Email:              leadData.email                                    || null,
         Address:            leadData.address                                  || null,
         City:               leadData.city                                     || null,
