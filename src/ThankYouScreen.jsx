@@ -68,134 +68,6 @@ const S = {
   pdfStatusError: { fontSize: "13px", color: "#dc2626", marginTop: "-6px", marginBottom: "12px", minHeight: "18px" },
 };
 
-// ─── Helpers ─────────────────────────────────────────────────────────────────
-const fmtUSD = (n) =>
-  "$" + Number(n).toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 });
-
-// ─── PDF coordinate maps (origin = bottom-left, 612×792pt page) ──────────────
-// Calibrated against each template. Adjust after first test output if needed.
-
-const COORDS_FINANCING = {
-  // ── Info section ───────────────────────────────────────────────────────────
-  numero:      { x: 355, y: 631, size: 9  },
-  cliente:     { x: 355, y: 609, size: 9  },
-  negocio:     { x: 355, y: 587, size: 9  },
-  telefono:    { x: 355, y: 565, size: 9  },
-  // ── Tu Estimado — left column ──────────────────────────────────────────────
-  capacidad:   { x: 143, y: 505, size: 10 },
-  cubre:       { x: 143, y: 467, size: 10 },
-  precio:      { x: 143, y: 429, size: 10 },
-  // ── Tu Estimado — savings highlight (centered in navy box) ─────────────────
-  ahorro:      { x: 432, y: 458, size: 34, center: true },
-  // ── Prefieres Financiar — right column ─────────────────────────────────────
-  prontoPago:  { x: 406, y: 359, size: 10 },
-  pagoMensual: { x: 406, y: 319, size: 10 },
-  ahorroFin:   { x: 406, y: 282, size: 10 },
-};
-
-// Cash template coordinates — calibrate after first test output
-const COORDS_CASH = {
-  // ── Info section ───────────────────────────────────────────────────────────
-  numero:      { x: 355, y: 631, size: 9  },
-  cliente:     { x: 355, y: 609, size: 9  },
-  negocio:     { x: 355, y: 587, size: 9  },
-  telefono:    { x: 355, y: 565, size: 9  },
-  // ── Tu Estimado — left column ──────────────────────────────────────────────
-  capacidad:   { x: 143, y: 505, size: 10 },
-  cubre:       { x: 143, y: 467, size: 10 },
-  precio:      { x: 143, y: 429, size: 10 },
-  // ── Tu Estimado — savings highlight (centered in navy box) ─────────────────
-  ahorro:      { x: 432, y: 458, size: 34, center: true },
-};
-
-// ─── PDF generation ───────────────────────────────────────────────────────────
-async function generateEstimatePDF(ocrData, sqft, estData, contactData, commercialLeadName, batteryResult) {
-  const { PDFDocument, rgb, StandardFonts } = window.PDFLib;
-
-  const fetchBytes = async (url) => {
-    const res = await fetch(url);
-    if (!res.ok) throw new Error(`No se pudo cargar: ${url}`);
-    return new Uint8Array(await res.arrayBuffer());
-  };
-
-  const totalPrice    = (estData.systemCost || 0) + (batteryResult?.totalCost || 0);
-  const showFinancing = totalPrice >= 60000;
-
-  const wrapperBytes = await fetchBytes("/cotizacion_wrapper.pdf");
-  const wrapperDoc   = await PDFDocument.load(wrapperBytes);
-  const outDoc       = await PDFDocument.create();
-
-  // Page 1: wrapper cover
-  const [coverPage] = await outDoc.copyPages(wrapperDoc, [0]);
-  outDoc.addPage(coverPage);
-
-  const fontBold = await outDoc.embedFont(StandardFonts.HelveticaBold);
-  const fontReg  = await outDoc.embedFont(StandardFonts.Helvetica);
-  const navy   = rgb(0.106, 0.247, 0.545);
-  const orange = rgb(0.961, 0.651, 0.137);
-  const grey   = rgb(0.25,  0.25,  0.25);
-
-  // Page 2: estimate template (financing = PDF, cash = JPG)
-  let estimatePage;
-  let COORDS;
-
-  {
-    const templateUrl   = showFinancing ? "/Estimate_template_loan.pdf" : "/Estimate_template_cash.pdf";
-    const templateBytes = await fetchBytes(templateUrl);
-    const templateDoc   = await PDFDocument.load(templateBytes);
-    [estimatePage]      = await outDoc.copyPages(templateDoc, [0]);
-    outDoc.addPage(estimatePage);
-    COORDS = showFinancing ? COORDS_FINANCING : COORDS_CASH;
-  }
-
-  // ── Build field values ────────────────────────────────────────────────────
-  const negocioName = ocrData?.nombreNegocio || ocrData?.address || ocrData?.direccion || "";
-  const quoteNumber = commercialLeadName || "Pendiente";
-
-  const fields = {
-    numero:      quoteNumber,
-    cliente:     contactData?.nombre  || "",
-    negocio:     negocioName.substring(0, 52),
-    telefono:    contactData?.phone   || "",
-    capacidad:   estData.systemKwp.toLocaleString("en-US") + " kWp",
-    cubre:       estData.coverage + "% de tu consumo",
-    precio:      fmtUSD(estData.systemCost),
-    ahorro:      fmtUSD(estData.savingsCash),
-    ...(showFinancing ? {
-      prontoPago:  "$0",
-      pagoMensual: fmtUSD(estData.monthlyPmt) + " / mes",
-      ahorroFin:   fmtUSD(estData.savingsFinanced) + " / mes",
-    } : {}),
-  };
-
-  // ── Draw each field ───────────────────────────────────────────────────────
-  for (const [key, value] of Object.entries(fields)) {
-    const c = COORDS[key];
-    const isAhorro = key === "ahorro";
-    const font  = isAhorro ? fontBold : fontReg;
-    const color = isAhorro ? orange   : grey;
-    const size  = c.size;
-
-    let x = c.x;
-    if (c.center) {
-      const textWidth = font.widthOfTextAtSize(value, size);
-      x = 310 + (245 - textWidth) / 2;
-    }
-
-    estimatePage.drawText(value, { x, y: c.y, font, size, color });
-  }
-
-  // Pages 3+: remaining wrapper pages (map + facilities)
-  const numWrapper = wrapperDoc.getPageCount();
-  if (numWrapper >= 2) {
-    const indices = Array.from({ length: numWrapper - 1 }, (_, i) => i + 1);
-    const extra = await outDoc.copyPages(wrapperDoc, indices);
-    extra.forEach((p) => outDoc.addPage(p));
-  }
-
-  return await outDoc.save();
-}
-
 // ─── Component ───────────────────────────────────────────────────────────────
 const parseNum = (s) => parseFloat(String(s ?? "").replace(/,/g, "").replace(/[^0-9.-]/g, "")) || 0;
 
@@ -285,27 +157,43 @@ export default function ThankYouScreen({ interested, generateLead = true, contac
           leadName = data.commercialLeadName;
           leadNameRef.current = leadName;
 
-          // Step 2: Generate PDF
-          if (!window.PDFLib) return;
-          const pdfBytes = await generateEstimatePDF(ocrData, sqft, estData, contactData, leadName, batteryResult);
-          const blob = new Blob([pdfBytes], { type: "application/pdf" });
-          blobRef.current = blob;
-          setPdfReady(true);
-
-          // Step 3: Attach PDF to lead
-          const fd2 = new FormData();
-          fd2.append("leadId", data.zohoLeadId);
-          const fileName = `Windmar_Estimado_${leadName || "Solar"}.pdf`;
-          fd2.append("file", blob, fileName);
-          await fetch("/api/zoho-attach", { method: "POST", body: fd2 });
+          // Step 2+3: Generate PDF server-side and attach to Zoho
+          setPdfStatus("Generando estimado…");
+          const pdfRes  = await fetch("/api/generate-and-attach-pdf", {
+            method:  "POST",
+            headers: { "Content-Type": "application/json" },
+            body:    JSON.stringify({
+              leadId:             data.zohoLeadId,
+              ocrData,
+              estData,
+              contactData,
+              commercialLeadName: leadName,
+              batteryResult,
+            }),
+          });
+          const pdfData = await pdfRes.json();
+          if (pdfData.success && pdfData.pdfBase64) {
+            const pdfBytes = Uint8Array.from(atob(pdfData.pdfBase64), c => c.charCodeAt(0));
+            const blob = new Blob([pdfBytes], { type: "application/pdf" });
+            blobRef.current = blob;
+            setPdfReady(true);
+          }
 
         } else {
-          // generateLead=false: skip Zoho entirely, generate PDF for download only
-          if (!window.PDFLib) return;
-          const pdfBytes = await generateEstimatePDF(ocrData, sqft, estData, contactData, null, batteryResult);
-          const blob = new Blob([pdfBytes], { type: "application/pdf" });
-          blobRef.current = blob;
-          setPdfReady(true);
+          // generateLead=false: generate PDF for download only (no Zoho)
+          setPdfStatus("Generando estimado…");
+          const pdfRes  = await fetch("/api/generate-and-attach-pdf", {
+            method:  "POST",
+            headers: { "Content-Type": "application/json" },
+            body:    JSON.stringify({ ocrData, estData, contactData, batteryResult }),
+          });
+          const pdfData = await pdfRes.json();
+          if (pdfData.success && pdfData.pdfBase64) {
+            const pdfBytes = Uint8Array.from(atob(pdfData.pdfBase64), c => c.charCodeAt(0));
+            const blob = new Blob([pdfBytes], { type: "application/pdf" });
+            blobRef.current = blob;
+            setPdfReady(true);
+          }
         }
 
       } catch (err) {

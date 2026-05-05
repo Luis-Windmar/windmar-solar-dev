@@ -549,6 +549,126 @@ app.post('/api/zoho-attach', upload.single('file'), async (req, res) => {
   }
 });
 
+// POST /api/generate-and-attach-pdf
+// Generates estimate PDF server-side and attaches to Zoho lead.
+// Returns { success, pdfBase64 } so client can offer download.
+app.post('/api/generate-and-attach-pdf', express.json({ limit: '1mb' }), async (req, res) => {
+  try {
+    const { PDFDocument, rgb, StandardFonts } = require('pdf-lib');
+    const { leadId, ocrData, estData, contactData, commercialLeadName, batteryResult } = req.body;
+
+    const totalPrice    = (estData.systemCost || 0) + (batteryResult?.totalCost || 0);
+    const showFinancing = totalPrice >= 60000;
+
+    const wrapperPath  = path.join(__dirname, 'public', 'cotizacion_wrapper.pdf');
+    const templatePath = path.join(__dirname, 'public', showFinancing ? 'Estimate_template_loan.pdf' : 'Estimate_template_cash.pdf');
+
+    const wrapperBytes  = fs.readFileSync(wrapperPath);
+    const templateBytes = fs.readFileSync(templatePath);
+
+    const wrapperDoc  = await PDFDocument.load(wrapperBytes);
+    const templateDoc = await PDFDocument.load(templateBytes);
+    const outDoc      = await PDFDocument.create();
+
+    const [coverPage] = await outDoc.copyPages(wrapperDoc, [0]);
+    outDoc.addPage(coverPage);
+
+    const fontBold = await outDoc.embedFont(StandardFonts.HelveticaBold);
+    const fontReg  = await outDoc.embedFont(StandardFonts.Helvetica);
+    const orange = rgb(0.961, 0.651, 0.137);
+    const grey   = rgb(0.25,  0.25,  0.25);
+
+    const [estimatePage] = await outDoc.copyPages(templateDoc, [0]);
+    outDoc.addPage(estimatePage);
+
+    const COORDS_FINANCING = {
+      numero:      { x: 355, y: 631, size: 9  },
+      cliente:     { x: 355, y: 609, size: 9  },
+      negocio:     { x: 355, y: 587, size: 9  },
+      telefono:    { x: 355, y: 565, size: 9  },
+      capacidad:   { x: 143, y: 505, size: 10 },
+      cubre:       { x: 143, y: 467, size: 10 },
+      precio:      { x: 143, y: 429, size: 10 },
+      ahorro:      { x: 432, y: 458, size: 34, center: true },
+      prontoPago:  { x: 406, y: 359, size: 10 },
+      pagoMensual: { x: 406, y: 319, size: 10 },
+      ahorroFin:   { x: 406, y: 282, size: 10 },
+    };
+    const COORDS_CASH = {
+      numero:      { x: 355, y: 631, size: 9  },
+      cliente:     { x: 355, y: 609, size: 9  },
+      negocio:     { x: 355, y: 587, size: 9  },
+      telefono:    { x: 355, y: 565, size: 9  },
+      capacidad:   { x: 143, y: 505, size: 10 },
+      cubre:       { x: 143, y: 467, size: 10 },
+      precio:      { x: 143, y: 429, size: 10 },
+      ahorro:      { x: 432, y: 458, size: 34, center: true },
+    };
+
+    const COORDS = showFinancing ? COORDS_FINANCING : COORDS_CASH;
+    const fmtUSD = (n) => '$' + Number(n).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+    const negocioName = ocrData?.nombreNegocio || ocrData?.address || ocrData?.direccion || '';
+    const quoteNumber = commercialLeadName || 'Pendiente';
+
+    const fields = {
+      numero:    quoteNumber,
+      cliente:   contactData?.nombre  || '',
+      negocio:   negocioName.substring(0, 52),
+      telefono:  contactData?.phone   || '',
+      capacidad: estData.systemKwp.toLocaleString('en-US') + ' kWp',
+      cubre:     estData.coverage + '% de tu consumo',
+      precio:    fmtUSD(estData.systemCost),
+      ahorro:    fmtUSD(estData.savingsCash),
+      ...(showFinancing ? {
+        prontoPago:  '$0',
+        pagoMensual: fmtUSD(estData.monthlyPmt) + ' / mes',
+        ahorroFin:   fmtUSD(estData.savingsFinanced) + ' / mes',
+      } : {}),
+    };
+
+    for (const [key, value] of Object.entries(fields)) {
+      const c = COORDS[key];
+      if (!c) continue;
+      const isAhorro = key === 'ahorro';
+      const font  = isAhorro ? fontBold : fontReg;
+      const color = isAhorro ? orange   : grey;
+      let x = c.x;
+      if (c.center) {
+        const textWidth = font.widthOfTextAtSize(value, c.size);
+        x = 310 + (245 - textWidth) / 2;
+      }
+      estimatePage.drawText(value, { x, y: c.y, font, size: c.size, color });
+    }
+
+    const numWrapper = wrapperDoc.getPageCount();
+    if (numWrapper >= 2) {
+      const indices = Array.from({ length: numWrapper - 1 }, (_, i) => i + 1);
+      const extra = await outDoc.copyPages(wrapperDoc, indices);
+      extra.forEach((p) => outDoc.addPage(p));
+    }
+
+    const pdfBytes = await outDoc.save();
+
+    if (leadId) {
+      try {
+        const readToken = await getZohoReadToken();
+        const fileName  = `Windmar_Estimado_${commercialLeadName || 'Solar'}.pdf`;
+        await attachFileToZohoLead(leadId, Buffer.from(pdfBytes), fileName, 'application/pdf', readToken);
+        console.log('✅ Estimate PDF attached to Zoho lead:', leadId);
+      } catch (attachErr) {
+        console.warn('⚠️ PDF attachment to Zoho failed:', attachErr.message);
+      }
+    }
+
+    const pdfBase64 = Buffer.from(pdfBytes).toString('base64');
+    res.json({ success: true, pdfBase64 });
+
+  } catch (err) {
+    console.error('❌ PDF generation error:', err.message);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 // ─── API: HEALTH CHECK ────────────────────────────────────────────────────────
 app.get('/api/health', (req, res) => {
   res.json({
