@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import UploadScreen from "./UploadScreen.jsx";
 import RoofScreen from "./RoofScreen.jsx";
 import EstimateScreen from "./EstimateScreen.jsx";
@@ -226,6 +226,20 @@ export default function WelcomeScreen() {
       .finally(() => setPricingLoading(false));
   }, []);
 
+  const fetchSolarConfig = useCallback(async (municipio, sqft) => {
+    try {
+      const [solarRes, areaRes] = await Promise.all([
+        fetch(`/api/solar-resource?municipality=${encodeURIComponent(municipio)}`),
+        fetch(`/api/area-to-system?sqft=${sqft}&municipality=${encodeURIComponent(municipio)}&buffer=true`),
+      ]);
+      const [solarData, areaData] = await Promise.all([solarRes.json(), areaRes.json()]);
+      return { solarData, areaData };
+    } catch (err) {
+      console.warn('fetchSolarConfig failed:', err.message);
+      return null;
+    }
+  }, []);
+
   const handleContinue = () => {
     if (!selection) return;
     setScreen(selection === "si" ? "upload" : "exit");
@@ -290,6 +304,7 @@ export default function WelcomeScreen() {
         ocrData={ocrData}
         sqft={sqft}
         pricing={pricing}
+        fetchSolarConfig={fetchSolarConfig}
         batteryHours={batteryHours}
         setBatteryHours={setBatteryHours}
         onInterested={(est, batt) => { setEstData(est); setBatteryResult(batt); setScreen("contact"); }}

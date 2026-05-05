@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { Header, ProgressBar } from "./shared.jsx";
 
 // ─── Business logic (copied from PreQual_Solar_api.jsx) ────────────────────
@@ -42,10 +43,10 @@ const CFG_DEFAULTS = {
 
 const getEPC = (kwp, epcTable) => {
   const table = epcTable || CFG_DEFAULTS.epc_table;
-  // New format: { max_kw, price_per_w } — max_kw is upper bound, null means no limit
-  if (table[0]?.price_per_w !== undefined) {
-    const row = table.find(r => r.max_kw === null || kwp < r.max_kw);
-    return row ? row.price_per_w : table[table.length - 1].price_per_w;
+  // Tool Belt format: { kw_from, kw_to, effective_price_per_w }
+  if (table[0]?.effective_price_per_w !== undefined) {
+    const row = table.find(r => kwp >= r.kw_from && kwp < r.kw_to);
+    return row ? row.effective_price_per_w : table[table.length - 1].effective_price_per_w;
   }
   // Legacy fallback format: { from, to, epc }
   const row = table.find(r => kwp >= r.from && kwp < r.to);
@@ -71,12 +72,12 @@ const calcFinancing = (systemCost) => {
   return { facilityFee, secDeposit, financed, monthlyPmt, balloon };
 };
 
-const calcEstimate = (consumoMensual, roofSqft, municipio, billData, epcTable) => {
+const calcEstimate = (consumoMensual, roofSqft, municipio, billData, epcTable, annualYieldOverride, maxKwpRoofOverride) => {
   const { cargo_cliente = 0, cargo_demanda = 0, exceso_usd = 0, consumo_kwh = consumoMensual, costo_kwh = 0,
           tariff = "", demanda_kva = 0, exceso_kva = 0 } = billData;
-  const annualYield   = getYield(municipio);
+  const annualYield   = annualYieldOverride || getYield(municipio);
   const annualConsump = consumoMensual * 12;
-  const maxKwpRoof    = (roofSqft / 2500) * CFG_DEFAULTS.kwp_per_2500sqft;
+  const maxKwpRoof    = maxKwpRoofOverride  || (roofSqft / 2500) * CFG_DEFAULTS.kwp_per_2500sqft;
   const kwpFor100pct  = annualConsump / annualYield;
   const isSecundaria  = /secundaria/i.test(tariff);
   const demandCap     = isSecundaria ? 60 : (demanda_kva + exceso_kva) * 1.2 * 1.5;
@@ -340,7 +341,7 @@ const S = {
 };
 
 // ─── EstimateScreen ─────────────────────────────────────────────────────────
-function EstimateScreenInner({ ocrData, sqft, batteryHours, setBatteryHours, pricing, onInterested, onNotInterested, onBack }) {
+function EstimateScreenInner({ ocrData, sqft, batteryHours, setBatteryHours, pricing, fetchSolarConfig, onInterested, onNotInterested, onBack }) {
   const consumoMensual = parseNum(ocrData?.consumoKWH);
   const municipio      = ocrData?.municipio || "San Juan";
   const cargoCliente   = parseNum(ocrData?.cargoCliente);
@@ -354,6 +355,18 @@ function EstimateScreenInner({ ocrData, sqft, batteryHours, setBatteryHours, pri
 
   const epcTable = pricing?.solar?.epc_tiers || null;
 
+  const [liveSolarConfig, setLiveSolarConfig] = useState(null);
+
+  useEffect(() => {
+    if (!municipio || !sqft || !fetchSolarConfig) return;
+    fetchSolarConfig(municipio, sqft).then(cfg => {
+      if (cfg) setLiveSolarConfig(cfg);
+    });
+  }, [municipio, sqft]); // eslint-disable-line
+
+  const liveYield  = liveSolarConfig?.solarData?.specific_yield || null;
+  const liveMaxKwp = liveSolarConfig?.areaData?.kw              || null;
+
   const est = calcEstimate(consumoMensual, sqft, municipio, {
     cargo_cliente: cargoCliente,
     cargo_demanda: cargoDemanda,
@@ -363,7 +376,7 @@ function EstimateScreenInner({ ocrData, sqft, batteryHours, setBatteryHours, pri
     tariff,
     demanda_kva:   demandaKVA,
     exceso_kva:    excesoKVA,
-  }, epcTable);
+  }, epcTable, liveYield, liveMaxKwp);
 
   // Battery
   const localBatteryHours = batteryHours ?? 0;

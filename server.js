@@ -222,6 +222,52 @@ app.get('/api/pricing', async (req, res) => {
   }
 });
 
+// ─── API: SOLAR RESOURCE ─────────────────────────────────────────────────────
+// GET /api/solar-resource?municipality=Ponce
+// Proxies Tool Belt GET /api/v1/solar-resource
+app.get('/api/solar-resource', async (req, res) => {
+  try {
+    const { municipality } = req.query;
+    if (!municipality) return res.status(400).json({ error: 'municipality required' });
+
+    const TOOLBELT_BASE = 'https://windmar-commercial-toolbelt.vercel.app/api/v1';
+    const API_KEY = process.env.TOOLBELT_API_KEY;
+    const r = await fetch(
+      `${TOOLBELT_BASE}/solar-resource?municipality=${encodeURIComponent(municipality)}`,
+      { headers: { 'X-API-Key': API_KEY } }
+    );
+    if (!r.ok) throw new Error('solar-resource fetch failed: ' + r.status);
+    res.json(await r.json());
+  } catch (err) {
+    console.warn('⚠️ solar-resource fallback fired:', err.message);
+    res.json({ municipality: req.query.municipality, specific_yield: 1530, unit: 'kWh/kWp/year' });
+  }
+});
+
+// ─── API: AREA TO SYSTEM ──────────────────────────────────────────────────────
+// GET /api/area-to-system?sqft=10000&municipality=Ponce&buffer=true
+// Proxies Tool Belt GET /api/v1/area-to-system
+app.get('/api/area-to-system', async (req, res) => {
+  try {
+    const { sqft, municipality, buffer } = req.query;
+    if (!sqft || !municipality) return res.status(400).json({ error: 'sqft and municipality required' });
+
+    const TOOLBELT_BASE = 'https://windmar-commercial-toolbelt.vercel.app/api/v1';
+    const API_KEY = process.env.TOOLBELT_API_KEY;
+    const params = new URLSearchParams({ sqft, municipality, buffer: buffer ?? 'true' });
+    const r = await fetch(
+      `${TOOLBELT_BASE}/area-to-system?${params}`,
+      { headers: { 'X-API-Key': API_KEY } }
+    );
+    if (!r.ok) throw new Error('area-to-system fetch failed: ' + r.status);
+    res.json(await r.json());
+  } catch (err) {
+    console.warn('⚠️ area-to-system fallback fired:', err.message);
+    const sqft = parseFloat(req.query.sqft) || 0;
+    res.json({ sqft, kw: (sqft / 2500) * 45, specific_yield: 1530, fallback: true });
+  }
+});
+
 // ─── API: OCR ─────────────────────────────────────────────────────────────────
 // Accepts a LUMA bill (PDF or image) and returns structured JSON.
 app.post('/api/ocr', upload.array('bills', 10), async (req, res) => {
