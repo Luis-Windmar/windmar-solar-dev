@@ -106,11 +106,21 @@ export default function ThankYouScreen({ interested, generateLead = true, contac
     if (!interested || !contactData) return;
     const run = async () => {
       try {
+        // Floor the demand value the same way UploadScreen's normalizeOCR does
+        // (DEMAND_FLOOR_KVA = 50) so that a cleared field or any null/undefined
+        // value still flows a real number to Zoho through parseLeadNotes —
+        // which extracts demand via a /Demanda:\s*([\d,]+)\s*kVA/ regex and
+        // would otherwise capture nothing when this slot shows "—". Using the
+        // raw numeric field with a guaranteed " kVA" suffix also handles the
+        // case where a rep edit dropped the " kVA" suffix from the display.
+        const DEMAND_FLOOR_KVA = 50;
+        const demandaForZoho   = ocrData?.carga_contratada_kva ?? DEMAND_FLOOR_KVA;
+
         const notes = [
           `Cotización: ${leadNameRef.current || "Pendiente"}`,
           `Tarifa: ${ocrData?.tariff || "—"}`,
           `Consumo: ${ocrData?.consumoKWH || "—"}`,
-          `Demanda: ${ocrData?.demandaKVA || "—"}`,
+          `Demanda: ${demandaForZoho} kVA`,
           `Costo/kWh: ${ocrData?.costoPorKWH || "—"}`,
           `Sistema: ${estData?.systemKwp} kWp | Cobertura: ${estData?.coverage}%`,
           `Precio est.: $${estData?.systemCost?.toLocaleString("en-US")}`,

@@ -2,6 +2,12 @@
 ## Claude Code Project README
 ## Last updated: 2026-05-05
 ---
+# Project Context
+
+At the start of every session, read the most recent session notes file in:
+`/Users/luismorales/Desktop/IQ_Claude/PreQual_Deal/windmar_dev/docs/`
+
+The files are named `session_notes_YYYY-MM-DD.md`. Always load the latest one.
 
 ## Project Overview
 
@@ -61,12 +67,14 @@ node server.js       # starts on http://localhost:3001
 # Visit: http://localhost:3001/prequal
 ```
 
-To deploy to Vercel production:
+Deploys are triggered automatically by pushing to GitHub `main` — the Vercel
+project is connected to the repo via webhook and rebuilds on every push.
+Live URL: https://windmar-commercial-estimator.vercel.app
+
+To deploy manually (e.g. to skip a push, or to deploy a working-tree state):
 ```bash
 npx vercel --prod
-# Deploys to: https://windmar-commercial-estimator.vercel.app
 # Requires .vercel/project.json linked to windmar-commercial-estimator (windmar team)
-# GitHub auto-deploy is NOT configured — must run CLI manually
 ```
 
 ---

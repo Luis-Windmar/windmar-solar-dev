@@ -248,13 +248,21 @@ function normalizeOCR(data) {
   const avgEnergyOnly  = avgMonthlyBill - cargoCliente - cargoDemanda - excesoUSD;
   const effectiveRate  = consumoPromedio > 0 ? avgEnergyOnly / consumoPromedio : 0;
 
+  // Floor demand at 50 kVA — the regulatory Secundaria minimum and a safety
+  // net for OCR misses. By applying the floor here (instead of inside
+  // EstimateScreen only), the value flows through to the Zoho payload too.
+  // If the rep edits the field on the review card, handleFieldChange
+  // overwrites both demandaKVA and carga_contratada_kva with the new value.
+  const DEMAND_FLOOR_KVA = 50;
+  const cargaContratada  = data.carga_contratada_kva ?? DEMAND_FLOOR_KVA;
+
   return {
     nombreNegocio: data.nombre_negocio ? "TEST - " + data.nombre_negocio : "TEST - ", // TODO: remove before production
     direccion:    data.direccion       ? "TEST - " + data.direccion       : "TEST - ", // TODO: remove before production
     municipio:    data.municipio          ?? "",
     tariff:       data.tarifa             ?? "",
     consumoKWH:   consumoPromedio > 0     ? fmtNum(consumoPromedio, 0, 0) + " kWh" : "",
-    demandaKVA:   data.carga_contratada_kva != null ? fmtNum(data.carga_contratada_kva, 0, 2) + " kVA" : "",
+    demandaKVA:   fmtNum(cargaContratada, 0, 2) + " kVA",
     totalFactura: avgMonthlyBill  > 0     ? "$" + fmtNum(avgMonthlyBill,  2, 2) : "",
     costoPorKWH:  effectiveRate   > 0     ? fmtNum(effectiveRate,          4, 4) : "",
     // Pass-through for savings calculation — not shown on review screen
@@ -262,14 +270,18 @@ function normalizeOCR(data) {
     cargoDemanda,
     excesoUSD,
     excesoKVA,
-    // Raw numeric OCR fields used by EstimateScreen for the demand cap
-    // (renamed from demanda_contratada / exceso_demanda_kva).
-    carga_contratada_kva:  data.carga_contratada_kva  ?? null,
-    exceso_de_demanda_kva: data.exceso_de_demanda_kva ?? null,
+    // Raw numeric OCR fields used by EstimateScreen for the demand cap.
+    // carga_contratada_kva is floored at 50 (above) so it never reaches Zoho
+    // as null. exceso_de_demanda_kva legitimately defaults to 0 (no excess).
+    carga_contratada_kva:  cargaContratada,
+    exceso_de_demanda_kva: data.exceso_de_demanda_kva ?? 0,
   };
 }
 
 // ─── Mock OCR data (dev bypass) ─────────────────────────────────────────────
+// Mirrors the shape of normalizeOCR's output so the "usar datos de prueba"
+// bypass behaves identically to a real OCR response — including the raw
+// numeric fields EstimateScreen reads for the demand cap.
 const MOCK_OCR = {
   nombreNegocio: "TEST - MOC OCR BIZ NAME", // TODO: remove before production
   direccion:     "TEST - PONCE BY PASS PONCE, PONCE PR 00730", // TODO: remove before production
@@ -283,6 +295,9 @@ const MOCK_OCR = {
   cargoDemanda:  769.50,
   excesoUSD:     0,
   excesoKVA:     0,
+  // Raw numeric companions — must match the formatted display values above.
+  carga_contratada_kva:  150,
+  exceso_de_demanda_kva: 0,
 };
 
 // ─── Client-side image compression ──────────────────────────────────────────
@@ -443,6 +458,21 @@ export default function UploadScreen({ onNext, onBack, resumeData }) {
     setUploadError("");
   };
 
+  // When the rep edits a review-card field, write to the formatted display
+  // string AND keep the raw numeric companion fields in sync. EstimateScreen
+  // reads the raw numbers directly for the demand cap, so without this sync
+  // the rep's correction would be silently ignored.
+  const handleFieldChange = (key, value) => {
+    setFields((prev) => {
+      const next = { ...prev, [key]: value };
+      if (key === "demandaKVA") {
+        const parsed = parseFloat(String(value).replace(/[^0-9.\-]/g, ""));
+        next.carga_contratada_kva = Number.isFinite(parsed) ? parsed : null;
+      }
+      return next;
+    });
+  };
+
   // ── IDLE ─────────────────────────────────────────────────────────────────
   if (stage === "idle") {
     return (
@@ -598,14 +628,14 @@ export default function UploadScreen({ onNext, onBack, resumeData }) {
                 <textarea
                   style={S.fieldTextarea}
                   value={fields[key]}
-                  onChange={(e) => setFields({ ...fields, [key]: e.target.value })}
+                  onChange={(e) => handleFieldChange(key, e.target.value)}
                 />
               ) : (
                 <input
                   style={S.fieldInput}
                   type="text"
                   value={fields[key]}
-                  onChange={(e) => setFields({ ...fields, [key]: e.target.value })}
+                  onChange={(e) => handleFieldChange(key, e.target.value)}
                 />
               )}
             </div>
