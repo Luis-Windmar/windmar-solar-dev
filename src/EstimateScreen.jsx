@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Header, ProgressBar } from "./shared.jsx";
+import { computeSystemKwCaps } from "./sizing/caps.js";
 
 // ─── Business logic (copied from PreQual_Solar_api.jsx) ────────────────────
 const MUNICIPIO_YIELDS = {
@@ -78,10 +79,21 @@ const calcEstimate = (consumoMensual, roofSqft, municipio, billData, epcTable, a
   const annualYield   = annualYieldOverride || getYield(municipio);
   const annualConsump = consumoMensual * 12;
   const maxKwpRoof    = maxKwpRoofOverride  || (roofSqft / 2500) * CFG_DEFAULTS.kwp_per_2500sqft;
-  const kwpFor100pct  = annualConsump / annualYield;
-  const isSecundaria  = /secundaria/i.test(tariff);
-  const demandCap     = isSecundaria ? 60 : (demanda_kva + exceso_kva) * 1.2 * 1.5;
-  const systemKwp     = roundToPanels(Math.min(maxKwpRoof, kwpFor100pct, demandCap > 0 ? demandCap : Infinity));
+
+  // System size via the canonical sizing helper. Combines four caps:
+  // consumption, transformer (not yet collected — null), roof area
+  // (Wizard-specific extension), and the tariff-derived cap.
+  const caps = computeSystemKwCaps({
+    monthly_kwh:           consumoMensual,
+    tarifa:                tariff,
+    carga_contratada_kva:  demanda_kva,
+    exceso_de_demanda_kva: exceso_kva,
+    transformer_kva:       null,
+    roof_kw_cap:           maxKwpRoof,
+    municipio_yield:       annualYield,
+  });
+
+  const systemKwp     = roundToPanels(caps.systemKwDc);
   const annualGen     = systemKwp * annualYield;
   const coverage      = Math.min((annualGen / annualConsump) * 100, 100);
   const epcPerW       = getEPC(systemKwp, epcTable);
@@ -102,6 +114,7 @@ const calcEstimate = (consumoMensual, roofSqft, municipio, billData, epcTable, a
     monthlyPmt:      fin.monthlyPmt,
     savingsFinanced: Math.round(savingsFinanced),
     balloon:         Math.round(fin.balloon),
+    caps,                       // for the binding-constraint banner
   };
 };
 
@@ -181,6 +194,40 @@ export const calcBatterySystem = (demandaKVA, avgMonthlyKWH, batteryHours, prici
 
 const SLIDER_HOURS = [0, 4, 8, 12, 16, 24];
 
+// Banner copy for each binding constraint. Returns null when the
+// consumption cap is the active one (the customer's estimate matches
+// their consumption — no banner needed).
+const getConstraintBanner = (caps) => {
+  if (!caps || !caps.constraint) return null;
+  const detail = `Sistema sin restricciones: ${caps.unconstrainedKwDc.toFixed(1)} kWp → Sistema propuesto: ${caps.systemKwDc.toFixed(1)} kWp`;
+  switch (caps.constraint) {
+    case "tarifa": {
+      const label = caps.tariff === "residencial" ? "Residencial" : "Secundaria";
+      return {
+        title:  `Sistema limitado por el cap regulatorio LUMA (tarifa ${label}, ${caps.tariffCapKva} kVA).`,
+        detail,
+      };
+    }
+    case "demanda":
+      return {
+        title:  `Sistema limitado por la demanda contratada + exceso (${caps.demandaMaxima} kVA).`,
+        detail,
+      };
+    case "transformador":
+      return {
+        title:  `Sistema limitado por el transformador de servicio (${caps.transformerKva} kVA).`,
+        detail,
+      };
+    case "techo":
+      return {
+        title:  `Sistema limitado por el área del techo disponible (${caps.capRoof.toFixed(1)} kWp).`,
+        detail,
+      };
+    default:
+      return null;
+  }
+};
+
 // ─── Parse a formatted field value back to a number ────────────────────────
 const parseNum = (s) => parseFloat(String(s ?? "").replace(/,/g, "").replace(/[^0-9.-]/g, "")) || 0;
 
@@ -218,6 +265,24 @@ const S = {
     marginBottom: "20px",
     marginTop: 0,
     textAlign: "center",
+  },
+  constraintBanner: {
+    backgroundColor: "#FFF7EC",
+    borderLeft: "4px solid #F5A623",
+    borderRadius: "8px",
+    padding: "12px 14px",
+    marginBottom: "14px",
+    fontSize: "13px",
+    color: "#1B3F8B",
+    lineHeight: "1.4",
+  },
+  constraintTitle: {
+    fontWeight: "700",
+    marginBottom: "4px",
+  },
+  constraintDetail: {
+    fontSize: "12px",
+    color: "#6b7280",
   },
   card: {
     backgroundColor: "#ffffff",
@@ -397,6 +462,8 @@ function EstimateScreenInner({ ocrData, sqft, batteryHours, setBatteryHours, pri
     setBatteryHours(SLIDER_HOURS[Number(e.target.value)]);
   };
 
+  const banner = getConstraintBanner(est.caps);
+
   return (
     <div style={S.page}>
       <Header />
@@ -404,6 +471,13 @@ function EstimateScreenInner({ ocrData, sqft, batteryHours, setBatteryHours, pri
       <div style={S.content}>
         <h1 style={S.h1}>Tu estimado</h1>
         <p style={S.sub}>{municipio} – {sqft.toLocaleString()} p²</p>
+
+        {banner && (
+          <div style={S.constraintBanner}>
+            <div style={S.constraintTitle}>{banner.title}</div>
+            <div style={S.constraintDetail}>{banner.detail}</div>
+          </div>
+        )}
 
         {/* Generación + Cubre + Respaldo (if battery) */}
         <div style={S.card}>

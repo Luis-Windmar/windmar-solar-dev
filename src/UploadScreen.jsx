@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { Header, ProgressBar } from "./shared.jsx";
+import { normalizeLumaTariff } from "./sizing/tariff.js";
 
 // ─── Checklist items & progress thresholds ─────────────────────────────────
 const CHECKLIST = [
@@ -24,9 +25,9 @@ const fmtNum = (val, minDec, maxDec) => {
 };
 
 // ─── Review-screen field definitions ───────────────────────────────────────
-// Fields keyed "demandaKVA" and "excesoKVA" are only rendered when the
-// current tariff (after normalization) is a demand tariff — see
-// DEMAND_TARIFFS and the filter() call in the review render below.
+// All fields render regardless of tariff. The rep may need to correct any
+// field — including adding demand values to a bill OCR classified as
+// Secundaria but should be Primaria.
 const FIELDS = [
   { key: "nombreNegocio", label: "Nombre del negocio", type: "input"    },
   { key: "direccion",    label: "Dirección",           type: "textarea" },
@@ -39,19 +40,8 @@ const FIELDS = [
   { key: "costoPorKWH", label: "Costo por kWh",       type: "input"    },
 ];
 
-// Canonical tariff names — used by normalizeTariff() below and by the
-// demand-field visibility filter. Match Tool Belt /api/v1/ocr/luma-bill
-// spec §4 tariff enum (with Residencial added explicitly for clarity).
-const DEMAND_TARIFFS = /primaria|transmisi/i;
-
-const normalizeTariff = (input) => {
-  const s = (input || "").toLowerCase().trim();
-  if (s.includes("residenc")) return "Residencial";
-  if (s.includes("secund"))   return "Secundaria";
-  if (s.includes("primar"))   return "Primaria";
-  if (s.includes("transm"))   return "Transmisión";
-  return input || "";
-};
+// Tariff normalization is owned by src/sizing/tariff.js (imported above)
+// — the single canonical helper used everywhere in the Wizard.
 
 // ─── Styles ─────────────────────────────────────────────────────────────────
 const S = {
@@ -280,7 +270,7 @@ function normalizeOCR(data) {
     nombreNegocio: data.nombre_negocio ? "TEST - " + data.nombre_negocio : "TEST - ", // TODO: remove before production
     direccion:    data.direccion       ? "TEST - " + data.direccion       : "TEST - ", // TODO: remove before production
     municipio:    data.municipio          ?? "",
-    tariff:       normalizeTariff(data.tarifa),
+    tariff:       normalizeLumaTariff(data.tarifa) || "",
     consumoKWH:   consumoPromedio > 0     ? fmtNum(consumoPromedio, 0, 0) + " kWh" : "",
     demandaKVA:   fmtNum(cargaContratada, 0, 2) + " kVA",
     excesoKVA:    fmtNum(excesoKvaRaw,    0, 2) + " kVA",
@@ -307,7 +297,7 @@ const MOCK_OCR = {
   nombreNegocio: "TEST - MOC OCR BIZ NAME", // TODO: remove before production
   direccion:     "TEST - PONCE BY PASS PONCE, PONCE PR 00730", // TODO: remove before production
   municipio:     "Ponce",
-  tariff:        "Primaria",
+  tariff:        "primaria",
   consumoKWH:    "38,880 kWh",
   demandaKVA:    "150.00 kVA",
   excesoKVA:     "0.00 kVA",
@@ -499,13 +489,14 @@ export default function UploadScreen({ onNext, onBack, resumeData }) {
   };
 
   // On blur, normalize free-text tariff input to its canonical form
-  // (Residencial | Secundaria | Primaria | Transmisión). Doing this on
-  // blur rather than every keystroke avoids fighting the user's typing
-  // / backspacing mid-edit.
+  // (residencial | secundaria | primaria | transmision — lowercase ASCII).
+  // Doing this on blur rather than every keystroke avoids fighting the
+  // user's typing / backspacing mid-edit. Leaves unrecognized text as-is
+  // so the rep can fix typos without the input snapping to empty.
   const handleFieldBlur = (key, value) => {
     if (key === "tariff") {
-      const normalized = normalizeTariff(value);
-      if (normalized !== value) {
+      const normalized = normalizeLumaTariff(value);
+      if (normalized && normalized !== value) {
         setFields((prev) => ({ ...prev, tariff: normalized }));
       }
     }
@@ -656,17 +647,7 @@ export default function UploadScreen({ onNext, onBack, resumeData }) {
         </p>
 
         <div style={S.reviewCard}>
-          {FIELDS
-            .filter(({ key }) => {
-              // Demand fields are only shown for demand tariffs (Primaria /
-              // Transmisión). Values are kept in state when hidden — the rep
-              // can re-show them by changing the tariff back to a demand one.
-              if (key === "demandaKVA" || key === "excesoKVA") {
-                return DEMAND_TARIFFS.test(fields.tariff || "");
-              }
-              return true;
-            })
-            .map(({ key, label, type }) => (
+          {FIELDS.map(({ key, label, type }) => (
             <div key={key} style={S.fieldGroup}>
               <span style={S.fieldLabel}>{label}</span>
               {type === "textarea" ? (

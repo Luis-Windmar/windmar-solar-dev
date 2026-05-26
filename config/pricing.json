@@ -58,7 +58,9 @@
       "term_years": 15,
       "rate": 0.09,
       "balloon_month": 84
-    }
+    },
+    "dcAcRatio": 1.2,
+    "demandMultiplier": 1.5
   },
   "battery": {
     "_comment": "All costs are Windmar's supplier cost. Customer price = cost × markup.",
