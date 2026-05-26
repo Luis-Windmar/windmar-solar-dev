@@ -211,7 +211,7 @@ const getConstraintBanner = (caps) => {
     }
     case "demanda":
       return {
-        title:  `Sistema limitado por la demanda contratada + exceso (${caps.demandaMaxima} kVA).`,
+        title:  `Sistema limitado por la demanda total (${caps.demandaMaxima} kVA).`,
         detail,
       };
     case "transformador":
