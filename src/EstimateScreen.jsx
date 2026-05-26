@@ -348,9 +348,10 @@ function EstimateScreenInner({ ocrData, sqft, batteryHours, setBatteryHours, pri
   const cargoDemanda   = parseNum(ocrData?.cargoDemanda);
   const excesoUSD      = parseNum(ocrData?.excesoUSD);
   const costoKWH       = parseNum(ocrData?.costoPorKWH);
-  // Regulatory minimum: Secundaria tariff cap is 50 kVA; also use as fallback if OCR missed it
-  const demandaKVA     = Math.max(parseNum(ocrData?.demandaKVA), 50);
-  const excesoKVA      = parseNum(ocrData?.excesoKVA);
+  // Read raw numeric OCR fields exposed by normalizeOCR (post Tool Belt migration).
+  // Regulatory minimum: Secundaria tariff cap is 50 kVA; also use as fallback if OCR missed it.
+  const demandaKVA     = Math.max(ocrData?.carga_contratada_kva ?? 0, 50);
+  const excesoKVA      = ocrData?.exceso_de_demanda_kva ?? 0;
   const tariff         = ocrData?.tariff || "";
 
   const epcTable = pricing?.solar?.epc_tiers || null;

@@ -5,11 +5,9 @@ const multer    = require('multer');
 const path      = require('path');
 const fs        = require('fs');
 const crypto    = require('crypto');
-const Anthropic = require('@anthropic-ai/sdk');
 
 const app    = express();
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 25 * 1024 * 1024 } });
-const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
 app.use(cors());
 app.use(express.json({ limit: '25mb' }));
@@ -273,98 +271,35 @@ app.get('/api/area-to-system', async (req, res) => {
   }
 });
 
-// ─── API: OCR ─────────────────────────────────────────────────────────────────
-// Accepts a LUMA bill (PDF or image) and returns structured JSON.
-app.post('/api/ocr', upload.array('bills', 10), async (req, res) => {
-  const files = req.files;
-  if (!files || files.length === 0) return res.status(400).json({ error: 'No file uploaded' });
-
-  const validImageTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
-
-  // Validate all files
-  for (const f of files) {
-    if (!f.mimetype.startsWith('image/') && f.mimetype !== 'application/pdf') {
-      return res.status(400).json({ error: 'Unsupported file type. Please upload PDFs or images.' });
-    }
+// ─── API: OCR (LUMA Bill via Tool Belt) ───────────────────────────────────────
+// Proxies multipart upload to Tool Belt POST /api/v1/ocr/luma-bill.
+// Accepts one file per request. The client fans out multi-file uploads
+// (multi-page bills) via Promise.all and merges results client-side.
+app.post('/api/ocr-luma-bill', upload.single('bill'), async (req, res) => {
+  if (!req.file) {
+    return res.status(400).json({ error: 'no_file', message: 'No bill uploaded' });
   }
 
-  const SYSTEM_PROMPT = `Eres un especialista en extraer datos de facturas de electricidad de LUMA Energy (Puerto Rico).
-Tu tarea es analizar la factura y devolver ÚNICAMENTE un objeto JSON con los campos exactos indicados.
-No incluyas explicaciones, comentarios, ni markdown — solo el JSON puro.
-
-INSTRUCCIONES IMPORTANTES:
-- Para "consumos_mensuales": en la última página, lee el valor de CADA barra del historial de consumo (usualmente 13 meses) en orden cronológico. Devuelve un array con todos los valores en kWh. Usa 0 para meses sin datos visibles.
-- Para "tasas_mensuales": en la misma página, lee la tasa de energía en $/kWh correspondiente a cada mes (del gráfico de tasas o tabla de tarifas mensual), en el mismo orden cronológico que consumos_mensuales. Devuelve un array del mismo largo.
-- Para "consumo_promedio": suma todos los valores no-cero de consumos_mensuales y divide entre la cantidad de valores no-cero.
-- Para "exceso_demanda_kva": extrae la CANTIDAD en kVA, NO el monto en dólares. Si es 0 o no hay exceso, pon 0.
-- Para "exceso_demanda_usd": extrae el monto en dólares del cargo por exceso de demanda. Si es 0 o no hay exceso, pon 0.
-- Para tarifas Secundaria: los campos de demanda (demanda_contratada, cargo_demanda, exceso_demanda_kva, exceso_demanda_usd) deben ser null.
-- Si un campo no aplica o no se encuentra, usa null.
-- Todos los montos en dólares deben ser números (float), sin símbolos.
-- El municipio debe ser un municipio real de Puerto Rico.`;
-
-  const USER_PROMPT = `Analiza esta factura de LUMA Energy y extrae los siguientes campos en JSON:
-
-{
-  "nombre_negocio": "nombre del negocio o empresa (ej. McDonald's, Walgreens, Hospital San Pablo)",
-  "address": "dirección completa del negocio",
-  "municipio": "municipio de Puerto Rico",
-  "total_adeudado": 0.00,
-  "tarifa": "Primaria | Secundaria | Transmisión | Agrícola",
-  "demanda_contratada": 0,
-  "cargo_cliente": 0.00,
-  "cargo_demanda": 0.00,
-  "exceso_demanda_kva": 0,
-  "exceso_demanda_usd": 0.00,
-  "consumo_promedio": 0,
-  "costo_kwh": 0.0000,
-  "consumos_mensuales": [0,0,0,0,0,0,0,0,0,0,0,0,0],
-  "tasas_mensuales": [0.0000,0.0000,0.0000,0.0000,0.0000,0.0000,0.0000,0.0000,0.0000,0.0000,0.0000,0.0000,0.0000]
-}
-
-Recuerda: solo JSON puro, sin markdown ni explicaciones.`;
-
   try {
-    // Build content blocks — one block per file, then the prompt
-    const fileBlocks = files.map((f) => {
-      const base64 = f.buffer.toString('base64');
-      if (f.mimetype === 'application/pdf') {
-        return { type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: base64 } };
-      } else {
-        const imageType = validImageTypes.includes(f.mimetype) ? f.mimetype : 'image/jpeg';
-        return { type: 'image', source: { type: 'base64', media_type: imageType, data: base64 } };
-      }
-    });
-    const content = [...fileBlocks, { type: 'text', text: USER_PROMPT }];
+    const TOOLBELT_BASE = 'https://windmar-commercial-toolbelt.vercel.app/api/v1';
+    const API_KEY = process.env.TOOLBELT_API_KEY;
 
-    const response = await client.messages.create({
-      model: 'claude-opus-4-6',
-      max_tokens: 1024,
-      system: SYSTEM_PROMPT,
-      messages: [{ role: 'user', content }],
+    const fd = new FormData();
+    const blob = new Blob([req.file.buffer], { type: req.file.mimetype });
+    fd.append('bill', blob, req.file.originalname);
+
+    const r = await fetch(`${TOOLBELT_BASE}/ocr/luma-bill`, {
+      method: 'POST',
+      headers: { 'X-API-Key': API_KEY },
+      body: fd,
     });
 
-    const rawText  = response.content[0].text.trim();
-    const jsonText = rawText.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/i, '').trim();
-
-    let ocrData;
-    try {
-      ocrData = JSON.parse(jsonText);
-    } catch (parseErr) {
-      console.error('JSON parse error:', parseErr.message);
-      return res.status(422).json({
-        error: 'No se pudo interpretar la respuesta del OCR. Por favor intenta de nuevo.',
-        raw: rawText,
-      });
-    }
-
-    res.json({ success: true, data: ocrData });
-
+    // Forward upstream status + body so the client can detect 413 etc.
+    const data = await r.json().catch(() => ({ error: 'upstream_parse_failed' }));
+    res.status(r.status).json(data);
   } catch (err) {
-    console.error('Anthropic API error:', err.message);
-    if (err.status === 401) return res.status(401).json({ error: 'API key inválida o no configurada.' });
-    if (err.status === 429) return res.status(429).json({ error: 'Límite de uso alcanzado. Intenta en unos segundos.' });
-    res.status(500).json({ error: 'Error al procesar la factura. Por favor intenta de nuevo.' });
+    console.error('OCR luma-bill proxy error:', err.message);
+    res.status(500).json({ error: 'proxy_error', message: err.message });
   }
 });
 
@@ -458,7 +393,7 @@ const createZohoLead = async (leadData, token) => {
         Phone_2:            cleanPhone(leadData.phone),
         Phone_3:            cleanPhone(leadData.phoneSecondary),
         Email:              leadData.email                                    || null,
-        Address:            leadData.address                                  || null,
+        Address:            leadData.direccion                                || null,
         City:               leadData.city                                     || null,
         Zip_Code:           leadData.zip                                      || null,
         // Lead_Number intentionally left blank (auto-assigned by Zoho)
@@ -664,7 +599,7 @@ app.post('/api/generate-and-attach-pdf', express.json({ limit: '1mb' }), async (
 
     const COORDS = showFinancing ? COORDS_FINANCING : COORDS_CASH;
     const fmtUSD = (n) => '$' + Number(n).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
-    const negocioName = ocrData?.nombreNegocio || ocrData?.address || ocrData?.direccion || '';
+    const negocioName = ocrData?.nombreNegocio || ocrData?.direccion || '';
     const quoteNumber = commercialLeadName || 'Pendiente';
 
     const fields = {

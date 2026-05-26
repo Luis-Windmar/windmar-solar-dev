@@ -125,7 +125,7 @@ export default function ThankYouScreen({ interested, generateLead = true, contac
           customerName:   contactData.nombre,
           businessName:   ocrData?.nombreNegocio || "",
           phone:          contactData.phone,
-          address:        street,
+          direccion:      street,
           city:           ocrData?.municipio     || "",
           zip,
           roofSqft:       sqft,

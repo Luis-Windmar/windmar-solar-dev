@@ -239,10 +239,10 @@ function normalizeOCR(data) {
     : (data.total_adeudado ?? 0);
 
   // Fixed non-solar-offsettable charges (last month used as monthly proxy)
-  const cargoCliente = data.cargo_cliente      ?? 0;
-  const cargoDemanda = data.cargo_demanda      ?? 0;
-  const excesoUSD    = data.exceso_demanda_usd ?? 0;
-  const excesoKVA    = data.exceso_demanda_kva ?? 0;
+  const cargoCliente = data.cargo_cliente         ?? 0;
+  const cargoDemanda = data.cargo_demanda         ?? 0;
+  const excesoUSD    = data.exceso_demanda_usd    ?? 0;
+  const excesoKVA    = data.exceso_de_demanda_kva ?? 0;
 
   // Effective energy-only rate
   const avgEnergyOnly  = avgMonthlyBill - cargoCliente - cargoDemanda - excesoUSD;
@@ -250,11 +250,11 @@ function normalizeOCR(data) {
 
   return {
     nombreNegocio: data.nombre_negocio ? "TEST - " + data.nombre_negocio : "TEST - ", // TODO: remove before production
-    direccion:    data.address         ? "TEST - " + data.address         : "TEST - ", // TODO: remove before production
+    direccion:    data.direccion       ? "TEST - " + data.direccion       : "TEST - ", // TODO: remove before production
     municipio:    data.municipio          ?? "",
     tariff:       data.tarifa             ?? "",
     consumoKWH:   consumoPromedio > 0     ? fmtNum(consumoPromedio, 0, 0) + " kWh" : "",
-    demandaKVA:   data.demanda_contratada != null ? fmtNum(data.demanda_contratada, 0, 2) + " kVA" : "",
+    demandaKVA:   data.carga_contratada_kva != null ? fmtNum(data.carga_contratada_kva, 0, 2) + " kVA" : "",
     totalFactura: avgMonthlyBill  > 0     ? "$" + fmtNum(avgMonthlyBill,  2, 2) : "",
     costoPorKWH:  effectiveRate   > 0     ? fmtNum(effectiveRate,          4, 4) : "",
     // Pass-through for savings calculation — not shown on review screen
@@ -262,6 +262,10 @@ function normalizeOCR(data) {
     cargoDemanda,
     excesoUSD,
     excesoKVA,
+    // Raw numeric OCR fields used by EstimateScreen for the demand cap
+    // (renamed from demanda_contratada / exceso_demanda_kva).
+    carga_contratada_kva:  data.carga_contratada_kva  ?? null,
+    exceso_de_demanda_kva: data.exceso_de_demanda_kva ?? null,
   };
 }
 
@@ -338,13 +342,40 @@ export default function UploadScreen({ onNext, onBack, resumeData }) {
     let pct = 0;
     let ocrDone = false;
     let ocrResult = null;
+    let payloadTooLarge = false;
 
-    const fd = new FormData();
-    Array.from(selectedFiles).forEach((f) => fd.append("bills", f));
-    fetch("/api/ocr", { method: "POST", body: fd })
-      .then((r) => r.json())
-      .then(({ data }) => { ocrDone = true; ocrResult = data || {}; })
-      .catch(()      => { ocrDone = true; ocrResult = {}; });
+    // Tool Belt /api/v1/ocr/luma-bill accepts one file per request. For
+    // multi-page bills the client fans out and merges results (first non-null
+    // value per field wins, so a multi-page bill where each page contributes
+    // different fields produces a complete object).
+    const files = Array.from(selectedFiles);
+    Promise.all(
+      files.map((f) => {
+        const fd = new FormData();
+        fd.append("bill", f);
+        return fetch("/api/ocr-luma-bill", { method: "POST", body: fd })
+          .then((r) => r.json().then((body) => ({ status: r.status, body })))
+          .catch(()  => ({ status: 0, body: {} }));
+      })
+    ).then((results) => {
+      // 413 anywhere → surface the Spanish error and reset to idle.
+      if (results.some((r) => r.status === 413)) {
+        payloadTooLarge = true;
+        ocrDone = true;
+        ocrResult = {};
+        return;
+      }
+      // Merge: first non-null value for each field across all responses.
+      const merged = {};
+      for (const r of results) {
+        const data = (r.body && r.body.data) || {};
+        for (const [k, v] of Object.entries(data)) {
+          if (merged[k] == null && v != null) merged[k] = v;
+        }
+      }
+      ocrDone = true;
+      ocrResult = merged;
+    });
 
     intervalRef.current = setInterval(() => {
       // Pause at 92% while waiting for OCR; sprint to 100% once done
@@ -356,6 +387,13 @@ export default function UploadScreen({ onNext, onBack, resumeData }) {
 
       if (pct >= 100) {
         clearInterval(intervalRef.current);
+        if (payloadTooLarge) {
+          setUploadError("La factura excede el tamaño máximo de 4MB. Por favor usa un archivo más pequeño.");
+          setStage("idle");
+          setFile(null);
+          setProgress(0);
+          return;
+        }
         const normalized = normalizeOCR(ocrResult || {});
         setTimeout(() => {
           setExtractedRaw(normalized);
