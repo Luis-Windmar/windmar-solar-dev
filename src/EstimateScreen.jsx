@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Header, ProgressBar } from "./shared.jsx";
 import { computeSystemKwCaps } from "./sizing/caps.js";
-import { defaultDemandKva } from "./sizing/tariff.js";
+import { defaultDemandKva, resolveVoltagePhases } from "./sizing/tariff.js";
 
 // ─── Business logic (copied from PreQual_Solar_api.jsx) ────────────────────
 const MUNICIPIO_YIELDS = {
@@ -421,6 +421,14 @@ function EstimateScreenInner({ ocrData, sqft, batteryHours, setBatteryHours, pri
   const tariff         = ocrData?.tariff || "";
   const demandaKVA     = Math.max(ocrData?.carga_contratada_kva ?? 0, defaultDemandKva(tariff));
   const excesoKVA      = ocrData?.exceso_de_demanda_kva ?? 0;
+  // serviceType is merged into ocrData by WelcomeScreen's upload-completion
+  // handler. Read it here for use in Step 3 of the migration (battery sizing
+  // via the Tool Belt /api/v1/battery-sizing endpoint, which requires
+  // voltage and phases via resolveVoltagePhases). The ?? 'no_se' default
+  // protects against ocrData captured in older sessions before the
+  // serviceType plumbing existed.
+  // eslint-disable-next-line no-unused-vars
+  const serviceType    = ocrData?.serviceType ?? 'no_se';
 
   const epcTable = pricing?.solar?.epc_tiers || null;
 

@@ -35,4 +35,20 @@ function defaultDemandKva(tariff) {
   return 50;
 }
 
-module.exports = { normalizeLumaTariff, defaultDemandKva };
+// Maps the WelcomeScreen serviceType selection to the voltage and phase
+// count required by the Tool Belt /api/v1/battery-sizing endpoint
+// (wired in Step 3 of the migration). 'no_se' defaults to bifasico_240
+// (240V / 2-phase) — the most common PR commercial service for customers
+// who don't know their service type. This default is subject to change;
+// update only this function when it does.
+function resolveVoltagePhases(serviceType) {
+  switch (serviceType) {
+    case 'bifasico_240':  return { voltage: 240, phases: 2 };
+    case 'trifasico_208': return { voltage: 208, phases: 3 };
+    case 'trifasico_480': return { voltage: 480, phases: 3 };
+    case 'no_se':
+    default:              return { voltage: 240, phases: 2 };
+  }
+}
+
+module.exports = { normalizeLumaTariff, defaultDemandKva, resolveVoltagePhases };
