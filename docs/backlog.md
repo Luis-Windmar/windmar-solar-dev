@@ -5,24 +5,23 @@ step; revisit after the active migration sequence (Steps 0–4) is closed.
 
 ---
 
-## 1. OCR review card — redundant "Leído" labels
-Remove the grey `Leído: X` text from each field on the review card. The
-editable input already shows the extracted value; the grey label is
-duplicative.
-
-**Files:** `src/UploadScreen.jsx` — review-card render block.
+## 1. ~~OCR review card — redundant "Leído" labels~~ — resolved by Fix F
+Closed in Step 0 Fix F (2026-05-26). The grey "Leído: X" line was removed
+from every field in the review-card render in `src/UploadScreen.jsx`.
 
 ---
 
-## 2. OCR review card — Exceso de demanda missing for Secundaria
-Add the **Exceso de demanda** field to the review card for *all* tariff
-types, not just demand tariffs. The rep may need to correct a Secundaria
-classification to Primaria with excess demand, and the field must be
-present to allow that correction.
+## 2. OCR review card — audit all field propagation
+Now that tarifa and demand fields are reactive (Fix E), audit every
+other editable field on the review card to confirm its edited value
+propagates correctly to EstimateScreen sizing logic and the Zoho
+payload. Fields to audit: `consumo_promedio`, `costo_kwh`, `municipio`,
+`exceso_de_demanda_kva`.
 
-**Files:** `src/UploadScreen.jsx` — `FIELDS` array (add `excesoKVA`
-entry); ensure `handleFieldChange` re-syncs the raw
-`exceso_de_demanda_kva` field on edit.
+For each field: trace the rep edit through `handleFieldChange` →
+`fields` state → `onNext(fields, file)` → `ocrData` → EstimateScreen
+reads / ThankYouScreen Zoho payload. Confirm the edited value is the
+one actually used downstream, not the original OCR value.
 
 ---
 

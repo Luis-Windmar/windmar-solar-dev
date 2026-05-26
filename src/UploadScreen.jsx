@@ -24,17 +24,34 @@ const fmtNum = (val, minDec, maxDec) => {
 };
 
 // ─── Review-screen field definitions ───────────────────────────────────────
-// suffix: appended on the "Leído:" display line only (not in the input)
+// Fields keyed "demandaKVA" and "excesoKVA" are only rendered when the
+// current tariff (after normalization) is a demand tariff — see
+// DEMAND_TARIFFS and the filter() call in the review render below.
 const FIELDS = [
-  { key: "nombreNegocio", label: "Nombre del negocio", type: "input",    suffix: ""       },
-  { key: "direccion",    label: "Dirección",           type: "textarea", suffix: ""       },
-  { key: "municipio",   label: "Municipio",            type: "input",    suffix: ""       },
-  { key: "tariff",      label: "Tarifa LUMA",        type: "input",    suffix: ""       },
-  { key: "consumoKWH",  label: "Consumo promedio",   type: "input",    suffix: ""       },
-  { key: "demandaKVA",  label: "Demanda contratada", type: "input",    suffix: ""       },
-  { key: "totalFactura",label: "Total facturado",    type: "input",    suffix: ""       },
-  { key: "costoPorKWH", label: "Costo por kWh",      type: "input",    suffix: " $/kWh" },
+  { key: "nombreNegocio", label: "Nombre del negocio", type: "input"    },
+  { key: "direccion",    label: "Dirección",           type: "textarea" },
+  { key: "municipio",   label: "Municipio",            type: "input"    },
+  { key: "tariff",      label: "Tarifa LUMA",          type: "input"    },
+  { key: "consumoKWH",  label: "Consumo promedio",    type: "input"    },
+  { key: "demandaKVA",  label: "Demanda contratada",  type: "input"    },
+  { key: "excesoKVA",   label: "Exceso de demanda",   type: "input"    },
+  { key: "totalFactura",label: "Total facturado",     type: "input"    },
+  { key: "costoPorKWH", label: "Costo por kWh",       type: "input"    },
 ];
+
+// Canonical tariff names — used by normalizeTariff() below and by the
+// demand-field visibility filter. Match Tool Belt /api/v1/ocr/luma-bill
+// spec §4 tariff enum (with Residencial added explicitly for clarity).
+const DEMAND_TARIFFS = /primaria|transmisi/i;
+
+const normalizeTariff = (input) => {
+  const s = (input || "").toLowerCase().trim();
+  if (s.includes("residenc")) return "Residencial";
+  if (s.includes("secund"))   return "Secundaria";
+  if (s.includes("primar"))   return "Primaria";
+  if (s.includes("transm"))   return "Transmisión";
+  return input || "";
+};
 
 // ─── Styles ─────────────────────────────────────────────────────────────────
 const S = {
@@ -256,45 +273,49 @@ function normalizeOCR(data) {
   const DEMAND_FLOOR_KVA = 50;
   const cargaContratada  = data.carga_contratada_kva ?? DEMAND_FLOOR_KVA;
 
+  // exceso_de_demanda_kva legitimately defaults to 0 (no excess demand).
+  const excesoKvaRaw = data.exceso_de_demanda_kva ?? 0;
+
   return {
     nombreNegocio: data.nombre_negocio ? "TEST - " + data.nombre_negocio : "TEST - ", // TODO: remove before production
     direccion:    data.direccion       ? "TEST - " + data.direccion       : "TEST - ", // TODO: remove before production
     municipio:    data.municipio          ?? "",
-    tariff:       data.tarifa             ?? "",
+    tariff:       normalizeTariff(data.tarifa),
     consumoKWH:   consumoPromedio > 0     ? fmtNum(consumoPromedio, 0, 0) + " kWh" : "",
     demandaKVA:   fmtNum(cargaContratada, 0, 2) + " kVA",
+    excesoKVA:    fmtNum(excesoKvaRaw,    0, 2) + " kVA",
     totalFactura: avgMonthlyBill  > 0     ? "$" + fmtNum(avgMonthlyBill,  2, 2) : "",
     costoPorKWH:  effectiveRate   > 0     ? fmtNum(effectiveRate,          4, 4) : "",
-    // Pass-through for savings calculation — not shown on review screen
+    // Hidden pass-throughs used by EstimateScreen's savings calc.
     cargoCliente,
     cargoDemanda,
     excesoUSD,
-    excesoKVA,
     // Raw numeric OCR fields used by EstimateScreen for the demand cap.
     // carga_contratada_kva is floored at 50 (above) so it never reaches Zoho
-    // as null. exceso_de_demanda_kva legitimately defaults to 0 (no excess).
+    // as null. exceso_de_demanda_kva defaults to 0 (no excess).
     carga_contratada_kva:  cargaContratada,
-    exceso_de_demanda_kva: data.exceso_de_demanda_kva ?? 0,
+    exceso_de_demanda_kva: excesoKvaRaw,
   };
 }
 
 // ─── Mock OCR data (dev bypass) ─────────────────────────────────────────────
 // Mirrors the shape of normalizeOCR's output so the "usar datos de prueba"
 // bypass behaves identically to a real OCR response — including the raw
-// numeric fields EstimateScreen reads for the demand cap.
+// numeric fields EstimateScreen reads for the demand cap, the formatted
+// excesoKVA display string, and the canonical tariff value.
 const MOCK_OCR = {
   nombreNegocio: "TEST - MOC OCR BIZ NAME", // TODO: remove before production
   direccion:     "TEST - PONCE BY PASS PONCE, PONCE PR 00730", // TODO: remove before production
   municipio:     "Ponce",
-  tariff:        "Servicio Comercial General a Distribución Primaria",
+  tariff:        "Primaria",
   consumoKWH:    "38,880 kWh",
   demandaKVA:    "150.00 kVA",
+  excesoKVA:     "0.00 kVA",
   totalFactura:  "$10,599.08",
   costoPorKWH:   "0.2479",
   cargoCliente:  200,
   cargoDemanda:  769.50,
   excesoUSD:     0,
-  excesoKVA:     0,
   // Raw numeric companions — must match the formatted display values above.
   carga_contratada_kva:  150,
   exceso_de_demanda_kva: 0,
@@ -469,8 +490,25 @@ export default function UploadScreen({ onNext, onBack, resumeData }) {
         const parsed = parseFloat(String(value).replace(/[^0-9.\-]/g, ""));
         next.carga_contratada_kva = Number.isFinite(parsed) ? parsed : null;
       }
+      if (key === "excesoKVA") {
+        const parsed = parseFloat(String(value).replace(/[^0-9.\-]/g, ""));
+        next.exceso_de_demanda_kva = Number.isFinite(parsed) ? parsed : 0;
+      }
       return next;
     });
+  };
+
+  // On blur, normalize free-text tariff input to its canonical form
+  // (Residencial | Secundaria | Primaria | Transmisión). Doing this on
+  // blur rather than every keystroke avoids fighting the user's typing
+  // / backspacing mid-edit.
+  const handleFieldBlur = (key, value) => {
+    if (key === "tariff") {
+      const normalized = normalizeTariff(value);
+      if (normalized !== value) {
+        setFields((prev) => ({ ...prev, tariff: normalized }));
+      }
+    }
   };
 
   // ── IDLE ─────────────────────────────────────────────────────────────────
@@ -618,17 +656,25 @@ export default function UploadScreen({ onNext, onBack, resumeData }) {
         </p>
 
         <div style={S.reviewCard}>
-          {FIELDS.map(({ key, label, type, suffix }) => (
+          {FIELDS
+            .filter(({ key }) => {
+              // Demand fields are only shown for demand tariffs (Primaria /
+              // Transmisión). Values are kept in state when hidden — the rep
+              // can re-show them by changing the tariff back to a demand one.
+              if (key === "demandaKVA" || key === "excesoKVA") {
+                return DEMAND_TARIFFS.test(fields.tariff || "");
+              }
+              return true;
+            })
+            .map(({ key, label, type }) => (
             <div key={key} style={S.fieldGroup}>
               <span style={S.fieldLabel}>{label}</span>
-              <div style={S.fieldExtracted}>
-                Leído: {extractedRaw[key] ? extractedRaw[key] + suffix : "—"}
-              </div>
               {type === "textarea" ? (
                 <textarea
                   style={S.fieldTextarea}
                   value={fields[key]}
                   onChange={(e) => handleFieldChange(key, e.target.value)}
+                  onBlur={(e) => handleFieldBlur(key, e.target.value)}
                 />
               ) : (
                 <input
@@ -636,6 +682,7 @@ export default function UploadScreen({ onNext, onBack, resumeData }) {
                   type="text"
                   value={fields[key]}
                   onChange={(e) => handleFieldChange(key, e.target.value)}
+                  onBlur={(e) => handleFieldBlur(key, e.target.value)}
                 />
               )}
             </div>
