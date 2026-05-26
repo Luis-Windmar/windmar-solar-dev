@@ -20,4 +20,19 @@ function normalizeLumaTariff(raw) {
   return null;
 }
 
-module.exports = { normalizeLumaTariff };
+// Default contracted demand (kVA) for bills where the OCR doesn't capture
+// it — typically because the bill itself doesn't print a contracted-demand
+// value (Residencial and Secundaria bills are capped at fixed kVA by LUMA
+// regulation and don't carry explicit demand line items). The default
+// matches the regulatory cap for that tariff so it propagates cleanly
+// into the OCR review card, EstimateScreen demand floor, and the Zoho
+// Carga_Contratada_KVA field. Primaria / Transmisión / unknown fall back
+// to 50 as a conservative safety net for OCR misses; the rep is expected
+// to correct it on the review card when OCR fails on a real demand bill.
+function defaultDemandKva(tariff) {
+  const t = normalizeLumaTariff(tariff);
+  if (t === 'residencial') return 25;
+  return 50;
+}
+
+module.exports = { normalizeLumaTariff, defaultDemandKva };

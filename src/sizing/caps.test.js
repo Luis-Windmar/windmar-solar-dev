@@ -6,7 +6,7 @@ const test   = require('node:test');
 const assert = require('node:assert/strict');
 
 const { computeSystemKwCaps } = require('./caps.js');
-const { normalizeLumaTariff } = require('./tariff.js');
+const { normalizeLumaTariff, defaultDemandKva } = require('./tariff.js');
 const { DC_AC_RATIO, DEMAND_MULTIPLIER } = require('./constants.js');
 
 // Sanity — constants loaded from pricing.json or defaults
@@ -147,4 +147,32 @@ test('8c. normalizeLumaTariff — null/empty/unrecognized', () => {
 test('8d. normalizeLumaTariff — case insensitive', () => {
   assert.equal(normalizeLumaTariff('PRIMARIA'),  'primaria');
   assert.equal(normalizeLumaTariff('SeCuNdArIa'), 'secundaria');
+});
+
+// ─── defaultDemandKva coverage ──────────────────────────────────────────────
+
+test('9. defaultDemandKva — Residencial gets 25 (NOT 50)', () => {
+  // The bug being fixed: Residencial bills have no explicit demand printed,
+  // OCR returns null, and we used to floor at 50 (Secundaria's regulatory
+  // cap). Now floors at 25 (Residencial's regulatory cap).
+  assert.equal(defaultDemandKva('residencial'),      25);
+  assert.equal(defaultDemandKva('Residencial'),      25);
+  assert.equal(defaultDemandKva('Servicio Residencial General'), 25);
+});
+
+test('10. defaultDemandKva — Secundaria, Primaria, Transmisión all default to 50', () => {
+  assert.equal(defaultDemandKva('secundaria'),  50);
+  assert.equal(defaultDemandKva('primaria'),    50);
+  assert.equal(defaultDemandKva('transmision'), 50);
+  assert.equal(defaultDemandKva('Transmisión'), 50);
+  assert.equal(defaultDemandKva('gsd-t'),       50);
+  assert.equal(defaultDemandKva('gsd-p'),       50);
+  assert.equal(defaultDemandKva('gsd-tr'),      50);
+});
+
+test('11. defaultDemandKva — null / empty / unknown all default to 50', () => {
+  assert.equal(defaultDemandKva(null),      50);
+  assert.equal(defaultDemandKva(undefined), 50);
+  assert.equal(defaultDemandKva(''),        50);
+  assert.equal(defaultDemandKva('asdf'),    50);
 });

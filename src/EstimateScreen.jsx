@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Header, ProgressBar } from "./shared.jsx";
 import { computeSystemKwCaps } from "./sizing/caps.js";
+import { defaultDemandKva } from "./sizing/tariff.js";
 
 // ─── Business logic (copied from PreQual_Solar_api.jsx) ────────────────────
 const MUNICIPIO_YIELDS = {
@@ -414,10 +415,12 @@ function EstimateScreenInner({ ocrData, sqft, batteryHours, setBatteryHours, pri
   const excesoUSD      = parseNum(ocrData?.excesoUSD);
   const costoKWH       = parseNum(ocrData?.costoPorKWH);
   // Read raw numeric OCR fields exposed by normalizeOCR (post Tool Belt migration).
-  // Regulatory minimum: Secundaria tariff cap is 50 kVA; also use as fallback if OCR missed it.
-  const demandaKVA     = Math.max(ocrData?.carga_contratada_kva ?? 0, 50);
-  const excesoKVA      = ocrData?.exceso_de_demanda_kva ?? 0;
+  // Floor at the tariff's regulatory cap (25 kVA Residencial / 50 kVA Secundaria
+  // & others) so OCR misses and rep-cleared fields use a sensible default
+  // matched to the bill type. Also drives battery-inverter sizing downstream.
   const tariff         = ocrData?.tariff || "";
+  const demandaKVA     = Math.max(ocrData?.carga_contratada_kva ?? 0, defaultDemandKva(tariff));
+  const excesoKVA      = ocrData?.exceso_de_demanda_kva ?? 0;
 
   const epcTable = pricing?.solar?.epc_tiers || null;
 

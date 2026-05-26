@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { Header } from "./shared.jsx";
+import { defaultDemandKva } from "./sizing/tariff.js";
 
 const S = {
   page: {
@@ -107,14 +108,14 @@ export default function ThankYouScreen({ interested, generateLead = true, contac
     const run = async () => {
       try {
         // Floor the demand value the same way UploadScreen's normalizeOCR does
-        // (DEMAND_FLOOR_KVA = 50) so that a cleared field or any null/undefined
-        // value still flows a real number to Zoho through parseLeadNotes —
-        // which extracts demand via a /Demanda:\s*([\d,]+)\s*kVA/ regex and
-        // would otherwise capture nothing when this slot shows "—". Using the
-        // raw numeric field with a guaranteed " kVA" suffix also handles the
-        // case where a rep edit dropped the " kVA" suffix from the display.
-        const DEMAND_FLOOR_KVA = 50;
-        const demandaForZoho   = ocrData?.carga_contratada_kva ?? DEMAND_FLOOR_KVA;
+        // (tariff-aware: 25 for Residencial, 50 for everything else) so that a
+        // cleared field or any null/undefined value still flows a real number
+        // to Zoho through parseLeadNotes — which extracts demand via a
+        // /Demanda:\s*([\d,]+)\s*kVA/ regex and would otherwise capture
+        // nothing when this slot shows "—". Using the raw numeric field with
+        // a guaranteed " kVA" suffix also handles the case where a rep edit
+        // dropped the " kVA" suffix from the display.
+        const demandaForZoho = ocrData?.carga_contratada_kva ?? defaultDemandKva(ocrData?.tariff);
 
         const notes = [
           `Cotización: ${leadNameRef.current || "Pendiente"}`,

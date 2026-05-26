@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { Header, ProgressBar } from "./shared.jsx";
-import { normalizeLumaTariff } from "./sizing/tariff.js";
+import { normalizeLumaTariff, defaultDemandKva } from "./sizing/tariff.js";
 
 // ─── Checklist items & progress thresholds ─────────────────────────────────
 const CHECKLIST = [
@@ -270,13 +270,13 @@ function normalizeOCR(data) {
   const avgEnergyOnly  = avgMonthlyBill - cargoCliente - cargoDemanda - excesoUSD;
   const effectiveRate  = consumoPromedio > 0 ? avgEnergyOnly / consumoPromedio : 0;
 
-  // Floor demand at 50 kVA — the regulatory Secundaria minimum and a safety
-  // net for OCR misses. By applying the floor here (instead of inside
-  // EstimateScreen only), the value flows through to the Zoho payload too.
-  // If the rep edits the field on the review card, handleFieldChange
-  // overwrites both demandaKVA and carga_contratada_kva with the new value.
-  const DEMAND_FLOOR_KVA = 50;
-  const cargaContratada  = data.carga_contratada_kva ?? DEMAND_FLOOR_KVA;
+  // Floor demand at the regulatory cap for the detected tariff — 25 kVA
+  // for Residencial, 50 kVA for Secundaria / Primaria / Transmisión /
+  // unknown. By applying the floor here (instead of inside EstimateScreen
+  // only), the value flows through to the Zoho payload too. If the rep
+  // edits the field on the review card, handleFieldChange overwrites
+  // both demandaKVA and carga_contratada_kva with the new value.
+  const cargaContratada = data.carga_contratada_kva ?? defaultDemandKva(data.tarifa);
 
   // exceso_de_demanda_kva legitimately defaults to 0 (no excess demand).
   const excesoKvaRaw = data.exceso_de_demanda_kva ?? 0;
