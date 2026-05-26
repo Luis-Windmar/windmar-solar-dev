@@ -24,6 +24,21 @@ const fmtNum = (val, minDec, maxDec) => {
   return n.toLocaleString("en-US", { minimumFractionDigits: minDec, maximumFractionDigits: maxDec });
 };
 
+// ─── Tariff display formatter ──────────────────────────────────────────────
+// The OCR + handleFieldBlur store the canonical lowercase form in
+// fields.tariff ('primaria', 'secundaria', 'transmision', 'residencial').
+// The review-card input shows the title-cased Spanish display form (with
+// the accent restored for transmisión). Mid-edit values and unrecognized
+// text pass through unchanged so the rep can type/backspace freely
+// without the input fighting them.
+const TARIFF_DISPLAY = {
+  residencial: "Residencial",
+  secundaria:  "Secundaria",
+  primaria:    "Primaria",
+  transmision: "Transmisión",
+};
+const displayTariff = (value) => TARIFF_DISPLAY[value] || value || "";
+
 // ─── Review-screen field definitions ───────────────────────────────────────
 // All fields render regardless of tariff. The rep may need to correct any
 // field — including adding demand values to a bill OCR classified as
@@ -661,7 +676,7 @@ export default function UploadScreen({ onNext, onBack, resumeData }) {
                 <input
                   style={S.fieldInput}
                   type="text"
-                  value={fields[key]}
+                  value={key === "tariff" ? displayTariff(fields.tariff) : fields[key]}
                   onChange={(e) => handleFieldChange(key, e.target.value)}
                   onBlur={(e) => handleFieldBlur(key, e.target.value)}
                 />
