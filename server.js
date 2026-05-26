@@ -186,7 +186,6 @@ app.get('/api/leads', (req, res) => {
   }
 });
 
-// ─── API: PRICING CONFIG ──────────────────────────────────────────────────────
 // ─── API: PRICE (Tool Belt per-job pricing) ──────────────────────────────────
 // POST /api/price — proxies Tool Belt POST /api/v1/price for per-job EPC
 // pricing. Unlike /api/solar-resource and /api/area-to-system, there is no
@@ -256,6 +255,70 @@ app.get('/api/area-to-system', async (req, res) => {
     console.warn('⚠️ area-to-system fallback fired:', err.message);
     const sqft = parseFloat(req.query.sqft) || 0;
     res.json({ sqft, kw: (sqft / 2500) * 45, specific_yield: 1530, fallback: true });
+  }
+});
+
+// ─── API: BATTERY SIZING (Tool Belt) ─────────────────────────────────────────
+// POST /api/battery-sizing — proxies Tool Belt POST /api/v1/battery-sizing
+// (with ?detail=full appended server-side) and sanitizes the response so
+// internal pricing fields never reach the React client. Sensitive fields
+// stripped: unit_cost, gm_pct_applied, multiplier_applied on every BOM item
+// and the head. On upstream failure, forward the upstream status + body
+// (so the client can render the appropriate 422-style error per the
+// migration plan §6). On network failure, return 502.
+function sanitizeBOM(bom) {
+  if (!bom) return null;
+  return {
+    head: {
+      system_kw:     bom.head?.system_kw,
+      system_kwac:   bom.head?.system_kwac,
+      battery_hours: bom.head?.battery_hours,
+      voltage:       bom.head?.voltage,
+      phases:        bom.head?.phases,
+    },
+    inverter: {
+      model:      bom.inverter?.model,
+      qty:        bom.inverter?.qty,
+      line_total: bom.inverter?.line_total,
+    },
+    batteries: (bom.batteries || []).map((b) => ({
+      model:      b.model,
+      qty:        b.qty,
+      line_total: b.line_total,
+    })),
+    accessories: (bom.accessories || []).map((a) => ({
+      name:       a.name,
+      qty:        a.qty,
+      line_total: a.line_total,
+    })),
+    shipping:     bom.shipping,
+    installation: bom.installation,
+  };
+}
+
+app.post('/api/battery-sizing', async (req, res) => {
+  try {
+    const TOOLBELT_BASE = 'https://windmar-commercial-toolbelt.vercel.app/api/v1';
+    const API_KEY = process.env.TOOLBELT_API_KEY;
+    const r = await fetch(`${TOOLBELT_BASE}/battery-sizing?detail=full`, {
+      method:  'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-API-Key':    API_KEY,
+      },
+      body: JSON.stringify(req.body),
+    });
+
+    if (!r.ok) {
+      const errBody = await r.json().catch(() => ({}));
+      return res.status(r.status).json(errBody);
+    }
+
+    const data = await r.json();
+    res.json({ ...data, bom: sanitizeBOM(data.bom) });
+  } catch (err) {
+    console.warn('⚠️ /api/battery-sizing upstream error:', err.message);
+    res.status(502).json({ error: 'battery_sizing_unavailable', message: err.message });
   }
 });
 
@@ -695,3 +758,5 @@ if (require.main === module) {
 }
 
 module.exports = app;
+// Named exports for unit-testing internals without starting the server.
+module.exports.sanitizeBOM = sanitizeBOM;

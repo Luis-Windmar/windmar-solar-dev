@@ -128,7 +128,20 @@ export default function ThankYouScreen({ interested, generateLead = true, contac
           `Techo: ${sqft?.toLocaleString("en-US")} p²`,
           contactData.consultorNombre ? `Consultor en Estimado: ${contactData.consultorNombre}` : null,
           contactData.consultorEmail  ? `Estimado Rep-email: ${contactData.consultorEmail}`     : null,
-          batteryResult               ? `Baterías: ${batteryResult.productName} | Respaldo: ${batteryResult.actualHours}h | Precio bat.: $${batteryResult.totalCost?.toLocaleString("en-US")}` : null,
+          batteryResult ? (() => {
+            // Step 3: battery shape is now { bom, system_kwh, total_price,
+            // actual_backup_hours, cap_applied, ... } from Tool Belt
+            // /api/v1/battery-sizing. Build the product name from the
+            // sanitized BOM to match the Lead_Notes string contract.
+            const inv     = batteryResult?.bom?.inverter;
+            const firstBt = batteryResult?.bom?.batteries?.[0];
+            const productName = (inv?.model && firstBt?.model)
+              ? `${inv.model} ×${inv.qty} / ${batteryResult.system_kwh} kWh`
+              : `Sistema ${batteryResult.system_kwh ?? "?"} kWh`;
+            const hours = batteryResult.actual_backup_hours;
+            const price = batteryResult.total_price;
+            return `Baterías: ${productName} | Respaldo: ${hours}h | Precio bat.: $${price?.toLocaleString("en-US")}`;
+          })() : null,
         ].filter(Boolean).join(" | ");
 
         const { street, zip } = parseAddress(ocrData?.direccion, ocrData?.municipio);
@@ -143,10 +156,12 @@ export default function ThankYouScreen({ interested, generateLead = true, contac
           avgConsumption: parseNum(ocrData?.consumoKWH),
           systemKwp:      estData?.systemKwp,
           batteryHours:   batteryHours  || 0,
-          batteryKWH:     batteryResult?.systemKWH  || null,
-          batteryKW:      batteryResult?.systemKW   || null,
-          batteryPrice:   batteryResult?.totalCost  || null,
-          totalPrice:     (estData?.systemCost || 0) + (batteryResult?.totalCost || 0),
+          // Step 3: field names renamed to match the Tool Belt
+          // /api/v1/battery-sizing response shape.
+          batteryKWH:     batteryResult?.system_kwh           || null,
+          batteryKW:      batteryResult?.bom?.head?.system_kw || null,
+          batteryPrice:   batteryResult?.total_price          || null,
+          totalPrice:     (estData?.systemCost || 0) + (batteryResult?.total_price || 0),
           notes,
         };
 

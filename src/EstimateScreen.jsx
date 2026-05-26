@@ -150,81 +150,42 @@ const calcEstimate = async (consumoMensual, roofSqft, municipio, billData, annua
   };
 };
 
-// ─── Battery storage sizing logic ───────────────────────────────────────────
-const BAT_CFG_DEFAULTS = {
-  AC_DC_CONV:        1.25,
-  INV_UNIT_KW:       60,
-  BAT_UNIT_KWH:      60,
-  MAX_BATT_PER_INV:  6,
-  INV_COST:          12900,
-  BAT_COST:          27700,
-  BAT_SHIP:          500,
-  INV_SHIP:          150,
-  BAT_INSTALL_FIRST: 7000,
-  BAT_INSTALL_NEXT:  2000,
-  MARKUP:            1.35,
+// ─── Battery storage — sized via Tool Belt /api/v1/battery-sizing ─────────
+// The old client-side calcBatterySystem / BAT_CFG_DEFAULTS / resolveBatCfg
+// were removed in Step 3 of the migration. EstimateScreenInner now
+// batch-precomputes the 5 non-zero slider positions in parallel against
+// the Tool Belt proxy on mount and indexes into the resulting cache for
+// instant slider response.
+
+const SLIDER_HOURS              = [0, 4, 8, 12, 16, 24];
+const BATTERY_HOURS_TO_PREFETCH = [4, 8, 12, 16, 24];
+
+// Build a human-readable product name from the sanitized BOM.
+const buildBatteryProductName = (batteryResult) => {
+  const inv     = batteryResult?.bom?.inverter;
+  const firstBt = batteryResult?.bom?.batteries?.[0];
+  if (inv?.model && firstBt?.model) {
+    return `${inv.model} ×${inv.qty} / ${batteryResult.system_kwh} kWh`;
+  }
+  return `Sistema ${batteryResult?.system_kwh ?? "?"} kWh`;
 };
 
-const resolveBatCfg = (pricing) => {
-  if (!pricing?.battery) return BAT_CFG_DEFAULTS;
-  const b = pricing.battery;
-  return {
-    AC_DC_CONV:        b.ac_dc_conv                      ?? BAT_CFG_DEFAULTS.AC_DC_CONV,
-    INV_UNIT_KW:       b.batt_inv_60?.kw_per_unit        ?? BAT_CFG_DEFAULTS.INV_UNIT_KW,
-    BAT_UNIT_KWH:      b.batt_unit?.kwh_per_unit         ?? BAT_CFG_DEFAULTS.BAT_UNIT_KWH,
-    MAX_BATT_PER_INV:  b.batt_unit?.max_per_inverter     ?? BAT_CFG_DEFAULTS.MAX_BATT_PER_INV,
-    INV_COST:          b.batt_inv_60?.inv_cost           ?? BAT_CFG_DEFAULTS.INV_COST,
-    INV_SMA_COST:      b.batt_inv_60?.sma_cost           ?? 0,
-    BAT_COST:          b.batt_unit?.cost                 ?? BAT_CFG_DEFAULTS.BAT_COST,
-    BAT_SHIP:          b.batt_unit?.shipping             ?? BAT_CFG_DEFAULTS.BAT_SHIP,
-    INV_SHIP:          b.batt_inv_60?.shipping           ?? BAT_CFG_DEFAULTS.INV_SHIP,
-    BAT_INSTALL_FIRST: b.batt_unit?.install_first        ?? BAT_CFG_DEFAULTS.BAT_INSTALL_FIRST,
-    BAT_INSTALL_NEXT:  b.batt_unit?.install_next         ?? BAT_CFG_DEFAULTS.BAT_INSTALL_NEXT,
-    MARKUP:            b.markup                          ?? BAT_CFG_DEFAULTS.MARKUP,
-  };
+// Spanish copy for each /api/v1/battery-sizing 422 error code.
+const batteryErrorMessage = (code) => {
+  switch (code) {
+    case 'no_inverter_for_voltage':
+      return 'Almacenamiento no disponible para este tipo de servicio eléctrico.';
+    case 'capacity_exceeded_kw':
+      return 'Sistema solar demasiado grande para las opciones de almacenamiento actuales.';
+    case 'capacity_exceeded_kwh':
+      return '—';
+    case 'no_legal_configuration':
+      return 'Configuración no disponible. Contacte a su coordinador.';
+    case 'timeout':
+    default:
+      return 'Estimado de baterías no disponible. Contacte a su coordinador.';
+  }
 };
-
-export const calcBatterySystem = (demandaKVA, avgMonthlyKWH, batteryHours, pricing) => {
-  if (!batteryHours || batteryHours === 0) return null;
-  const { AC_DC_CONV, INV_UNIT_KW, BAT_UNIT_KWH, MAX_BATT_PER_INV,
-          INV_COST, INV_SMA_COST, BAT_COST, BAT_SHIP, INV_SHIP,
-          BAT_INSTALL_FIRST, BAT_INSTALL_NEXT, MARKUP } = resolveBatCfg(pricing);
-
-  const requiredKW_dc = demandaKVA * AC_DC_CONV;
-  const numInverters  = Math.ceil(requiredKW_dc / INV_UNIT_KW);
-  const systemKW      = numInverters * INV_UNIT_KW;
-
-  const hourlyKW      = (avgMonthlyKWH / 30.4375) / 24;
-  const requiredKWH   = hourlyKW * batteryHours;
-
-  const rawBatteries  = Math.ceil(requiredKWH / BAT_UNIT_KWH);
-  const minBatteries  = numInverters;
-  const maxBatteries  = numInverters * MAX_BATT_PER_INV;
-  const numBatteries  = Math.min(Math.max(rawBatteries, minBatteries), maxBatteries);
-  const systemKWH     = numBatteries * BAT_UNIT_KWH;
-
-  // Substitution pricing: inverter cost = SolArk cost − equivalent SMA cost (SMA already in EPC)
-  const invSubCost    = INV_COST - INV_SMA_COST;
-  const shipping      = (numBatteries * BAT_SHIP) + (numInverters * INV_SHIP);
-  const installation  = BAT_INSTALL_FIRST + ((numBatteries - 1) * BAT_INSTALL_NEXT);
-  const totalCost     = (numInverters * invSubCost + numBatteries * BAT_COST + shipping + installation) * MARKUP;
-  const actualHours   = hourlyKW > 0 ? systemKWH / hourlyKW : 0;
-
-  return {
-    numInverters,
-    numBatteries,
-    systemKW,
-    systemKWH,
-    actualHours: Math.round(actualHours * 10) / 10,
-    shipping,
-    installation,
-    totalCost: Math.round(totalCost),
-    productName: `Sol-Ark ${systemKW}kW / ${systemKWH}kWh`,
-    capped: numBatteries === maxBatteries,
-  };
-};
-
-const SLIDER_HOURS = [0, 4, 8, 12, 16, 24];
 
 // Banner copy for each binding constraint. Returns null when the
 // consumption cap is the active one (the customer's estimate matches
@@ -498,6 +459,86 @@ function EstimateScreenInner({ ocrData, sqft, batteryHours, setBatteryHours, fet
     // eslint-disable-next-line
   }, [consumoMensual, sqft, municipio, cargoCliente, cargoDemanda, excesoUSD, costoKWH, tariff, demandaKVA, excesoKVA, liveYield, liveMaxKwp]);
 
+  // Battery — sized via Tool Belt /api/v1/battery-sizing. Two useEffects
+  // below: (1) batch-precompute the 5 non-zero slider positions in parallel
+  // when `est` resolves, and (2) sync `batteryResult` from the cache when
+  // the slider moves. Slider changes do NOT retrigger the batch (it
+  // depends on `est`, not `batteryHours`).
+  //
+  // NOTE: every hook declaration must run on every render — they live
+  // above any conditional early-return (`if (!est) return …` below) so
+  // React's hooks-order invariant holds across all render states.
+  const localBatteryHours = batteryHours ?? 0;
+  const [batteryCache, setBatteryCache]               = useState({});
+  const [batteryCacheLoading, setBatteryCacheLoading] = useState(true);
+  const [batteryResult, setBatteryResult]             = useState(null);
+
+  useEffect(() => {
+    if (!est) return;
+    let cancelled = false;
+    const controller = new AbortController();
+    const timeoutId  = setTimeout(() => controller.abort(), 8000);
+    setBatteryCacheLoading(true);
+
+    (async () => {
+      const { voltage, phases } = resolveVoltagePhases(ocrData?.serviceType ?? 'no_se');
+      const normalizedTariff    = normalizeLumaTariff(ocrData?.tariff) ?? undefined;
+      const demandKva           = ocrData?.carga_contratada_kva ?? undefined;
+      const cache = {};
+      await Promise.allSettled(
+        BATTERY_HOURS_TO_PREFETCH.map(async (hours) => {
+          try {
+            const r = await fetch('/api/battery-sizing', {
+              method:  'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                system_kw:              est.systemKwp,
+                annual_consumption_kwh: consumoMensual * 12,
+                battery_hours:          hours,
+                voltage,
+                phases,
+                location:               'outdoor',
+                tariff:                 normalizedTariff,
+                demand_kva:             demandKva,
+              }),
+              signal: controller.signal,
+            });
+            const data = await r.json().catch(() => ({ error: 'parse_failed' }));
+            cache[hours] = r.ok ? data : { error: data?.error ?? `http_${r.status}` };
+          } catch (e) {
+            cache[hours] = { error: e.name === 'AbortError' ? 'timeout' : e.message };
+          }
+        })
+      );
+      clearTimeout(timeoutId);
+      if (!cancelled) {
+        setBatteryCache(cache);
+        setBatteryCacheLoading(false);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+      clearTimeout(timeoutId);
+      controller.abort();
+    };
+    // eslint-disable-next-line
+  }, [est, ocrData?.serviceType, ocrData?.tariff, ocrData?.carga_contratada_kva, consumoMensual]);
+
+  // Sync batteryResult from cache whenever the slider moves or the cache
+  // refreshes. No network here — pure derivation.
+  useEffect(() => {
+    if (batteryCacheLoading) return;
+    if (localBatteryHours === 0) {
+      setBatteryResult(null);
+      return;
+    }
+    const cached = batteryCache[localBatteryHours];
+    if (!cached)                    setBatteryResult(null);
+    else if (cached.error)          setBatteryResult({ error: cached.error });
+    else                            setBatteryResult(cached);
+  }, [localBatteryHours, batteryCache, batteryCacheLoading]);
+
   // Loading gate — render a small placeholder while the first /api/price
   // round-trip completes. Subsequent slider changes do NOT trigger this
   // (batteryHours is not in the useEffect dep list).
@@ -515,14 +556,15 @@ function EstimateScreenInner({ ocrData, sqft, batteryHours, setBatteryHours, fet
     );
   }
 
-  // Battery
-  const localBatteryHours = batteryHours ?? 0;
-  // pricing arg is now null — the old /api/pricing proxy that fed this is
-  // gone (Step 2 cleanup). calcBatterySystem's resolveBatCfg() already
-  // falls back to BAT_CFG_DEFAULTS for null. Step 3 rewires battery via
-  // the Tool Belt /api/v1/battery-sizing endpoint.
-  const batteryResult = calcBatterySystem(demandaKVA, consumoMensual, localBatteryHours, null);
-  const totalCost = est.systemCost + (batteryResult?.totalCost ?? 0);
+  const allBatteryErrored =
+    !batteryCacheLoading &&
+    BATTERY_HOURS_TO_PREFETCH.every((h) => batteryCache[h]?.error);
+
+  // Helpers derived from batteryResult.
+  const batteryError       = batteryResult?.error || null;
+  const validBatteryResult = batteryResult && !batteryError ? batteryResult : null;
+
+  const totalCost = est.systemCost + (validBatteryResult?.total_price ?? 0);
 
   // Recalculate financing on total cost (solar + battery)
   const totalFin          = calcFinancing(totalCost);
@@ -566,7 +608,9 @@ function EstimateScreenInner({ ocrData, sqft, batteryHours, setBatteryHours, fet
           </div>
           <div style={S.rowLast}>
             <span style={S.rowLabel}>Respaldo estimado:</span>
-            <span style={S.rowValue}>{batteryResult ? `${batteryResult.actualHours} horas` : "0 horas"}</span>
+            <span style={S.rowValue}>
+              {validBatteryResult ? `${validBatteryResult.actual_backup_hours} horas` : "0 horas"}
+            </span>
           </div>
         </div>
 
@@ -636,16 +680,43 @@ function EstimateScreenInner({ ocrData, sqft, batteryHours, setBatteryHours, fet
             step={1}
             value={sliderIdx}
             onChange={handleSliderChange}
-            style={{ width: "100%", cursor: "pointer" }}
+            disabled={batteryCacheLoading || allBatteryErrored}
+            style={{ width: "100%", cursor: (batteryCacheLoading || allBatteryErrored) ? "not-allowed" : "pointer" }}
           />
           <div style={S.sliderTicks}>
             {SLIDER_HOURS.map((h) => (
               <span key={h}>{h === 0 ? "0" : `${h}h`}</span>
             ))}
           </div>
+          {batteryCacheLoading && (
+            <div style={{ fontSize: "12px", color: "#6b7280", textAlign: "center", marginTop: "8px" }}>
+              Calculando opciones de respaldo…
+            </div>
+          )}
+          {allBatteryErrored && (
+            <div style={{ fontSize: "12px", color: "#dc2626", textAlign: "center", marginTop: "8px" }}>
+              Estimado de baterías no disponible. Contacte a su coordinador.
+            </div>
+          )}
+          {!batteryCacheLoading && !allBatteryErrored && batteryError && (
+            <div style={{ fontSize: "12px", color: "#dc2626", textAlign: "center", marginTop: "8px" }}>
+              {batteryErrorMessage(batteryError)}
+            </div>
+          )}
+          {validBatteryResult?.cap_applied && (
+            <div style={{ fontSize: "12px", color: "#1B3F8B", textAlign: "center", marginTop: "8px" }}>
+              El sistema de baterías fue ajustado por los límites de su tarifa LUMA.
+              Respaldo estimado: {validBatteryResult.actual_backup_hours} horas.
+            </div>
+          )}
+          {ocrData?.serviceType === 'no_se' && localBatteryHours > 0 && validBatteryResult && (
+            <div style={{ fontSize: "12px", color: "#6b7280", textAlign: "center", marginTop: "8px", fontStyle: "italic" }}>
+              Estimado basado en servicio bifásico 240V. Verifica el tipo de servicio para mayor precisión.
+            </div>
+          )}
         </div>
 
-        <button style={S.btnOrange} onClick={() => onInterested(est, batteryResult)}>
+        <button style={S.btnOrange} onClick={() => onInterested(est, validBatteryResult)}>
           Sí me interesa
         </button>
         <button style={S.btnGray} onClick={onNotInterested}>
