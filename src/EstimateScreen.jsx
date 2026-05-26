@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Header, ProgressBar } from "./shared.jsx";
 import { computeSystemKwCaps } from "./sizing/caps.js";
-import { defaultDemandKva, resolveVoltagePhases } from "./sizing/tariff.js";
+import { normalizeLumaTariff, defaultDemandKva, resolveVoltagePhases } from "./sizing/tariff.js";
 
 // ─── Business logic (copied from PreQual_Solar_api.jsx) ────────────────────
 const MUNICIPIO_YIELDS = {
