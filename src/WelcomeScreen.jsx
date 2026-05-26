@@ -214,17 +214,12 @@ export default function WelcomeScreen() {
   const [batteryHours, setBatteryHours] = useState(0);
   const [batteryResult, setBatteryResult] = useState(null);
   const [billFiles, setBillFiles] = useState(null);
-  const [pricing, setPricing] = useState(null);
-  const [pricingLoading, setPricingLoading] = useState(true);
   const [generateLead, setGenerateLead] = useState(true); // DEMO TOGGLE: false = skip Zoho lead creation + attachments
 
-  useEffect(() => {
-    fetch("/api/pricing")
-      .then((r) => r.json())
-      .then((data) => setPricing(data))
-      .catch(() => { /* silently fall back to hardcoded defaults */ })
-      .finally(() => setPricingLoading(false));
-  }, []);
+  // Step 2 of the Tool Belt migration removed the GET /api/pricing fetch
+  // that used to gate the wizard on app boot — solar pricing is now fetched
+  // lazily on EstimateScreen mount via POST /api/price. There is nothing
+  // to pre-fetch at app boot.
 
   const fetchSolarConfig = useCallback(async (municipio, sqft) => {
     try {
@@ -245,17 +240,6 @@ export default function WelcomeScreen() {
     setScreen(selection === "si" ? "upload" : "exit");
   };
   const handleRestart  = () => { setSelection(""); setServiceType("no_se"); setScreen("welcome"); setOcrData(null); setSqft(null); setEstData(null); setContactData(null); setBillFiles(null); setBatteryHours(0); setBatteryResult(null); };
-
-  if (pricingLoading) {
-    return (
-      <div style={styles.container}>
-        <Header />
-        <div style={{ display: "flex", justifyContent: "center", alignItems: "center", flex: 1, minHeight: "200px" }}>
-          <p style={{ color: "#6b7280", fontSize: "16px" }}>Cargando…</p>
-        </div>
-      </div>
-    );
-  }
 
   if (screen === "exit") {
     return (
@@ -303,7 +287,6 @@ export default function WelcomeScreen() {
       <EstimateScreen
         ocrData={ocrData}
         sqft={sqft}
-        pricing={pricing}
         fetchSolarConfig={fetchSolarConfig}
         batteryHours={batteryHours}
         setBatteryHours={setBatteryHours}

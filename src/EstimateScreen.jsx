@@ -74,7 +74,7 @@ const calcFinancing = (systemCost) => {
   return { facilityFee, secDeposit, financed, monthlyPmt, balloon };
 };
 
-const calcEstimate = (consumoMensual, roofSqft, municipio, billData, epcTable, annualYieldOverride, maxKwpRoofOverride) => {
+const calcEstimate = async (consumoMensual, roofSqft, municipio, billData, annualYieldOverride, maxKwpRoofOverride) => {
   const { cargo_cliente = 0, cargo_demanda = 0, exceso_usd = 0, consumo_kwh = consumoMensual, costo_kwh = 0,
           tariff = "", demanda_kva = 0, exceso_kva = 0 } = billData;
   const annualYield   = annualYieldOverride || getYield(municipio);
@@ -97,8 +97,38 @@ const calcEstimate = (consumoMensual, roofSqft, municipio, billData, epcTable, a
   const systemKwp     = roundToPanels(caps.systemKwDc);
   const annualGen     = systemKwp * annualYield;
   const coverage      = Math.min((annualGen / annualConsump) * 100, 100);
-  const epcPerW       = getEPC(systemKwp, epcTable);
-  const systemCost    = systemKwp * 1000 * epcPerW;
+
+  // Pricing: prefer Tool Belt /api/price (which proxies the live
+  // /api/v1/price endpoint). On 502 / network failure / null total_price,
+  // fall back to the local getEPC() lookup against CFG_DEFAULTS.epc_table.
+  // The fallback path will be removed in Step 4 once Tool Belt uptime is
+  // verified in production.
+  let systemCost    = null;
+  let pricingSource = 'fallback';
+  try {
+    const priceRes = await fetch('/api/price', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({
+        surfaces: [{ kw: systemKwp, surface_type: 'flat_roof' }],
+      }),
+    });
+    if (priceRes.ok) {
+      const priceData = await priceRes.json();
+      const tbPrice   = priceData?.surfaces?.[0]?.total_price;
+      if (tbPrice != null) {
+        systemCost    = tbPrice;
+        pricingSource = 'toolbelt';
+      }
+    }
+  } catch (e) {
+    console.warn('⚠️ /api/price failed, falling back to getEPC():', e.message);
+  }
+  if (systemCost == null) {
+    const epcPerW = getEPC(systemKwp);
+    systemCost    = systemKwp * 1000 * epcPerW;
+  }
+
   const avgMonthlyBill  = (costo_kwh * consumo_kwh) + cargo_cliente + cargo_demanda + exceso_usd;
   const solarKwhMonthly = Math.min(annualGen / 12, consumo_kwh);
   const savingsCash     = costo_kwh * solarKwhMonthly;
@@ -116,6 +146,7 @@ const calcEstimate = (consumoMensual, roofSqft, municipio, billData, epcTable, a
     savingsFinanced: Math.round(savingsFinanced),
     balloon:         Math.round(fin.balloon),
     caps,                       // for the binding-constraint banner
+    pricingSource,              // 'toolbelt' | 'fallback' (Step 2 audit)
   };
 };
 
@@ -407,7 +438,7 @@ const S = {
 };
 
 // ─── EstimateScreen ─────────────────────────────────────────────────────────
-function EstimateScreenInner({ ocrData, sqft, batteryHours, setBatteryHours, pricing, fetchSolarConfig, onInterested, onNotInterested, onBack }) {
+function EstimateScreenInner({ ocrData, sqft, batteryHours, setBatteryHours, fetchSolarConfig, onInterested, onNotInterested, onBack }) {
   const consumoMensual = parseNum(ocrData?.consumoKWH);
   const municipio      = ocrData?.municipio || "San Juan";
   const cargoCliente   = parseNum(ocrData?.cargoCliente);
@@ -430,8 +461,6 @@ function EstimateScreenInner({ ocrData, sqft, batteryHours, setBatteryHours, pri
   // eslint-disable-next-line no-unused-vars
   const serviceType    = ocrData?.serviceType ?? 'no_se';
 
-  const epcTable = pricing?.solar?.epc_tiers || null;
-
   const [liveSolarConfig, setLiveSolarConfig] = useState(null);
 
   useEffect(() => {
@@ -444,20 +473,55 @@ function EstimateScreenInner({ ocrData, sqft, batteryHours, setBatteryHours, pri
   const liveYield  = liveSolarConfig?.solarData?.specific_yield || null;
   const liveMaxKwp = liveSolarConfig?.areaData?.kw              || null;
 
-  const est = calcEstimate(consumoMensual, sqft, municipio, {
-    cargo_cliente: cargoCliente,
-    cargo_demanda: cargoDemanda,
-    exceso_usd:    excesoUSD,
-    consumo_kwh:   consumoMensual,
-    costo_kwh:     costoKWH,
-    tariff,
-    demanda_kva:   demandaKVA,
-    exceso_kva:    excesoKVA,
-  }, epcTable, liveYield, liveMaxKwp);
+  // calcEstimate is now async (Step 2 — pulls solar pricing from Tool Belt
+  // /api/price). Wrap in a useEffect that re-runs only when inputs change;
+  // the slider's batteryHours is intentionally NOT in the dep list, so
+  // sliding does not refetch pricing.
+  const [est, setEst] = useState(null);
+  useEffect(() => {
+    if (!sqft || !consumoMensual) return;
+    let cancelled = false;
+    (async () => {
+      const result = await calcEstimate(consumoMensual, sqft, municipio, {
+        cargo_cliente: cargoCliente,
+        cargo_demanda: cargoDemanda,
+        exceso_usd:    excesoUSD,
+        consumo_kwh:   consumoMensual,
+        costo_kwh:     costoKWH,
+        tariff,
+        demanda_kva:   demandaKVA,
+        exceso_kva:    excesoKVA,
+      }, liveYield, liveMaxKwp);
+      if (!cancelled) setEst(result);
+    })();
+    return () => { cancelled = true; };
+    // eslint-disable-next-line
+  }, [consumoMensual, sqft, municipio, cargoCliente, cargoDemanda, excesoUSD, costoKWH, tariff, demandaKVA, excesoKVA, liveYield, liveMaxKwp]);
+
+  // Loading gate — render a small placeholder while the first /api/price
+  // round-trip completes. Subsequent slider changes do NOT trigger this
+  // (batteryHours is not in the useEffect dep list).
+  if (!est) {
+    return (
+      <div style={S.page}>
+        <Header />
+        <ProgressBar current={5} total={6} />
+        <div style={S.content}>
+          <p style={{ textAlign: "center", color: "#6b7280", marginTop: "32px" }}>
+            Calculando estimado…
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   // Battery
   const localBatteryHours = batteryHours ?? 0;
-  const batteryResult = calcBatterySystem(demandaKVA, consumoMensual, localBatteryHours, pricing);
+  // pricing arg is now null — the old /api/pricing proxy that fed this is
+  // gone (Step 2 cleanup). calcBatterySystem's resolveBatCfg() already
+  // falls back to BAT_CFG_DEFAULTS for null. Step 3 rewires battery via
+  // the Tool Belt /api/v1/battery-sizing endpoint.
+  const batteryResult = calcBatterySystem(demandaKVA, consumoMensual, localBatteryHours, null);
   const totalCost = est.systemCost + (batteryResult?.totalCost ?? 0);
 
   // Recalculate financing on total cost (solar + battery)

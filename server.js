@@ -187,41 +187,29 @@ app.get('/api/leads', (req, res) => {
 });
 
 // ─── API: PRICING CONFIG ──────────────────────────────────────────────────────
-// GET /api/pricing — proxies Tool Belt API for live EPC tiers; falls back to hardcoded defaults
-app.get('/api/pricing', async (req, res) => {
+// ─── API: PRICE (Tool Belt per-job pricing) ──────────────────────────────────
+// POST /api/price — proxies Tool Belt POST /api/v1/price for per-job EPC
+// pricing. Unlike /api/solar-resource and /api/area-to-system, there is no
+// single-value sensible fallback (EPC depends on system size). On upstream
+// failure, return 502 so EstimateScreen can fall back to its local
+// getEPC() / CFG_DEFAULTS.epc_table during the transition period.
+app.post('/api/price', async (req, res) => {
   try {
     const TOOLBELT_BASE = 'https://windmar-commercial-toolbelt.vercel.app/api/v1';
     const API_KEY = process.env.TOOLBELT_API_KEY;
-    const headers = { 'X-API-Key': API_KEY };
-
-    const tiersRes = await fetch(`${TOOLBELT_BASE}/epc-tiers`, { headers });
-    if (!tiersRes.ok) throw new Error('EPC tiers fetch failed: ' + tiersRes.status);
-    const tiersData = await tiersRes.json();
-
-    res.json({
-      solar: {
-        epc_tiers: tiersData.tiers,
+    const r = await fetch(`${TOOLBELT_BASE}/price`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-API-Key':    API_KEY,
       },
+      body: JSON.stringify(req.body),
     });
+    if (!r.ok) throw new Error('/api/v1/price fetch failed: ' + r.status);
+    res.json(await r.json());
   } catch (err) {
-    console.error('Pricing fetch error:', err.message);
-    res.json({
-      solar: {
-        epc_tiers: [
-          { kw_from:     0, kw_to:      5, base_epc: 3.20, misc_adder_pct: 0.10, effective_price_per_w: 3.52 },
-          { kw_from:     5, kw_to:     35, base_epc: 2.90, misc_adder_pct: 0.08, effective_price_per_w: 3.132 },
-          { kw_from:    35, kw_to:     50, base_epc: 2.80, misc_adder_pct: 0.08, effective_price_per_w: 3.024 },
-          { kw_from:    50, kw_to:    100, base_epc: 2.70, misc_adder_pct: 0.06, effective_price_per_w: 2.862 },
-          { kw_from:   100, kw_to:    500, base_epc: 2.50, misc_adder_pct: 0.05, effective_price_per_w: 2.625 },
-          { kw_from:   500, kw_to:   1000, base_epc: 2.40, misc_adder_pct: 0.05, effective_price_per_w: 2.52 },
-          { kw_from:  1000, kw_to:   2000, base_epc: 2.30, misc_adder_pct: 0.04, effective_price_per_w: 2.392 },
-          { kw_from:  2000, kw_to:   6000, base_epc: 2.20, misc_adder_pct: 0.04, effective_price_per_w: 2.288 },
-          { kw_from:  6000, kw_to:  12000, base_epc: 2.10, misc_adder_pct: 0.04, effective_price_per_w: 2.184 },
-          { kw_from: 12000, kw_to:  24000, base_epc: 1.95, misc_adder_pct: 0.04, effective_price_per_w: 2.028 },
-          { kw_from: 24000, kw_to: 100000, base_epc: 1.70, misc_adder_pct: 0.04, effective_price_per_w: 1.768 },
-        ],
-      },
-    });
+    console.warn('⚠️ /api/price upstream error:', err.message);
+    res.status(502).json({ error: 'pricing_unavailable', message: err.message });
   }
 });
 
