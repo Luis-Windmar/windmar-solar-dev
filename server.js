@@ -763,10 +763,10 @@ if (require.main === module) {
   app.listen(PORT, () => {
     console.log(`\n🌞 Windmar server running on http://localhost:${PORT}`);
     console.log(`   PreQual  → http://localhost:${PORT}/prequal`);
-    console.log(`   API Key  : ${process.env.ANTHROPIC_API_KEY          ? '✅ configured' : '❌ MISSING'}`);
     console.log(`   Toolbelt : ${process.env.TOOLBELT_API_KEY           ? '✅ configured' : '❌ MISSING'}`);
     console.log(`   Encrypt  : ${process.env.ENCRYPTION_KEY             ? '✅ configured' : '❌ MISSING'}`);
-    console.log(`   Zoho CID : ${process.env.ZOHO_WRITE_CLIENT_ID       ? '✅ configured' : '❌ MISSING'}`);
+    console.log(`   Zoho WCID: ${process.env.ZOHO_WRITE_CLIENT_ID       ? '✅ configured' : '❌ MISSING'}`);
+    console.log(`   Zoho RCID: ${process.env.ZOHO_READ_CLIENT_ID        ? '✅ configured' : '❌ MISSING'}`);
     console.log(`   Zoho OWN : ${process.env.ZOHO_OWNER_USER_ID         ? '✅ configured' : '❌ MISSING'}\n`);
   });
 }

@@ -53,14 +53,22 @@ is still present — that's the scope of item 5 below, not this item.
 
 ---
 
-## 5. Dependency cleanup
-Remove `@anthropic-ai/sdk` from `package.json` and all dead
-`ANTHROPIC_API_KEY` references from `server.js` (startup banner,
-`/api/health`) in Step 4 cleanup. The require + client init in
-`server.js` were already removed in Step 0; only the env-var-reporting
-strings remain.
-
-**Files:** `package.json`, `server.js`.
+## 5. ~~Dependency cleanup~~ — resolved 2026-05-27
+Closed by the cleanup pass.
+- `@anthropic-ai/sdk` removed from `package.json` via
+  `npm uninstall @anthropic-ai/sdk` (package-lock updated, node_modules
+  pruned by ~5 MB).
+- `ANTHROPIC_API_KEY` reference removed from the startup banner in
+  `server.js`. The corresponding reference inside `/api/health` was
+  removed in item 4 along with the route.
+- Banner additionally gained a `Zoho RCID` check (read-credentials),
+  which was missing — both ZOHO_WRITE_* and ZOHO_READ_* sets are
+  actively used by `createZohoLead` / file attachment, so both deserve
+  visibility on startup.
+- The two remaining grep matches for `anthropic` in `src/` are inside
+  legacy files (`PreQual_Solar_api.jsx`, `DealSection_api.jsx`) that
+  are not imported by any active code path. They stay as dead reference
+  per the migration plan.
 
 ---
 
@@ -83,11 +91,24 @@ renders against a misleading solar-only total.
 
 ---
 
-## 8. Stale `CLAUDE.md` "Last updated" header
-The `Last updated:` date at the top of `CLAUDE.md` predates several
-recent edits. Update during the next session-notes pass.
-
-**Files:** `CLAUDE.md:3`.
+## 8. ~~Stale `CLAUDE.md` "Last updated" header~~ — resolved 2026-05-27
+Closed by the cleanup pass. Targeted edits to `CLAUDE.md`:
+- "Last updated" header bumped from 2026-05-05 → 2026-05-27.
+- "Tool Belt API Integration" section rewritten as a full Steps 0–3
+  status table with all four current wizard-server proxies
+  (`/api/ocr-luma-bill`, `/api/solar-resource`, `/api/area-to-system`,
+  `/api/price`, `/api/battery-sizing`) mapped to their Tool Belt
+  upstream endpoints. Added a "Step 4 Cleanup — IN PROGRESS" section
+  citing the most recent backlog closures.
+- Tool Belt Architecture table rewritten with current proxy names,
+  invocation timing, and fallback behavior per proxy.
+- `Important Notes` line about "the existing /api/ocr endpoint"
+  corrected — OCR runs through `/api/ocr-luma-bill` now; the original
+  was removed in Step 0.
+- Historical migration-brief content (the duplicated brief from
+  May 4–8 2026) left as-is per the "targeted updates only" rule.
+  Two `/api/ocr` references inside that brief stay because they're
+  clearly dated historical context, not current documentation.
 
 ---
 

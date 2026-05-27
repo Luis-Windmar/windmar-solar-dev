@@ -1,6 +1,6 @@
 # Windmar Commercial — PreQual Solar Wizard
 ## Claude Code Project README
-## Last updated: 2026-05-05
+## Last updated: 2026-05-27
 ---
 # Project Context
 
@@ -88,18 +88,32 @@ All screens built and deployed to Vercel (`windmar-commercial-estimator.vercel.a
 Implemented in `server.js`. Creates `Commercial_Lead` record, attaches LUMA bill and
 estimate PDF. PDF is generated server-side via `POST /api/generate-and-attach-pdf`.
 
-### Tool Belt API Integration — ✅ COMPLETE (2026-05-05)
-All three estimation inputs now pull from the Tool Belt:
-- EPC pricing tiers — `GET /api/v1/epc-tiers` → proxied via `/api/pricing`
-- Solar yield by municipio — `GET /api/v1/solar-resource` → proxied via `/api/solar-resource`
-- Max kW from roof area — `GET /api/v1/area-to-system` → proxied via `/api/area-to-system`
-All proxies have hardcoded fallbacks. TOOLBELT_API_KEY stays server-side only.
+### Tool Belt API Integration — ✅ COMPLETE (Steps 0–3, 2026-05-26 → 2026-05-27)
+All four upstream calls now pull from the Windmar Commercial Tool Belt API
+(`https://windmar-commercial-toolbelt.vercel.app/api/v1`). TOOLBELT_API_KEY
+stays server-side only.
 
-### Known Follow-ups
-- Panel count display (`numPanels`) still uses hardcoded 410W; live module is 585-600W
-- Zoho credential consolidation (ZOHO_READ_* / ZOHO_WRITE_* → single ZOHO_CLIENT_*)
-- `serviceType` field captured in WelcomeScreen but not yet mapped to a Zoho field
-- TEST prefix fields in ContactScreen/UploadScreen must be removed before production launch
+| Step | Subsystem | Wizard proxy | Tool Belt endpoint |
+|---|---|---|---|
+| 0 | LUMA bill OCR | `POST /api/ocr-luma-bill` | `POST /api/v1/ocr/luma-bill` |
+| 0 (pre-existing) | Solar yield by municipio | `GET /api/solar-resource` | `GET /api/v1/solar-resource` |
+| 0 (pre-existing) | Max kW from roof area | `GET /api/area-to-system` | `GET /api/v1/area-to-system` |
+| 2 | Solar per-job pricing (EPC) | `POST /api/price` | `POST /api/v1/price` |
+| 3 | Battery sizing + BOM | `POST /api/battery-sizing` | `POST /api/v1/battery-sizing?detail=full` (BOM sanitized in proxy — internal pricing fields stripped) |
+
+Canonical sizing rules — Residencial/Secundaria/Primaria/Transmisión caps,
+voltage/phases derivation, tariff normalization — live in `src/sizing/`
+(`constants.js`, `tariff.js`, `caps.js`) with node:test coverage at
+`src/sizing/*.test.js` (35/35 passing).
+
+### Step 4 Cleanup — 🔄 IN PROGRESS
+See `docs/backlog.md` for open items. Most recent closures (2026-05-27):
+- Item 4 — `/api/health` endpoint removed (no callers).
+- Item 5 — `@anthropic-ai/sdk` uninstalled; stale `ANTHROPIC_API_KEY`
+  reference removed from the startup banner.
+- Item 8 — this `CLAUDE.md` itself, currently being updated.
+- Items 11, 12, 13 — EstimateScreen layout-stability pass (slider card
+  height, financing card visibility, stale subtitle copy).
 
 ---
 
@@ -130,21 +144,23 @@ Served as `/logo.png` from `public/`. Referenced in `shared.jsx` Header componen
 **Auth:** `X-API-Key` header — stored in `TOOLBELT_API_KEY` env var, never sent to browser
 
 All Tool Belt calls are server-side proxies in `server.js`. The client calls
-`/api/pricing`, `/api/solar-resource`, `/api/area-to-system` on the wizard server,
-which forwards to the Tool Belt with the API key.
+the proxies on the wizard server, which forwards to the Tool Belt with the API
+key. The OCR proxy and battery-sizing proxy additionally transform the request
+or response (multipart re-emission for OCR, BOM sanitization for battery sizing).
 
 | Wizard endpoint | Tool Belt endpoint | Data returned | When fetched |
 |---|---|---|---|
-| `GET /api/pricing` | `/api/v1/epc-tiers` | EPC $/W tiers | WelcomeScreen mount |
-| `GET /api/solar-resource` | `/api/v1/solar-resource` | `specific_yield` kWh/kWp/yr | EstimateScreen mount |
-| `GET /api/area-to-system` | `/api/v1/area-to-system` | `kw` (max system from roof) | EstimateScreen mount |
+| `POST /api/ocr-luma-bill` | `POST /api/v1/ocr/luma-bill` | Parsed LUMA bill (multipart upload, single file per request) | UploadScreen on bill upload (multi-file fans out via Promise.all client-side) |
+| `GET /api/solar-resource?municipality=…` | `GET /api/v1/solar-resource` | `specific_yield` kWh/kWp/yr | EstimateScreen mount (via `fetchSolarConfig`) |
+| `GET /api/area-to-system?sqft=…&municipality=…&buffer=true` | `GET /api/v1/area-to-system` | `kw` (max system from roof), `modules`, `module` | EstimateScreen mount (via `fetchSolarConfig`) |
+| `POST /api/price` | `POST /api/v1/price` | Per-job EPC total_price for `{ kw, surface_type }` payload | Inside `calcEstimate` after `systemKwp` is resolved |
+| `POST /api/battery-sizing` | `POST /api/v1/battery-sizing?detail=full` | Sized battery system + sanitized BOM. Internal pricing fields (`unit_cost`, `unit_price`, `gm_pct_applied`, `multiplier_applied`) stripped in proxy. | EstimateScreen mount — batch precomputes all 5 non-zero slider positions in parallel; slider reads from local cache for instant response |
 
-**Tool Belt endpoints that exist but are NOT yet wired:**
-- `POST /api/v1/price` — per-job price calc (wizard uses `/epc-tiers` + local lookup instead)
-- `POST /api/v1/system-to-area` — not needed (wizard goes sqft→system, not reverse)
-
-**Fallback behavior:** All three proxy routes return hardcoded defaults if the Tool Belt
-is unreachable, so the wizard never breaks due to Tool Belt downtime.
+**Fallback behavior:**
+- `solar-resource`, `area-to-system` — hardcoded defaults on upstream failure (`specific_yield: 1530`, `kw = (sqft/2500)*45`).
+- `/api/price` — returns HTTP 502 `pricing_unavailable` on failure; client falls back to local `getEPC()` + `CFG_DEFAULTS.epc_table` so estimates never break.
+- `/api/battery-sizing` — forwards upstream HTTP errors (422-style error codes) to the client for per-position UI handling. Returns 502 on network failure.
+- `/api/ocr-luma-bill` — forwards upstream status (including 413) so the UploadScreen can surface size-limit errors.
 
 ---
 
@@ -224,7 +240,7 @@ fmtUSD(n), fmtKWH(n), fmtKVA(n)
 - The wizard is rep-operated — the rep holds the tablet, not the prospect.
 - ~20-25% of bills need OCR field corrections, hence the editable review screen.
 - Do not modify `Cuestionario_Solar_INTEGRATED.jsx` — it is the deal questionnaire, separate flow.
-- The existing `/api/ocr` and `/api/leads` endpoints in `server.js` are production-ready.
+- OCR runs through the Tool Belt proxy `POST /api/ocr-luma-bill` (the original `/api/ocr` was removed in Step 0). The `/api/leads` endpoint is still in `server.js` and is production-ready — it persists a lead JSON locally (read-only on Vercel) and returns the assigned `quoteNumber`.
 
 ---
 
