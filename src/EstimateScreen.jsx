@@ -180,21 +180,39 @@ const buildBatteryProductName = (batteryResult) => {
   return `${inv.model}${qty ? ` ×${qty}` : ''} / ${batteryResult.system_kwh} kWh`;
 };
 
-// Spanish copy for each /api/v1/battery-sizing 422 error code.
+// Per-position error copy shown next to the slider when the
+// currently-selected backup-hours value returned an error from
+// /api/v1/battery-sizing. capacity_exceeded_kwh shows a bare "—" so
+// the rep notices THIS position is unavailable but other positions
+// may still work — see batteryAllErroredMessage below for the case
+// where every position errored.
 const batteryErrorMessage = (code) => {
   switch (code) {
     case 'no_inverter_for_voltage':
       return 'Almacenamiento no disponible para este tipo de servicio eléctrico.';
     case 'capacity_exceeded_kw':
-      return 'Sistema solar demasiado grande para las opciones de almacenamiento actuales.';
+      return 'No hay opciones de almacenamiento disponibles para este tamaño de sistema. Verifica el tipo de servicio eléctrico para ver más opciones.';
     case 'capacity_exceeded_kwh':
       return '—';
     case 'no_legal_configuration':
-      return 'Configuración no disponible. Contacte a su coordinador.';
+      return 'No existe una configuración de almacenamiento válida para este sistema. Comunícate con el equipo técnico.';
     case 'timeout':
     default:
-      return 'Estimado de baterías no disponible. Contacte a su coordinador.';
+      return 'Estimado de baterías no disponible en este momento.';
   }
+};
+
+// Copy used ONLY when all 5 slider positions failed with the same
+// error code. Differs from the per-position copy in one place:
+// capacity_exceeded_kwh — at the position level this is "—" (try
+// another position), but when ALL positions fail with that code the
+// rep needs to be told why (the catalog's max storage can't cover
+// any requested hours value for this consumption).
+const batteryAllErroredMessage = (code) => {
+  if (code === 'capacity_exceeded_kwh') {
+    return 'La capacidad máxima de almacenamiento disponible no cubre las horas de respaldo seleccionadas.';
+  }
+  return batteryErrorMessage(code);
 };
 
 // Banner copy for each binding constraint. Returns null when the
@@ -613,6 +631,20 @@ function EstimateScreenInner({ ocrData, sqft, batteryHours, setBatteryHours, fet
     !batteryCacheLoading &&
     BATTERY_HOURS_TO_PREFETCH.every((h) => batteryCache[h]?.error);
 
+  // When every position errored, check whether they share an error
+  // code. If yes, the all-errors banner can show the per-code message
+  // (which tells the rep WHY) instead of a generic fallback. If the
+  // codes are mixed, fall back to the neutral generic message.
+  const sharedErrorCode = (() => {
+    if (!allBatteryErrored) return null;
+    const codes = BATTERY_HOURS_TO_PREFETCH
+      .map((h) => batteryCache[h]?.error)
+      .filter(Boolean);
+    if (codes.length === 0) return null;
+    const first = codes[0];
+    return codes.every((c) => c === first) ? first : null;
+  })();
+
   // Helpers derived from batteryResult.
   const batteryError       = batteryResult?.error || null;
   const validBatteryResult = batteryResult && !batteryError ? batteryResult : null;
@@ -790,7 +822,9 @@ function EstimateScreenInner({ ocrData, sqft, batteryHours, setBatteryHours, fet
               </span>
             ) : allBatteryErrored ? (
               <span style={{ fontSize: "12px", color: "#dc2626" }}>
-                Estimado de baterías no disponible. Contacte a su consultor.
+                {sharedErrorCode
+                  ? batteryAllErroredMessage(sharedErrorCode)
+                  : 'Estimado de baterías no disponible en este momento.'}
               </span>
             ) : batteryError && localBatteryHours > 0 ? (
               <span style={{ fontSize: "12px", color: "#dc2626" }}>

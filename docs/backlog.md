@@ -11,17 +11,14 @@ from every field in the review-card render in `src/UploadScreen.jsx`.
 
 ---
 
-## 2. OCR review card — audit all field propagation
-Now that tarifa and demand fields are reactive (Fix E), audit every
-other editable field on the review card to confirm its edited value
-propagates correctly to EstimateScreen sizing logic and the Zoho
-payload. Fields to audit: `consumo_promedio`, `costo_kwh`, `municipio`,
-`exceso_de_demanda_kva`.
-
-For each field: trace the rep edit through `handleFieldChange` →
-`fields` state → `onNext(fields, file)` → `ocrData` → EstimateScreen
-reads / ThankYouScreen Zoho payload. Confirm the edited value is the
-one actually used downstream, not the original OCR value.
+## 2. ~~OCR review card — audit all field propagation~~ — resolved 2026-05-27
+Closed by browser verification. All sizing rules respond correctly to
+edits across the OCR review fields (`consumo_promedio`, `costo_kwh`,
+`municipio`, `exceso_de_demanda_kva`) at every tariff type. The
+generic `setFields({ ...prev, [key]: value })` pattern in
+`handleFieldChange` plus the targeted raw-numeric sync for
+`carga_contratada_kva` and `exceso_de_demanda_kva` (added in Fix A)
+were sufficient — no additional code changes needed.
 
 ---
 
@@ -112,35 +109,21 @@ Closed by the cleanup pass. Targeted edits to `CLAUDE.md`:
 
 ---
 
-## 9. All-errors battery message — per-code copy when all positions share an error
-When all 5 battery slider positions return the **same** error code
-(e.g. `capacity_exceeded_kw` on large Primaria accounts where
-`serviceType` defaults to `no_se` → 240V/2-phase → Powerwall catalog
-won't fit), the wizard currently shows the generic global fallback:
-*"Estimado de baterías no disponible. Contacte a su coordinador."*
+## 9. ~~All-errors battery message — per-code copy when all positions share an error~~ — resolved 2026-05-27
+Closed by the battery-error-messages pass.
 
-Problems:
-- "Coordinador" doesn't exist in the Windmar organization.
-- The message is generic — it doesn't tell the rep **why** sizing
-  failed or what to do next.
+`src/EstimateScreen.jsx` now derives `sharedErrorCode` when
+`allBatteryErrored` fires — checks whether all 5 cached errors share
+a single code. When the codes match, the all-errored banner shows the
+per-code message via a new `batteryAllErroredMessage(code)` helper
+(parallel to the existing `batteryErrorMessage` but with
+`capacity_exceeded_kwh`-specific copy for the all-failed case). When
+codes differ, the banner falls back to a neutral message:
+*"Estimado de baterías no disponible en este momento."*
 
-**Desired:** When all 5 positions fail with the same error code, show
-the per-code message instead of the generic fallback. Example for
-`capacity_exceeded_kw`: *"No hay opciones de almacenamiento disponibles
-para este tamaño de sistema. Selecciona el tipo de servicio eléctrico
-para ver más opciones."*
-
-When positions have **mixed** error codes, show the generic message
-— but replace "coordinador" with something accurate (product to pick).
-
-**Practical trigger:** Large Primaria accounts (~235+ kWp) where
-`serviceType` is `no_se`. Mostly resolved once the service-type
-selector is wired more visibly and reps pick `trifasico_480` for
-large commercial accounts — but the messaging should still be honest
-in the fallback case.
-
-**Files:** `src/EstimateScreen.jsx` — the `allBatteryErrored` block
-and `batteryErrorMessage` mapping.
+Per-code copy was also tightened (all "coordinador" / "consultor"
+references are gone — the new copy points at actionable directions
+like verifying the service type instead).
 
 ---
 
