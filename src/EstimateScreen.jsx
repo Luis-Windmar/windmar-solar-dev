@@ -400,7 +400,7 @@ const S = {
     borderRadius: "16px",
     padding: "16px 20px",
     marginBottom: "12px",
-    minHeight: 130,    // accommodates either 3 breakdown rows or the ineligibility paragraph
+    minHeight: 145,    // accommodates either 3 breakdown rows or the ineligibility paragraph (bumped ~10% from 130 after browser check)
   },
   sliderLabel: { fontSize: "14px", fontWeight: "600", color: "#374151", marginBottom: "8px" },
   sliderValue: { fontSize: "22px", fontWeight: "800", color: "#1B3F8B", textAlign: "center", marginBottom: "10px" },
