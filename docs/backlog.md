@@ -127,30 +127,41 @@ like verifying the service type instead).
 
 ---
 
-## 10. Add static analysis to catch unresolved identifiers pre-deploy
-**Background:** Step 3's `normalizeLumaTariff` `ReferenceError` (a
-missing named import in `src/EstimateScreen.jsx`) passed all unit
-tests and `node build.js` cleanly but exploded at browser runtime.
-esbuild does not check for unresolved identifiers, and `node:test`
-never imports the JSX component files — so the bug couldn't have
-been caught by either of our existing pre-deploy steps.
+## 10. ~~Add static analysis to catch unresolved identifiers pre-deploy~~ — resolved 2026-05-27
+Closed by wiring ESLint `no-undef` into `patch_and_build.sh` ahead of
+`node build.js`. Option B from the prompt — `tsc --noEmit --allowJs
+--checkJs` produced ~330 errors (Node globals, React-in-JSX-scope,
+type strictness on the sizing module) that are not in the bug class
+we care about. ESLint with just `no-undef` produced 0 real errors and
+catches the exact class of bug we hit (missing named import resolving
+to an undefined identifier).
 
-**Desired:** lightweight static analysis on the build path. Options
-in increasing order of effort:
+**Config:** `eslint.config.js` (flat config — ESLint 10 requires it),
+ignores the two legacy `*_api.jsx` files and the markdown-formatted
+`createZohoLead.js` / `parsing_function.js` documentation files
+(neither is actually imported — the real `createZohoLead` lives in
+`server.js`). Plugin: `eslint-plugin-react-hooks` registered so the
+existing `// eslint-disable-line react-hooks/exhaustive-deps`
+directive resolves; rule itself is not enabled. `reportUnusedDisableDirectives`
+disabled to keep the check focused.
 
-1. **esbuild metafile** check that flags any import resolving to an
-   unbundled symbol. Cheapest — adds maybe 30 lines to `build.js`.
-2. **ESLint** with the `no-undef` rule scoped to `src/`. No TypeScript
-   needed; one `.eslintrc` + a `lint` step in the build script.
-3. **`tsc --noEmit --allowJs --checkJs`**. Catches the most but
-   adds TypeScript-as-a-tool to the toolchain.
+**Build line added** (`patch_and_build.sh`):
+```bash
+npx eslint src/
+if [ $? -ne 0 ]; then
+  echo "❌ Static analysis failed. Fix errors before deploying."
+  exit 1
+fi
+```
 
-Any of the three would have caught the Step 3 bug. Recommend wiring
-into `patch_and_build.sh` so the existing "node build.js" step also
-fails on unresolved identifiers, or as a pre-push git hook.
+**Smoke test:** inserting `const __test = undefinedThing;` into
+`EstimateScreen.jsx` causes `bash patch_and_build.sh` to exit 1 with
+`'undefinedThing' is not defined  no-undef` and never invokes
+`build.js`. Reverted after confirming.
 
-**Files:** `patch_and_build.sh`, possibly new `.eslintrc` or
-`tsconfig.json`.
+**Files:** `eslint.config.js` (new), `patch_and_build.sh` (5 lines
+added), `package.json` devDependencies (`eslint`, `@eslint/js`,
+`globals`, `eslint-plugin-react-hooks`).
 
 ---
 
