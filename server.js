@@ -742,22 +742,6 @@ app.post('/api/generate-and-attach-pdf', express.json({ limit: '1mb' }), async (
   }
 });
 
-// ─── API: HEALTH CHECK ────────────────────────────────────────────────────────
-app.get('/api/health', (req, res) => {
-  res.json({
-    status: 'ok',
-    apiKeyConfigured:     !!process.env.ANTHROPIC_API_KEY,
-    encryptionConfigured: !!process.env.ENCRYPTION_KEY,
-    zohoConfigured: {
-      clientId:     !!process.env.ZOHO_WRITE_CLIENT_ID,
-      clientSecret: !!process.env.ZOHO_WRITE_CLIENT_SECRET,
-      refreshToken: !!process.env.ZOHO_WRITE_REFRESH_TOKEN,
-      ownerId:      !!process.env.ZOHO_OWNER_USER_ID,
-    },
-    timestamp: new Date().toISOString(),
-  });
-});
-
 // ─── API: ZOHO TOKEN TEST ─────────────────────────────────────────────────────
 app.get('/api/zoho-test', async (req, res) => {
   try {

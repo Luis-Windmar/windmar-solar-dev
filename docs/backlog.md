@@ -34,13 +34,22 @@ Investigate and correct separately after Step 0 is fully closed.
 
 ---
 
-## 4. `/api/health` endpoint
-Investigate all callers in the codebase and the Vercel deployment. If
-unused, remove in Step 4 cleanup along with the stale
-`ANTHROPIC_API_KEY` reference it reports.
+## 4. ~~`/api/health` endpoint~~ — resolved 2026-05-27
+Closed by the audit pass. Exhaustive grep across `src/`, `public/`,
+`docs/`, `prompts/`, `wrap-ups/`, `package.json`, `patch_and_build.sh`,
+`build.js`, `vercel.json`, and `.vercel/project.json` found no live
+caller. Only matches outside the route definition itself were
+documentation references in `docs/*.md` and `wrap-ups/*.md`, a
+historical snippet in `docs/deal_server_reference.js` (not executed),
+a stale Claude worktree copy in `.claude/worktrees/`, and a permission
+allowlist entry in `.claude/settings.local.json` (a "let me run this
+curl if I want" grant, not a runtime caller). No external monitoring
+configured via Vercel.
 
-**Files:** `server.js:730–743` (health route); `server.js:765–770`
-(startup banner).
+**Resolution:** route removed from `server.js`. The stale
+`apiKeyConfigured: !!process.env.ANTHROPIC_API_KEY` field went with
+it. The remaining `ANTHROPIC_API_KEY` reference at the startup banner
+is still present — that's the scope of item 5 below, not this item.
 
 ---
 
