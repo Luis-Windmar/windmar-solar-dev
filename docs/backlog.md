@@ -55,25 +55,22 @@ strings remain.
 
 ---
 
-## 6. Battery slider — `$NaN` on price with storage
-`calcBatterySystem()` returns NaN for total price when any storage hours
-are selected, causing `$NaN` display and a broken payback calculation.
-Pre-existing bug — will be resolved automatically when Step 3 replaces
-`calcBatterySystem()` with the Tool Belt `/api/v1/battery-sizing`
-endpoint. **Do not fix independently.**
-
-**Files:** `src/EstimateScreen.jsx` — `calcBatterySystem()`.
+## 6. ~~Battery slider — `$NaN` on price with storage~~ — resolved by Step 3
+Closed 2026-05-26. `calcBatterySystem()` was removed entirely in Step 3
+(commit `5025c37`) and replaced with batch-precomputed Tool Belt
+`/api/v1/battery-sizing` responses. Successful positions return valid
+`total_price`; errored positions surface a per-code message and show
+"—" for the price (Step 3 follow-up commit `c3f7fe0`). The `$NaN`
+class of bug no longer reachable.
 
 ---
 
-## 7. Financing card disappears when battery slider > 0
-Likely intentional from a previous session but incorrect product
-behavior — combined solar + battery pricing should still offer a
-financing view. Will be re-implemented in Step 3 with the correct
-combined price from the Tool Belt response.
-
-**Files:** `src/EstimateScreen.jsx` — the `totalCost >= 60000`
-financing-block conditional.
+## 7. ~~Financing card disappears when battery slider > 0~~ — resolved by Step 3
+Closed 2026-05-26. Browser verification confirmed the financing card
+now persists across all slider positions when battery pricing is
+available. The Step 3 follow-up additionally hides financing only on
+errored slider positions (where the price reads "—") so it never
+renders against a misleading solar-only total.
 
 ---
 
@@ -82,3 +79,128 @@ The `Last updated:` date at the top of `CLAUDE.md` predates several
 recent edits. Update during the next session-notes pass.
 
 **Files:** `CLAUDE.md:3`.
+
+---
+
+## 9. All-errors battery message — per-code copy when all positions share an error
+When all 5 battery slider positions return the **same** error code
+(e.g. `capacity_exceeded_kw` on large Primaria accounts where
+`serviceType` defaults to `no_se` → 240V/2-phase → Powerwall catalog
+won't fit), the wizard currently shows the generic global fallback:
+*"Estimado de baterías no disponible. Contacte a su coordinador."*
+
+Problems:
+- "Coordinador" doesn't exist in the Windmar organization.
+- The message is generic — it doesn't tell the rep **why** sizing
+  failed or what to do next.
+
+**Desired:** When all 5 positions fail with the same error code, show
+the per-code message instead of the generic fallback. Example for
+`capacity_exceeded_kw`: *"No hay opciones de almacenamiento disponibles
+para este tamaño de sistema. Selecciona el tipo de servicio eléctrico
+para ver más opciones."*
+
+When positions have **mixed** error codes, show the generic message
+— but replace "coordinador" with something accurate (product to pick).
+
+**Practical trigger:** Large Primaria accounts (~235+ kWp) where
+`serviceType` is `no_se`. Mostly resolved once the service-type
+selector is wired more visibly and reps pick `trifasico_480` for
+large commercial accounts — but the messaging should still be honest
+in the fallback case.
+
+**Files:** `src/EstimateScreen.jsx` — the `allBatteryErrored` block
+and `batteryErrorMessage` mapping.
+
+---
+
+## 10. Add static analysis to catch unresolved identifiers pre-deploy
+**Background:** Step 3's `normalizeLumaTariff` `ReferenceError` (a
+missing named import in `src/EstimateScreen.jsx`) passed all unit
+tests and `node build.js` cleanly but exploded at browser runtime.
+esbuild does not check for unresolved identifiers, and `node:test`
+never imports the JSX component files — so the bug couldn't have
+been caught by either of our existing pre-deploy steps.
+
+**Desired:** lightweight static analysis on the build path. Options
+in increasing order of effort:
+
+1. **esbuild metafile** check that flags any import resolving to an
+   unbundled symbol. Cheapest — adds maybe 30 lines to `build.js`.
+2. **ESLint** with the `no-undef` rule scoped to `src/`. No TypeScript
+   needed; one `.eslintrc` + a `lint` step in the build script.
+3. **`tsc --noEmit --allowJs --checkJs`**. Catches the most but
+   adds TypeScript-as-a-tool to the toolchain.
+
+Any of the three would have caught the Step 3 bug. Recommend wiring
+into `patch_and_build.sh` so the existing "node build.js" step also
+fails on unresolved identifiers, or as a pre-push git hook.
+
+**Files:** `patch_and_build.sh`, possibly new `.eslintrc` or
+`tsconfig.json`.
+
+---
+
+## 11. ~~EstimateScreen — slider card height jumps as messages appear / disappear~~ — resolved 2026-05-27
+Closed by the layout-stability pass. The slider card now has a fixed
+`minHeight: 180` and the below-slider message area is wrapped in a
+reserved-space container (`S.messageArea`, `minHeight: 60`) with a
+single-slot priority cascade. Moving the slider between positions
+with different status messages (loading → cap_applied → per-position
+error → no_se warning) no longer shifts layout.
+
+**Resolved in:** `src/EstimateScreen.jsx`.
+
+---
+
+## 12. ~~Financing card appears / disappears based on `totalCost >= 60000`~~ — resolved 2026-05-27
+Closed by the layout-stability pass. The financing card is now always
+rendered. When `totalCost >= FINANCING_THRESHOLD` it shows the
+breakdown (Pronto pago / Pago mensual / Ahorro mensual neto). When
+the total falls below threshold, an ineligibility paragraph renders
+in the same card with a `minHeight: 130` reservation so the card
+height stays roughly constant either way. The `batteryError`-gating
+on the financing card was also removed — financing is independent of
+battery state per Rule 6 of the layout-stability prompt.
+
+`FINANCING_THRESHOLD = 60000` is now a module-level constant in
+`src/EstimateScreen.jsx`, ready for the multi-factor eligibility
+work in item 14.
+
+---
+
+## 13. ~~Stale slider subtitle copy "Decide cuánto quieres ahorrarte en tu factura de LUMA"~~ — resolved 2026-05-27
+Closed by the layout-stability pass. Subtitle replaced with the
+accurate copy: *"Selecciona las horas de respaldo deseadas"* — the
+slider controls battery hours, not savings.
+
+**Resolved in:** `src/EstimateScreen.jsx`.
+
+---
+
+## 14. Financing eligibility — extend from single threshold to multi-factor rule
+**Current:** `FINANCING_THRESHOLD = 60000` is a single dollar threshold.
+Systems at or above $60k get the financing breakdown; below show an
+ineligibility message.
+
+**Future:** financing eligibility may depend on additional factors —
+system type (solar-only vs solar+battery), tariff class (e.g. only
+Primaria / Transmisión qualify), customer profile (commercial vs
+residential), credit screen, etc. The Wizard would benefit from
+treating eligibility as a function rather than a single comparison.
+
+Implementation sketch when needed:
+```js
+const isFinancingEligible = ({ totalCost, tariff, customerType, ... }) => {
+  if (totalCost < FINANCING_THRESHOLD) return false;
+  // … additional rules …
+  return true;
+};
+```
+
+Keep the constant and the eligibility check colocated and easy to
+extend. The threshold itself may eventually move to
+`config/pricing.json` alongside `dcAcRatio` / `demandMultiplier`.
+
+**Files:** `src/EstimateScreen.jsx` (FINANCING_THRESHOLD + the
+financing-card ternary).

@@ -160,6 +160,14 @@ const calcEstimate = async (consumoMensual, roofSqft, municipio, billData, annua
 const SLIDER_HOURS              = [0, 4, 8, 12, 16, 24];
 const BATTERY_HOURS_TO_PREFETCH = [4, 8, 12, 16, 24];
 
+// Dollar threshold above which the wizard offers a financing breakdown.
+// Below this, the financing card shows an ineligibility message but
+// still renders so the EstimateScreen layout doesn't jump when the
+// total moves across the boundary (e.g. when the rep changes the
+// battery slider). Single hardcoded threshold today — backlog item 14
+// flags that this may grow into a multi-factor eligibility rule later.
+const FINANCING_THRESHOLD = 60000;
+
 // Build a human-readable product name from the sanitized BOM.
 // Upstream field name is `quantity` (not `qty`). For Tesla Powerwall the
 // inverter and battery are the same unit and bom.batteries is empty —
@@ -355,6 +363,44 @@ const S = {
     borderRadius: "16px",
     padding: "10px 20px 14px",
     marginBottom: "12px",
+    // Reserves enough vertical space for the tallest state of the
+    // slider card: header label + slider + ticks + a two-line message
+    // (e.g. cap_applied banner). Without this, the card grows/shrinks
+    // when the message area below the slider changes content.
+    minHeight: 180,
+  },
+  // Reserved-space container for the below-slider messages (loading,
+  // all-errored, per-position error, cap_applied, no_se warning). Holds
+  // ≥ 60px so sliding between positions with different messages doesn't
+  // cause the card height (and everything below it) to shift.
+  messageArea: {
+    minHeight: 60,
+    display: "flex",
+    flexDirection: "column",
+    justifyContent: "center",
+    alignItems: "center",
+    textAlign: "center",
+    gap: "4px",
+    marginTop: "8px",
+  },
+  // The financing card always renders; this style covers the
+  // ineligibility message branch so the card height stays roughly
+  // constant whether the system qualifies for financing or not.
+  financingUnavailable: {
+    fontSize: "14px",
+    color: "#6b7280",
+    fontStyle: "italic",
+    lineHeight: 1.5,
+    padding: "12px 0",
+    margin: 0,
+    textAlign: "center",
+  },
+  financingCard: {
+    backgroundColor: "#ffffff",
+    borderRadius: "16px",
+    padding: "16px 20px",
+    marginBottom: "12px",
+    minHeight: 130,    // accommodates either 3 breakdown rows or the ineligibility paragraph
   },
   sliderLabel: { fontSize: "14px", fontWeight: "600", color: "#374151", marginBottom: "8px" },
   sliderValue: { fontSize: "22px", fontWeight: "800", color: "#1B3F8B", textAlign: "center", marginBottom: "10px" },
@@ -634,34 +680,48 @@ function EstimateScreenInner({ ocrData, sqft, batteryHours, setBatteryHours, fet
           <div style={S.highlightValue}>{fmtUSD(est.savingsCash)}</div>
         </div>
 
-        {/* Investment. When the current battery position has an error
-            (e.g. capacity_exceeded_kwh on 16h / 24h), show "—" rather
-            than the misleading solar-only total — the rep selected that
-            backup level but it isn't available, so the price for THIS
-            configuration is unknown. The slider stays movable so the
-            rep can pick a different position. */}
+        {/* Investment — three rows, all always rendered. The
+            Almacenamiento row breaks out the battery contribution so
+            the total ("Precio de contado") math is transparent:
+            solar + storage = total. When no battery is selected or the
+            current position errored, Almacenamiento shows "—" and
+            Precio de contado naturally falls back to solar-only
+            (because totalCost adds 0 to est.systemCost). */}
         <div style={S.card}>
           <div style={S.row}>
-            <span style={S.rowLabel}>Precio de contado:</span>
+            <span style={S.rowLabel}>Almacenamiento:</span>
             <span style={S.rowValue}>
-              {batteryError && localBatteryHours > 0 ? "—" : fmtUSD(totalCost)}
+              {localBatteryHours === 0
+                ? "—"
+                : batteryError
+                  ? "—"
+                  : validBatteryResult
+                    ? fmtUSD(validBatteryResult.total_price)
+                    : "—"}
             </span>
+          </div>
+          <div style={S.row}>
+            <span style={S.rowLabel}>Precio de contado:</span>
+            <span style={S.rowValue}>{fmtUSD(totalCost)}</span>
           </div>
           <div style={S.rowLast}>
             <span style={S.rowLabel}>Recuperas la inversión en:</span>
-            <span style={S.rowValue}>
-              {batteryError && localBatteryHours > 0 ? "—" : `${paybackYears} años`}
-            </span>
+            <span style={S.rowValue}>{paybackYears} años</span>
           </div>
         </div>
 
-        {/* Financing — hidden when the current battery position errored,
-            so we don't render a solar-only monthly payment while the
-            "Precio de contado" row above shows "—". */}
-        {totalCost >= 60000 && !(batteryError && localBatteryHours > 0) ? (
-          <>
-            <div style={S.sliderValue}>¿Prefieres financiar?</div>
-            <div style={S.card}>
+        {/* Financing — always rendered. When the total qualifies, shows
+            the breakdown rows. Otherwise shows an ineligibility message
+            at the same approximate height (minHeight on financingCard
+            holds the slot whether content is the 3-row breakdown or the
+            single paragraph). Independent of battery state per Rule 6
+            of the layout-stability prompt — if the rep is on an errored
+            battery position, totalCost reflects the solar-only fallback
+            and financing displays consistently with that. */}
+        <div style={S.sliderValue}>¿Prefieres financiar?</div>
+        <div style={S.financingCard}>
+          {totalCost >= FINANCING_THRESHOLD ? (
+            <>
               <div style={S.row}>
                 <span style={S.rowLabel}>Pronto pago:</span>
                 <span style={S.rowValue}>$0</span>
@@ -674,9 +734,15 @@ function EstimateScreenInner({ ocrData, sqft, batteryHours, setBatteryHours, fet
                 <span style={S.rowBoldLabel}>Ahorro mensual neto:</span>
                 <span style={S.rowBoldValue}>{fmtUSD(totalSavingsNet)}</span>
               </div>
-            </div>
-          </>
-        ) : null}
+            </>
+          ) : (
+            <p style={S.financingUnavailable}>
+              En estos momentos no contamos con una opción de
+              financiamiento para este tipo de sistemas. Consulta con
+              tu institución bancaria.
+            </p>
+          )}
+        </div>
 
         {/* Battery fine-tune slider */}
         <style>{`
@@ -688,7 +754,7 @@ function EstimateScreenInner({ ocrData, sqft, batteryHours, setBatteryHours, fet
         `}</style>
         <div style={S.sliderValue}>Ajusta el nivel de respaldo</div>
         <div style={{ fontSize: "14px", color: "#374151", textAlign: "center", marginBottom: "10px", marginTop: "-6px" }}>
-          Decide cuánto quieres ahorrarte en tu factura de LUMA
+          Selecciona las horas de respaldo deseadas
         </div>
         <div style={S.sliderCard}>
           <div style={S.sliderValue}>
@@ -710,32 +776,42 @@ function EstimateScreenInner({ ocrData, sqft, batteryHours, setBatteryHours, fet
               <span key={h}>{h === 0 ? "0" : `${h}h`}</span>
             ))}
           </div>
-          {batteryCacheLoading && (
-            <div style={{ fontSize: "12px", color: "#6b7280", textAlign: "center", marginTop: "8px" }}>
-              Calculando opciones de respaldo…
-            </div>
-          )}
-          {allBatteryErrored && (
-            <div style={{ fontSize: "12px", color: "#dc2626", textAlign: "center", marginTop: "8px" }}>
-              Estimado de baterías no disponible. Contacte a su coordinador.
-            </div>
-          )}
-          {!batteryCacheLoading && !allBatteryErrored && batteryError && (
-            <div style={{ fontSize: "12px", color: "#dc2626", textAlign: "center", marginTop: "8px" }}>
-              {batteryErrorMessage(batteryError)}
-            </div>
-          )}
-          {validBatteryResult?.cap_applied && (
-            <div style={{ fontSize: "12px", color: "#1B3F8B", textAlign: "center", marginTop: "8px" }}>
-              El sistema de baterías fue ajustado por los límites de su tarifa LUMA.
-              Respaldo estimado: {validBatteryResult.actual_backup_hours} horas.
-            </div>
-          )}
-          {ocrData?.serviceType === 'no_se' && localBatteryHours > 0 && validBatteryResult && (
-            <div style={{ fontSize: "12px", color: "#6b7280", textAlign: "center", marginTop: "8px", fontStyle: "italic" }}>
-              Estimado basado en servicio bifásico 240V. Verifica el tipo de servicio para mayor precisión.
-            </div>
-          )}
+          {/* Reserved-space message area. Single slot, priority cascade:
+                1) batteryCacheLoading
+                2) allBatteryErrored
+                3) per-position batteryError
+                4) cap_applied + no_se warnings (can stack when valid result)
+              The minHeight on S.messageArea ensures the card doesn't
+              shift when the message changes. */}
+          <div style={S.messageArea}>
+            {batteryCacheLoading ? (
+              <span style={{ fontSize: "12px", color: "#6b7280" }}>
+                Calculando opciones de respaldo…
+              </span>
+            ) : allBatteryErrored ? (
+              <span style={{ fontSize: "12px", color: "#dc2626" }}>
+                Estimado de baterías no disponible. Contacte a su consultor.
+              </span>
+            ) : batteryError && localBatteryHours > 0 ? (
+              <span style={{ fontSize: "12px", color: "#dc2626" }}>
+                {batteryErrorMessage(batteryError)}
+              </span>
+            ) : (
+              <>
+                {validBatteryResult?.cap_applied && (
+                  <span style={{ fontSize: "12px", color: "#1B3F8B" }}>
+                    El sistema de baterías fue ajustado por los límites de su tarifa LUMA.
+                    Respaldo estimado: {validBatteryResult.actual_backup_hours} horas.
+                  </span>
+                )}
+                {ocrData?.serviceType === 'no_se' && localBatteryHours > 0 && validBatteryResult && (
+                  <span style={{ fontSize: "12px", color: "#6b7280", fontStyle: "italic" }}>
+                    Estimado basado en servicio bifásico 240V. Verifica el tipo de servicio para mayor precisión.
+                  </span>
+                )}
+              </>
+            )}
+          </div>
         </div>
 
         <button style={S.btnOrange} onClick={() => onInterested(est, validBatteryResult)}>
