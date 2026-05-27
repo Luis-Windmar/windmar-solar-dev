@@ -161,13 +161,15 @@ const SLIDER_HOURS              = [0, 4, 8, 12, 16, 24];
 const BATTERY_HOURS_TO_PREFETCH = [4, 8, 12, 16, 24];
 
 // Build a human-readable product name from the sanitized BOM.
+// Upstream field name is `quantity` (not `qty`). For Tesla Powerwall the
+// inverter and battery are the same unit and bom.batteries is empty —
+// inverter.model alone is the right primary identifier. quantity is
+// null-safe so a missing value renders without "×undefined".
 const buildBatteryProductName = (batteryResult) => {
-  const inv     = batteryResult?.bom?.inverter;
-  const firstBt = batteryResult?.bom?.batteries?.[0];
-  if (inv?.model && firstBt?.model) {
-    return `${inv.model} ×${inv.qty} / ${batteryResult.system_kwh} kWh`;
-  }
-  return `Sistema ${batteryResult?.system_kwh ?? "?"} kWh`;
+  const inv = batteryResult?.bom?.inverter;
+  if (!inv?.model) return `Sistema ${batteryResult?.system_kwh ?? "?"} kWh`;
+  const qty = inv.quantity;
+  return `${inv.model}${qty ? ` ×${qty}` : ''} / ${batteryResult.system_kwh} kWh`;
 };
 
 // Spanish copy for each /api/v1/battery-sizing 422 error code.

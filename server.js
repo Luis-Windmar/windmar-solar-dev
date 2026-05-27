@@ -268,35 +268,59 @@ app.get('/api/area-to-system', async (req, res) => {
 // migration plan §6). On network failure, return 502.
 function sanitizeBOM(bom) {
   if (!bom) return null;
+
+  // Upstream shape (verified 2026-05-27 via direct curl against Tool Belt):
+  //
+  //   {
+  //     dc_ac_ratio: number,
+  //     system_kwac: number,
+  //     inverter:    { model, quantity, unit_cost, unit_price, line_total },
+  //     batteries:   [] | { model, quantity, total_kwh, ... } | [...],
+  //     accessories: [{ name, quantity, unit_cost, unit_price, line_total }, ...],
+  //     shipping:     { unit_cost, unit_price, line_total },
+  //     installation: { unit_cost, unit_price, line_total },
+  //     gm_pct_applied:     number,    // internal — strip
+  //     multiplier_applied: number,    // internal — strip
+  //   }
+  //
+  // Notes:
+  //  - There is NO bom.head wrapper. The Step 3 whitelist that referenced
+  //    bom.head.system_kw / .system_kwac / .voltage / .phases produced an
+  //    empty object — drop the wrapper and expose the real fields at the
+  //    bom root.
+  //  - Inverter field is called `quantity`, not `qty` (Step 3 whitelist
+  //    used the wrong name and silently dropped it).
+  //  - bom.batteries can be an empty array (Tesla Powerwall — battery is
+  //    part of the inverter), a single object (Sol-Ark catalog), or a
+  //    proper array. Normalize to array for consistent client handling.
+  //
+  // Fields stripped (internal pricing, never forwarded to client):
+  // bom.gm_pct_applied, bom.multiplier_applied, and unit_cost / unit_price
+  // at every layer (inverter, batteries, accessories, shipping, installation).
+
+  const batteryItems = Array.isArray(bom.batteries)
+    ? bom.batteries
+    : bom.batteries ? [bom.batteries] : [];
+
   return {
-    head: {
-      system_kw:     bom.head?.system_kw,
-      system_kwac:   bom.head?.system_kwac,
-      battery_hours: bom.head?.battery_hours,
-      voltage:       bom.head?.voltage,
-      phases:        bom.head?.phases,
-    },
+    dc_ac_ratio: bom.dc_ac_ratio,
+    system_kwac: bom.system_kwac,
     inverter: {
       model:      bom.inverter?.model,
-      qty:        bom.inverter?.qty,
+      quantity:   bom.inverter?.quantity,
       line_total: bom.inverter?.line_total,
     },
-    batteries: (bom.batteries || []).map((b) => ({
+    batteries: batteryItems.map((b) => ({
       model:      b.model,
-      qty:        b.qty,
+      quantity:   b.quantity,
+      total_kwh:  b.total_kwh,
       line_total: b.line_total,
     })),
     accessories: (bom.accessories || []).map((a) => ({
       name:       a.name,
-      qty:        a.qty,
+      quantity:   a.quantity,
       line_total: a.line_total,
     })),
-    // shipping and installation arrive from the Tool Belt as objects
-    // with { unit_cost, unit_price, line_total }. Collapse to line_total
-    // only — the per-unit cost/price fields are internal pricing and must
-    // not reach the client. Values may legitimately be 0 in some catalog
-    // entries; the sanitization contract requires stripping the keys
-    // unconditionally regardless of value.
     shipping:     { line_total: bom.shipping?.line_total     ?? 0 },
     installation: { line_total: bom.installation?.line_total ?? 0 },
   };

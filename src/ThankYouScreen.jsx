@@ -133,10 +133,10 @@ export default function ThankYouScreen({ interested, generateLead = true, contac
             // actual_backup_hours, cap_applied, ... } from Tool Belt
             // /api/v1/battery-sizing. Build the product name from the
             // sanitized BOM to match the Lead_Notes string contract.
-            const inv     = batteryResult?.bom?.inverter;
-            const firstBt = batteryResult?.bom?.batteries?.[0];
-            const productName = (inv?.model && firstBt?.model)
-              ? `${inv.model} ×${inv.qty} / ${batteryResult.system_kwh} kWh`
+            // Mirrors buildBatteryProductName in EstimateScreen.jsx.
+            const inv = batteryResult?.bom?.inverter;
+            const productName = inv?.model
+              ? `${inv.model}${inv.quantity ? ` ×${inv.quantity}` : ''} / ${batteryResult.system_kwh} kWh`
               : `Sistema ${batteryResult.system_kwh ?? "?"} kWh`;
             const hours = batteryResult.actual_backup_hours;
             const price = batteryResult.total_price;
@@ -156,11 +156,15 @@ export default function ThankYouScreen({ interested, generateLead = true, contac
           avgConsumption: parseNum(ocrData?.consumoKWH),
           systemKwp:      estData?.systemKwp,
           batteryHours:   batteryHours  || 0,
-          // Step 3: field names renamed to match the Tool Belt
-          // /api/v1/battery-sizing response shape.
-          batteryKWH:     batteryResult?.system_kwh           || null,
-          batteryKW:      batteryResult?.bom?.head?.system_kw || null,
-          batteryPrice:   batteryResult?.total_price          || null,
+          // Step 3 + BOM-fixes 2026-05-27: field names match the Tool Belt
+          // /api/v1/battery-sizing response shape. Upstream has no bom.head;
+          // the AC inverter nameplate lives at bom.system_kwac. Note that
+          // leadData.batteryKW has no Zoho field consumer in server.js yet
+          // (createZohoLead doesn't read it). Populated here so future Zoho
+          // field additions can pick it up.
+          batteryKWH:     batteryResult?.system_kwh   || null,
+          batteryKW:      batteryResult?.bom?.system_kwac || null,
+          batteryPrice:   batteryResult?.total_price  || null,
           totalPrice:     (estData?.systemCost || 0) + (batteryResult?.total_price || 0),
           notes,
         };
