@@ -438,10 +438,35 @@ function EstimateScreenInner({ ocrData, sqft, batteryHours, setBatteryHours, fet
   // /api/price). Wrap in a useEffect that re-runs only when inputs change;
   // the slider's batteryHours is intentionally NOT in the dep list, so
   // sliding does not refetch pricing.
-  const [est, setEst] = useState(null);
+  const [est, setEst]                                 = useState(null);
+  const [batteryCache, setBatteryCache]               = useState({});
+  const [batteryCacheLoading, setBatteryCacheLoading] = useState(true);
+  const [batteryResult, setBatteryResult]             = useState(null);
+  const localBatteryHours = batteryHours ?? 0;
+
+  // Single useEffect that:
+  //   1. Runs calcEstimate (async — fetches /api/price)
+  //   2. After setEst(result), batch-precomputes the 5 non-zero battery
+  //      slider positions in parallel using result.systemKwp (the local
+  //      variable, NOT est state — which may be re-set if a downstream
+  //      input changes and triggers a re-run of this effect).
+  //
+  // The battery batch used to live in its own useEffect with `est` as a
+  // dep. That fired twice on initial mount because /api/area-to-system
+  // arrived after the first calcEstimate run, triggered a second run
+  // (new est ref with updated systemKwp), and the standalone battery
+  // useEffect refired. By inlining the batch here and reading from
+  // `result.systemKwp` directly, each input change produces exactly one
+  // battery batch, regardless of how many re-renders the est setter causes.
+  //
+  // All hooks below the cleanup return live above the `if (!est) return …`
+  // loading gate so React's hooks-order invariant holds.
   useEffect(() => {
     if (!sqft || !consumoMensual) return;
+
     let cancelled = false;
+    const controller = new AbortController();
+
     (async () => {
       const result = await calcEstimate(consumoMensual, sqft, municipio, {
         cargo_cliente: cargoCliente,
@@ -453,34 +478,15 @@ function EstimateScreenInner({ ocrData, sqft, batteryHours, setBatteryHours, fet
         demanda_kva:   demandaKVA,
         exceso_kva:    excesoKVA,
       }, liveYield, liveMaxKwp);
-      if (!cancelled) setEst(result);
-    })();
-    return () => { cancelled = true; };
-    // eslint-disable-next-line
-  }, [consumoMensual, sqft, municipio, cargoCliente, cargoDemanda, excesoUSD, costoKWH, tariff, demandaKVA, excesoKVA, liveYield, liveMaxKwp]);
+      if (cancelled) return;
+      setEst(result);
 
-  // Battery — sized via Tool Belt /api/v1/battery-sizing. Two useEffects
-  // below: (1) batch-precompute the 5 non-zero slider positions in parallel
-  // when `est` resolves, and (2) sync `batteryResult` from the cache when
-  // the slider moves. Slider changes do NOT retrigger the batch (it
-  // depends on `est`, not `batteryHours`).
-  //
-  // NOTE: every hook declaration must run on every render — they live
-  // above any conditional early-return (`if (!est) return …` below) so
-  // React's hooks-order invariant holds across all render states.
-  const localBatteryHours = batteryHours ?? 0;
-  const [batteryCache, setBatteryCache]               = useState({});
-  const [batteryCacheLoading, setBatteryCacheLoading] = useState(true);
-  const [batteryResult, setBatteryResult]             = useState(null);
+      // ── Battery batch — kicks off only after the just-computed estimate
+      //    is stable. Uses result.systemKwp directly to avoid the previous
+      //    double-batch bug.
+      setBatteryCacheLoading(true);
+      const timeoutId = setTimeout(() => controller.abort(), 8000);
 
-  useEffect(() => {
-    if (!est) return;
-    let cancelled = false;
-    const controller = new AbortController();
-    const timeoutId  = setTimeout(() => controller.abort(), 8000);
-    setBatteryCacheLoading(true);
-
-    (async () => {
       const { voltage, phases } = resolveVoltagePhases(ocrData?.serviceType ?? 'no_se');
       const normalizedTariff    = normalizeLumaTariff(ocrData?.tariff) ?? undefined;
       const demandKva           = ocrData?.carga_contratada_kva ?? undefined;
@@ -492,7 +498,7 @@ function EstimateScreenInner({ ocrData, sqft, batteryHours, setBatteryHours, fet
               method:  'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
-                system_kw:              est.systemKwp,
+                system_kw:              result.systemKwp,
                 annual_consumption_kwh: consumoMensual * 12,
                 battery_hours:          hours,
                 voltage,
@@ -519,11 +525,10 @@ function EstimateScreenInner({ ocrData, sqft, batteryHours, setBatteryHours, fet
 
     return () => {
       cancelled = true;
-      clearTimeout(timeoutId);
       controller.abort();
     };
     // eslint-disable-next-line
-  }, [est, ocrData?.serviceType, ocrData?.tariff, ocrData?.carga_contratada_kva, consumoMensual]);
+  }, [consumoMensual, sqft, municipio, cargoCliente, cargoDemanda, excesoUSD, costoKWH, tariff, demandaKVA, excesoKVA, liveYield, liveMaxKwp, ocrData?.serviceType, ocrData?.carga_contratada_kva]);
 
   // Sync batteryResult from cache whenever the slider moves or the cache
   // refreshes. No network here — pure derivation.
@@ -609,7 +614,11 @@ function EstimateScreenInner({ ocrData, sqft, batteryHours, setBatteryHours, fet
           <div style={S.rowLast}>
             <span style={S.rowLabel}>Respaldo estimado:</span>
             <span style={S.rowValue}>
-              {validBatteryResult ? `${validBatteryResult.actual_backup_hours} horas` : "0 horas"}
+              {batteryError && localBatteryHours > 0
+                ? "—"
+                : validBatteryResult
+                  ? `${validBatteryResult.actual_backup_hours} horas`
+                  : "0 horas"}
             </span>
           </div>
         </div>
@@ -623,20 +632,31 @@ function EstimateScreenInner({ ocrData, sqft, batteryHours, setBatteryHours, fet
           <div style={S.highlightValue}>{fmtUSD(est.savingsCash)}</div>
         </div>
 
-        {/* Investment */}
+        {/* Investment. When the current battery position has an error
+            (e.g. capacity_exceeded_kwh on 16h / 24h), show "—" rather
+            than the misleading solar-only total — the rep selected that
+            backup level but it isn't available, so the price for THIS
+            configuration is unknown. The slider stays movable so the
+            rep can pick a different position. */}
         <div style={S.card}>
           <div style={S.row}>
             <span style={S.rowLabel}>Precio de contado:</span>
-            <span style={S.rowValue}>{fmtUSD(totalCost)}</span>
+            <span style={S.rowValue}>
+              {batteryError && localBatteryHours > 0 ? "—" : fmtUSD(totalCost)}
+            </span>
           </div>
           <div style={S.rowLast}>
             <span style={S.rowLabel}>Recuperas la inversión en:</span>
-            <span style={S.rowValue}>{paybackYears} años</span>
+            <span style={S.rowValue}>
+              {batteryError && localBatteryHours > 0 ? "—" : `${paybackYears} años`}
+            </span>
           </div>
         </div>
 
-        {/* Financing */}
-        {totalCost >= 60000 ? (
+        {/* Financing — hidden when the current battery position errored,
+            so we don't render a solar-only monthly payment while the
+            "Precio de contado" row above shows "—". */}
+        {totalCost >= 60000 && !(batteryError && localBatteryHours > 0) ? (
           <>
             <div style={S.sliderValue}>¿Prefieres financiar?</div>
             <div style={S.card}>

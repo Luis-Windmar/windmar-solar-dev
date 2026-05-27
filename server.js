@@ -291,8 +291,14 @@ function sanitizeBOM(bom) {
       qty:        a.qty,
       line_total: a.line_total,
     })),
-    shipping:     bom.shipping,
-    installation: bom.installation,
+    // shipping and installation arrive from the Tool Belt as objects
+    // with { unit_cost, unit_price, line_total }. Collapse to line_total
+    // only — the per-unit cost/price fields are internal pricing and must
+    // not reach the client. Values may legitimately be 0 in some catalog
+    // entries; the sanitization contract requires stripping the keys
+    // unconditionally regardless of value.
+    shipping:     { line_total: bom.shipping?.line_total     ?? 0 },
+    installation: { line_total: bom.installation?.line_total ?? 0 },
   };
 }
 

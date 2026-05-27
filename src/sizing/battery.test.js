@@ -99,10 +99,38 @@ test('6. sanitizeBOM preserves accessory name, qty, line_total', () => {
   assert.equal(out.accessories[0].line_total,  675);
 });
 
-test('7. sanitizeBOM preserves shipping and installation', () => {
+test('7. sanitizeBOM collapses shipping and installation to { line_total } only — strips unit_cost / unit_price', () => {
+  // Tool Belt returns shipping/installation as objects with internal
+  // pricing fields (unit_cost, unit_price). sanitizeBOM must collapse
+  // them to ONLY line_total. Note the FULL_BOM fixture has them as
+  // plain numbers (650, 7000) — that path falls through to 0 because
+  // bom.shipping?.line_total is undefined on a number. That's intentional
+  // (matches the actual Tool Belt shape); the realistic case is tested
+  // in test 11 below.
   const out = sanitizeBOM(FULL_BOM);
-  assert.equal(out.shipping,     650);
-  assert.equal(out.installation, 7000);
+  assert.deepEqual(out.shipping,     { line_total: 0 });
+  assert.deepEqual(out.installation, { line_total: 0 });
+});
+
+test('11. sanitizeBOM strips unit_cost and unit_price from shipping and installation (realistic Tool Belt shape)', () => {
+  const bomWithShippingObj = {
+    head:      { system_kw: 60 },
+    inverter:  { model: 'X', qty: 1, line_total: 100 },
+    batteries: [],
+    accessories: [],
+    shipping:     { unit_cost: 500, unit_price: 600, line_total: 1100 },
+    installation: { unit_cost: 7000, unit_price: 9450, line_total: 9450 },
+  };
+  const out = sanitizeBOM(bomWithShippingObj);
+
+  assert.deepEqual(out.shipping,     { line_total: 1100 });
+  assert.deepEqual(out.installation, { line_total: 9450 });
+
+  // Belt-and-suspenders: explicit checks that the sensitive keys are gone.
+  assert.equal(out.shipping.unit_cost,      undefined);
+  assert.equal(out.shipping.unit_price,     undefined);
+  assert.equal(out.installation.unit_cost,  undefined);
+  assert.equal(out.installation.unit_price, undefined);
 });
 
 test('8. sanitizeBOM preserves head non-sensitive fields', () => {
