@@ -404,8 +404,8 @@ export default function WelcomeScreen() {
         >
           <option value="">— Selecciona una opción —</option>
           <option value="si">Sí, tengo mi factura de LUMA</option>
-          <option value="no">No, en otro momento</option>
           <option value="offgrid">Quiero un sistema autónomo</option>
+          <option value="no">No, en otro momento</option>
         </select>
 
         <button
