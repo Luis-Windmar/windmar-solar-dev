@@ -437,13 +437,13 @@ const S = {
     padding: "8px 0",
   },
   // Buttons
-  btnOrange: {
+  btnNavy: {
     width: "100%",
     padding: "16px",
     fontSize: "18px",
     fontWeight: "600",
     color: "#ffffff",
-    backgroundColor: "#F5A623",
+    backgroundColor: "#1B3F8B",
     border: "none",
     borderRadius: "10px",
     cursor: "pointer",
@@ -861,7 +861,7 @@ function EstimateScreenInner({ ocrData, sqft, batteryHours, setBatteryHours, fet
           </div>
         </div>
 
-        <button style={S.btnOrange} onClick={() => onInterested(est, validBatteryResult)}>
+        <button style={S.btnNavy} onClick={() => onInterested(est, validBatteryResult)}>
           Sí me interesa
         </button>
         <button style={S.btnGray} onClick={onNotInterested}>

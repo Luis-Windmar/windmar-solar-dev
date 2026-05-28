@@ -70,13 +70,13 @@ const S = {
   inputFocus: {
     borderColor: "#1B3F8B",
   },
-  btnOrange: {
+  btnNavy: {
     width: "100%",
     padding: "16px",
     fontSize: "18px",
     fontWeight: "600",
     color: "#ffffff",
-    backgroundColor: "#F5A623",
+    backgroundColor: "#1B3F8B",
     border: "none",
     borderRadius: "10px",
     cursor: "pointer",
@@ -85,7 +85,7 @@ const S = {
     opacity: 1,
     transition: "opacity 0.15s",
   },
-  btnOrangeDisabled: {
+  btnNavyDisabled: {
     opacity: 0.4,
     cursor: "not-allowed",
   },
@@ -294,7 +294,7 @@ export default function OffGridScreen({ onBack, onDone }) {
         {error && <div style={S.errorMsg}>{error}</div>}
 
         <button
-          style={{ ...S.btnOrange, ...(canSubmit && !loading ? {} : S.btnOrangeDisabled) }}
+          style={{ ...S.btnNavy, ...(canSubmit && !loading ? {} : S.btnNavyDisabled) }}
           disabled={!canSubmit || loading}
           onClick={handleSubmit}
         >

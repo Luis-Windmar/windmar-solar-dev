@@ -42,23 +42,18 @@ const S = {
   iconWrapGray: { backgroundColor: "#f3f4f6" },
   h1: { fontSize: "26px", fontWeight: "700", color: "#1B3F8B", marginBottom: "12px", marginTop: 0 },
   sub: { fontSize: "16px", color: "#374151", lineHeight: "1.6", marginBottom: "28px", marginTop: 0 },
-  btnOrange: {
-    width: "100%", padding: "16px", fontSize: "18px", fontWeight: "600",
-    color: "#ffffff", backgroundColor: "#F5A623", border: "none", borderRadius: "10px",
-    cursor: "pointer", marginBottom: "12px", display: "block",
-    textDecoration: "none", textAlign: "center", boxSizing: "border-box",
-  },
-  btnOrangeDisabled: {
-    width: "100%", padding: "16px", fontSize: "18px", fontWeight: "600",
-    color: "#ffffff", backgroundColor: "#d1d5db", border: "none", borderRadius: "10px",
-    cursor: "not-allowed", marginBottom: "12px", display: "block",
-    textAlign: "center", boxSizing: "border-box",
-  },
   btnNavy: {
     width: "100%", padding: "16px", fontSize: "18px", fontWeight: "600",
     color: "#ffffff", backgroundColor: "#1B3F8B", border: "none", borderRadius: "10px",
     cursor: "pointer", marginBottom: "12px", display: "block",
     textDecoration: "none", textAlign: "center", boxSizing: "border-box",
+  },
+  btnNavyDisabled: {
+    width: "100%", padding: "16px", fontSize: "18px", fontWeight: "600",
+    color: "#ffffff", backgroundColor: "#1B3F8B", border: "none", borderRadius: "10px",
+    cursor: "not-allowed", marginBottom: "12px", display: "block",
+    textAlign: "center", boxSizing: "border-box",
+    opacity: 0.4,
   },
   btnGhost: {
     width: "100%", padding: "14px", fontSize: "16px", color: "#1B3F8B",
@@ -282,7 +277,7 @@ export default function ThankYouScreen({ interested, generateLead = true, offgri
             {!offgrid && (
               <>
                 <button
-                  style={!pdfReady ? S.btnOrangeDisabled : S.btnOrange}
+                  style={!pdfReady ? S.btnNavyDisabled : S.btnNavy}
                   onClick={handleDownload}
                   disabled={!pdfReady}
                 >
@@ -305,7 +300,7 @@ export default function ThankYouScreen({ interested, generateLead = true, offgri
 
             {/* 2. SmartSheet form */}
             <button
-              style={S.btnOrange}
+              style={S.btnNavy}
               onClick={() => window.open("https://app.smartsheet.com/b/form/9f6e441c850e439a9ea42a82e46b774e", "_blank")}
             >
               Completar cuestionario completo →

@@ -115,18 +115,19 @@ const styles = {
     marginBottom: "12px",
     display: "block",
   },
-  btnGray: {
+  btnPrimaryDisabled: {
     width: "100%",
     padding: "16px 24px",
     fontSize: "18px",
     fontWeight: "600",
     color: "#ffffff",
-    backgroundColor: "#6b7280",
+    backgroundColor: "#1B3F8B",
     border: "none",
     borderRadius: "10px",
-    cursor: "pointer",
+    cursor: "not-allowed",
     marginBottom: "12px",
     display: "block",
+    opacity: 0.4,
   },
   btnGhost: {
     width: "100%",
@@ -396,7 +397,7 @@ export default function WelcomeScreen() {
         </select>
 
         <button
-          style={selection ? styles.btnPrimary : styles.btnGray}
+          style={selection ? styles.btnPrimary : styles.btnPrimaryDisabled}
           onClick={handleContinue}
           disabled={!selection}
         >

@@ -212,13 +212,13 @@ const S = {
     minHeight: "72px",
     outline: "none",
   },
-  btnOrange: {
+  btnNavy: {
     width: "100%",
     padding: "16px",
     fontSize: "18px",
     fontWeight: "600",
     color: "#ffffff",
-    backgroundColor: "#F5A623",
+    backgroundColor: "#1B3F8B",
     border: "none",
     borderRadius: "10px",
     cursor: "pointer",
@@ -686,7 +686,7 @@ export default function UploadScreen({ onNext, onBack, resumeData }) {
           ))}
         </div>
 
-        <button style={S.btnOrange} onClick={() => onNext(fields, file)}>
+        <button style={S.btnNavy} onClick={() => onNext(fields, file)}>
           Todo bien. Listo
         </button>
         <button style={S.btnGhost} onClick={resetToIdle}>
