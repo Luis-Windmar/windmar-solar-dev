@@ -140,7 +140,7 @@ export default function ServiceTypeScreen({ onNext, onBack }) {
           disabled={!canContinue}
           onClick={() => onNext(selected)}
         >
-          Continuar →
+          Continuar
         </button>
         <button style={S.btnGhost} onClick={onBack}>
           Atrás
