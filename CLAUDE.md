@@ -1,6 +1,6 @@
 # Windmar Commercial — PreQual Solar Wizard
 ## Claude Code Project README
-## Last updated: 2026-05-27
+## Last updated: 2026-05-28
 ---
 # Project Context
 
@@ -39,11 +39,15 @@ Built in Spanish, Puerto Rico-specific (LUMA utility, 78 municipios, local solar
 │   ├── prequal_main.jsx             # React entry point
 │   ├── WelcomeScreen.jsx            # App root + all screen routing + pricing/solar fetches
 │   ├── UploadScreen.jsx             # Bill upload, OCR, review
-│   ├── RoofScreen.jsx               # Roof size selector
-│   ├── EstimateScreen.jsx           # System sizing, pricing, battery slider
-│   ├── ContactScreen.jsx            # Lead capture form
-│   ├── ThankYouScreen.jsx           # PDF download, Zoho confirmation, SmartSheet link
+│   ├── RoofScreen.jsx               # Roof size selector (step 3 of 6)
+│   ├── ServiceTypeScreen.jsx        # Voltage/phase selector (step 4 of 6) — 480V/3φ, 208V/3φ, 240V/2φ, "No estoy seguro"
+│   ├── EstimateScreen.jsx           # System sizing, pricing, battery slider (step 5 of 6)
+│   ├── ContactScreen.jsx            # Lead capture form (step 6 of 6)
+│   ├── ThankYouScreen.jsx           # PDF download, Zoho confirmation, SmartSheet link (also serves off-grid thank-you with offgrid={true})
+│   ├── OffGridScreen.jsx            # Side-path lead capture for autonomous-system prospects (not part of the 6-step wizard)
+│   ├── sizing/                      # Canonical sizing rules (caps, tariff, battery, tests)
 │   └── shared.jsx                   # Header, ProgressBar components
+├── eslint.config.js                 # Flat-config ESLint (no-undef only) — wired into patch_and_build.sh
 ├── public/                          # Built output + static assets served by Express
 │   ├── prequal.bundle.js            # Built React bundle
 │   ├── prequal.html                 # HTML shell with cache-busting ?v= query string
@@ -107,13 +111,23 @@ voltage/phases derivation, tariff normalization — live in `src/sizing/`
 `src/sizing/*.test.js` (35/35 passing).
 
 ### Step 4 Cleanup — 🔄 IN PROGRESS
-See `docs/backlog.md` for open items. Most recent closures (2026-05-27):
+See `docs/backlog.md` for open items. Recent closures:
+
+**2026-05-28:**
+- Item 10 — ESLint `no-undef` wired into `patch_and_build.sh` ahead of `node build.js`.
+- Item 15 — `ServiceTypeScreen` added; WelcomeScreen dropdown for service type removed.
+- Item 16 — `src/createZohoLead.js` and `src/parsing_function.js` deleted (dead snippet files); ESLint ignores trimmed.
+- Item 17 — exhaustive-deps suppression on `ThankYouScreen`'s mount-effect documented (case (a) intentional mount-only effect).
+- New off-grid lead capture feature (WelcomeScreen 3rd dropdown option → `OffGridScreen` → `POST /api/zoho-lead` → `<ThankYouScreen offgrid />`).
+- `server.js` `parseLeadNotes` + `condensedNotes` now pass `Tipo:` segment through to Zoho `Lead_Notes` (identifies off-grid leads).
+
+**2026-05-27:**
 - Item 4 — `/api/health` endpoint removed (no callers).
-- Item 5 — `@anthropic-ai/sdk` uninstalled; stale `ANTHROPIC_API_KEY`
-  reference removed from the startup banner.
-- Item 8 — this `CLAUDE.md` itself, currently being updated.
-- Items 11, 12, 13 — EstimateScreen layout-stability pass (slider card
-  height, financing card visibility, stale subtitle copy).
+- Item 5 — `@anthropic-ai/sdk` uninstalled; stale `ANTHROPIC_API_KEY` reference removed from the startup banner.
+- Item 8 — this `CLAUDE.md`.
+- Items 11, 12, 13 — EstimateScreen layout-stability pass.
+
+**Open items:** #3 (Zoho CRM field mapping audit), #14 (financing eligibility multi-factor extension).
 
 ---
 
@@ -185,39 +199,66 @@ const ProgressBar = ({ current, total, pct: overridePct }) => {
 
 ---
 
-## Wizard Flow — All Screens ✅ COMPLETE
+## Wizard Flow — All Screens ✅ COMPLETE (6 steps + off-grid side path)
 
-### Screen 1 — WelcomeScreen
-- Dropdown: Sí tengo la factura / No en otro momento
-- Sí → navy "Continuar →" → Screen 2
-- No → gray "Entendido →" → graceful exit card
-- Bottom teaser: 🔋 financing note
+All positive-action CTAs (Continuar, Todo bien. Listo, Sí me interesa, Descargar estimado, Completar cuestionario completo, etc.) use the **navy `#1B3F8B`** background with **navy + opacity 0.4** for the disabled state. Negative actions ("No por ahora") and ghost buttons ("Atrás", "Nueva consulta") retain their grey / ghost styling.
 
-### Screen 2 — UploadScreen
+### Screen 1 — WelcomeScreen (1/6)
+- Dropdown with 3 options:
+  - "Sí, tengo mi factura de LUMA" → Upload
+  - "Quiero un sistema autónomo" → OffGridScreen (side path)
+  - "No, en otro momento" → graceful exit card
+- Navy "Continuar" CTA (label flips to "Entendido" when "No" is selected)
+- Demo toggle (Generar lead SI/NO) — **TODO: remove before production**
+
+### Screen 2 — UploadScreen (2/6)
 - Large tap/drop zone for bill upload (image or PDF)
-- Animated OCR processing progress bar
-- Review stage: extracted fields shown as editable inputs
+- Animated OCR processing progress bar (orange)
+- Review stage: extracted fields shown as editable inputs (OCR review card)
 - Fields vary by tariff type (`FIELD_DEFS_DEMAND` vs `FIELD_DEFS_SECONDARY`)
-- Orange CTA: "Todo bien. Listo" → Screen 3
+- "Para mejores resultados..." tip card: factura reciente / buena luz / archivo <4MB
+- Navy CTA: "Todo bien. Listo" → Screen 3
 
-### Screen 3 — RoofScreen
+### Screen 3 — RoofScreen (3/6)
 - 4 tappable icon cards: Pequeño / Mediano / Grande / Industrial
 - Optional numeric override input
-- Sets `sqftValue` state
+- Sets `sqft` state → Screen 4
 
-### Screen 4 — EstimateScreen
-- Runs `calcEstimate()` using sqft + OCR data
+### Screen 4 — ServiceTypeScreen (4/6)
+- 4 tappable icon cards in a 2×2 grid: 480V/3φ, 208V/3φ, 240V/2φ, "No estoy seguro"
+- No text input — selection-only
+- Sets `ocrData.serviceType` → Screen 5
+- For `'no_se'`, EstimateScreen applies a tariff-based smart default via `resolveVoltagePhases(serviceType, tariff)`:
+  Primaria/Transmisión → 480V/3φ, Secundaria → 208V/3φ, Residencial/unknown → 240V/2φ
+
+### Screen 5 — EstimateScreen (5/6)
+- Runs `calcEstimate()` async via Tool Belt `/api/price` + `/api/solar-resource` + `/api/area-to-system`
 - Shows: Sistema recomendado, Cobertura, Precio estimado, Ahorro mensual
-- "✅ Sí me interesa" → Screen 5
-- "❌ No por ahora" → Screen 6 (not interested)
+- Financing card (only when `totalCost >= $60,000`): pronto $0, pago mensual, ahorro mensual neto — with footnote "* Windmar te pondrá en contacto con una entidad financiera"
+- Battery slider: 0 / 4h / 8h / 12h / 16h / 24h — batch-precomputed via `/api/battery-sizing`
+- All-errors battery banner gated on `localBatteryHours > 0` (no alarm at slider 0)
+- Slider is enabled in the all-errors case so the rep can discover the message
+- Navy CTA: "✅ Sí me interesa" → Screen 6; gray "❌ No por ahora" → ThankYou (not interested)
 
-### Screen 5 — ContactScreen
-- Fields: Nombre completo, Teléfono
-- On submit: calls `submitToZoho()` then proceeds to Screen 6
+### Screen 6 — ContactScreen (6/6)
+- Required fields: Nombre completo, Teléfono, **Correo electrónico** (lenient regex — any TLD)
+- Optional: ¿Quién es tu consultor? + su correo
+- On submit: POSTs to `/api/leads` (local persistence); proceeds to ThankYouScreen
+- `customerEmail` flows through `contactPayload` → `leadData.email` → Zoho `Email` field
 
-### Screen 6 — ThankYouScreen
-- If interested: deal questionnaire link + Zoho lead confirmation
-- If not interested: gracias + restart button
+### ThankYouScreen (terminal — no progress bar)
+- If interested: "¡Todo listo!" card + "⬇ Descargar estimado" (navy) + "Completar cuestionario completo" SmartSheet button + "Nueva consulta" ghost
+- If `offgrid={true}`: same card, but the download button + pdfError/pdfStatus block is hidden (no PDF was generated); mount-effect skips the Zoho POST (already done in OffGridScreen)
+- If not interested: gracias card + restart button
+
+### Off-Grid Side Path (not part of the 6-step sequence)
+- **Entry:** WelcomeScreen dropdown → "Quiero un sistema autónomo"
+- **OffGridScreen** — no progress bar (intentional side path)
+  - Required: Nombre completo, Teléfono (10 digits → `XXX-XXX-XXXX`)
+  - Optional: Nombre del negocio, Dirección, Municipio, Consultor + correo
+  - On submit: POSTs `leadData` directly to `/api/zoho-lead` (no `billFile`, no PDF)
+- **Completion:** `<ThankYouScreen interested offgrid />` — shared "¡Todo listo!" card with download button hidden
+- **Zoho `Lead_Notes`** carries `Tipo: Sistema Autónomo (off-grid)` segment so off-grid leads are identifiable in CRM
 
 ---
 
