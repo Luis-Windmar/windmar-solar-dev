@@ -406,6 +406,7 @@ const parseLeadNotes = (notes) => {
     techo:          extract(/Techo:\s*([\d,]+)\s*p/),
     consultor:      extract(/Consultor en Estimado:\s*([^|]+)/),
     consultorEmail: extract(/Estimado Rep-email:\s*([^|]+)/),
+    tipo:           extract(/Tipo:\s*([^|]+)/),
   };
 };
 
@@ -459,6 +460,7 @@ const createZohoLead = async (leadData, token) => {
     p.costo          ? `Costo de energia promedio estimado: ${p.costo}` : null,
     p.consultor      ? `Consultor en Estimado: ${p.consultor}`          : null,
     p.consultorEmail ? `Estimado Rep-email: ${p.consultorEmail}`        : null,
+    p.tipo           ? `Tipo: ${p.tipo.trim()}`                         : null,
   ].filter(Boolean).join(' | ') || null;
 
   const res = await fetch('https://www.zohoapis.com/crm/v3/Commercial_Lead', {
