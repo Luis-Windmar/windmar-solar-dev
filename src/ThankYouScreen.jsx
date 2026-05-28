@@ -303,7 +303,7 @@ export default function ThankYouScreen({ interested, generateLead = true, offgri
               style={S.btnNavy}
               onClick={() => window.open("https://app.smartsheet.com/b/form/9f6e441c850e439a9ea42a82e46b774e", "_blank")}
             >
-              Completar cuestionario completo →
+              Completar cuestionario completo
             </button>
 
             {/* 3. Nueva consulta */}
