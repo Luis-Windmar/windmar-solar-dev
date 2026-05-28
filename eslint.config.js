@@ -7,8 +7,6 @@ module.exports = [
     ignores: [
       "src/PreQual_Solar_api.jsx",
       "src/DealSection_api.jsx",
-      "src/createZohoLead.js",
-      "src/parsing_function.js",
       "public/**",
       "node_modules/**",
     ],

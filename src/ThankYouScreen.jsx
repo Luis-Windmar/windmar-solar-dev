@@ -102,7 +102,13 @@ export default function ThankYouScreen({ interested, generateLead = true, contac
   const blobRef        = useRef(null);
   const leadNameRef    = useRef(null);
 
-  // On mount: create Zoho lead (with bill) → get Com_Lead_Name → generate PDF → attach PDF
+  // On mount: create Zoho lead (with bill) → get Com_Lead_Name → generate PDF → attach PDF.
+  // Intentionally omitted from deps: `interested`, `contactData`, `ocrData`, `estData`,
+  // `sqft`, `batteryHours`, `batteryResult`, `billFiles`, `generateLead`. This effect
+  // performs an external side effect (POST to /api/zoho-lead — creates a CRM record
+  // and uploads files) that must run exactly once on mount. Re-running on prop
+  // changes would create duplicate Zoho leads and duplicate attachments.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (!interested || !contactData) return;
     const run = async () => {
@@ -231,7 +237,7 @@ export default function ThankYouScreen({ interested, generateLead = true, contac
       }
     };
     run();
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleDownload = () => {
     const blob     = blobRef.current;

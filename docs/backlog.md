@@ -231,45 +231,28 @@ financing-card ternary).
 
 ---
 
-## 16. Delete `src/createZohoLead.js` and `src/parsing_function.js`
-These two files in `src/` are markdown-formatted code snippets /
-documentation artifacts from a pre-migration session. They are not
-imported by any active code path — the real `createZohoLead` lives
-inline in `server.js:455`. They were discovered during the ESLint
-setup (item 10) when they produced 26 spurious syntax errors and had
-to be added to the ESLint ignore list.
-
-**Action:** Delete both files. Update `eslint.config.js` to remove
-them from the `ignores` list after deletion.
-
-**Verify before deleting:**
-```
-grep -rn "createZohoLead\|parsing_function" src/ server.js build.js
-```
-Must return no active imports or requires (only matches inside the
-files themselves and any documentation).
-
-**Files:** `src/createZohoLead.js`, `src/parsing_function.js`,
-`eslint.config.js`.
+## 16. ~~Delete `src/createZohoLead.js` and `src/parsing_function.js`~~ — resolved 2026-05-28
+Both files deleted. Pre-flight grep confirmed no active imports — only
+non-import matches in `server.js:455` (the inline `createZohoLead` function
+definition), `server.js:572` (the call site), and `src/ThankYouScreen.jsx:163`
+(a comment that mentions the function name). `eslint.config.js` ignores list
+trimmed to drop the two filenames; build still clean.
 
 ---
 
-## 17. Investigate `ThankYouScreen.jsx:234` eslint-disable directive
-During ESLint setup (item 10), a `// eslint-disable-line react-hooks/exhaustive-deps`
-directive was found at `src/ThankYouScreen.jsx:234`. This directive
-suppresses a React hooks dependency-array warning on a `useEffect`.
+## 17. ~~Investigate `ThankYouScreen.jsx:234` eslint-disable directive~~ — resolved 2026-05-28
+**Finding: case (a) — intentional mount-only effect.** The hook at the top of
+`ThankYouScreen` performs an external side effect (`POST /api/zoho-lead` creates
+a CRM record and uploads files; follow-up `POST /api/generate-and-attach-pdf`
+generates and attaches the PDF). It must run exactly once on mount. Re-running
+on prop changes would create duplicate Zoho leads, duplicate file attachments,
+and duplicate PDFs.
 
-An exhaustive-deps suppression usually means one of:
+**Closure deps the rule flagged:** `interested`, `contactData`, `ocrData`,
+`estData`, `sqft`, `batteryHours`, `batteryResult`, `billFiles`, `generateLead`
+— all props passed in once at mount.
 
-(a) **The dependency array is intentionally incomplete** — the
-    effect should only run once or on specific changes, and adding
-    the missing deps would cause unwanted re-runs, OR
-
-(b) **The dependency was accidentally omitted** and the effect has
-    a stale-closure bug.
-
-**Action:** Read the `useEffect` at line 234. Determine which case
-applies. If (a), add a comment explaining why the dep is
-intentionally omitted. If (b), fix the dependency array.
-
-**Files:** `src/ThankYouScreen.jsx`.
+**Action taken:** Replaced the inline `// eslint-disable-line` on the closing
+`}, []);` line with a block-form `// eslint-disable-next-line` placed
+immediately above the `useEffect(`, plus a multi-line comment listing the
+omitted deps and explaining the duplicate-side-effect risk.
