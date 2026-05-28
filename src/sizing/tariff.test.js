@@ -37,3 +37,25 @@ test('6. resolveVoltagePhases(null) also defaults', () => {
 test('7. resolveVoltagePhases("") also defaults', () => {
   assert.deepEqual(resolveVoltagePhases(""), { voltage: 240, phases: 2 });
 });
+
+// ── Smart-default tests (serviceType = 'no_se' picks voltage by tariff) ──
+
+test('8. resolveVoltagePhases(no_se, primaria) → 480V / 3-phase', () => {
+  assert.deepEqual(resolveVoltagePhases('no_se', 'primaria'), { voltage: 480, phases: 3 });
+});
+
+test('9. resolveVoltagePhases(no_se, secundaria) → 208V / 3-phase', () => {
+  assert.deepEqual(resolveVoltagePhases('no_se', 'secundaria'), { voltage: 208, phases: 3 });
+});
+
+test('10. resolveVoltagePhases(no_se, residencial) → 240V / 2-phase', () => {
+  assert.deepEqual(resolveVoltagePhases('no_se', 'residencial'), { voltage: 240, phases: 2 });
+});
+
+test('11. resolveVoltagePhases(no_se, null) → 240V / 2-phase', () => {
+  assert.deepEqual(resolveVoltagePhases('no_se', null), { voltage: 240, phases: 2 });
+});
+
+test('12. resolveVoltagePhases(trifasico_480, secundaria) → 480V / 3-phase (explicit overrides tariff default)', () => {
+  assert.deepEqual(resolveVoltagePhases('trifasico_480', 'secundaria'), { voltage: 480, phases: 3 });
+});

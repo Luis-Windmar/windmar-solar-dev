@@ -553,7 +553,7 @@ function EstimateScreenInner({ ocrData, sqft, batteryHours, setBatteryHours, fet
       setBatteryCacheLoading(true);
       const timeoutId = setTimeout(() => controller.abort(), 8000);
 
-      const { voltage, phases } = resolveVoltagePhases(ocrData?.serviceType ?? 'no_se');
+      const { voltage, phases } = resolveVoltagePhases(ocrData?.serviceType ?? 'no_se', ocrData?.tariff);
       const normalizedTariff    = normalizeLumaTariff(ocrData?.tariff) ?? undefined;
       const demandKva           = ocrData?.carga_contratada_kva ?? undefined;
       const cache = {};
@@ -838,11 +838,17 @@ function EstimateScreenInner({ ocrData, sqft, batteryHours, setBatteryHours, fet
                     Respaldo estimado: {validBatteryResult.actual_backup_hours} horas.
                   </span>
                 )}
-                {ocrData?.serviceType === 'no_se' && localBatteryHours > 0 && validBatteryResult && (
-                  <span style={{ fontSize: "12px", color: "#6b7280", fontStyle: "italic" }}>
-                    Estimado basado en servicio bifásico 240V. Verifica el tipo de servicio para mayor precisión.
-                  </span>
-                )}
+                {ocrData?.serviceType === 'no_se' && localBatteryHours > 0 && validBatteryResult && (() => {
+                  const { voltage: dv, phases: dp } = resolveVoltagePhases('no_se', ocrData?.tariff);
+                  const defaultLabel = dv === 480 ? '480V / 3 fases'
+                                     : dv === 208 ? '208V / 3 fases'
+                                     : '240V / 2 fases';
+                  return (
+                    <span style={{ fontSize: "12px", color: "#6b7280", fontStyle: "italic" }}>
+                      Batería seleccionada basada en la tarifa ({defaultLabel}).
+                    </span>
+                  );
+                })()}
               </>
             )}
           </div>

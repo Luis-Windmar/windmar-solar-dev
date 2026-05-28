@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import UploadScreen from "./UploadScreen.jsx";
 import RoofScreen from "./RoofScreen.jsx";
+import ServiceTypeScreen from "./ServiceTypeScreen.jsx";
 import EstimateScreen from "./EstimateScreen.jsx";
 import ContactScreen from "./ContactScreen.jsx";
 import ThankYouScreen from "./ThankYouScreen.jsx";
@@ -205,8 +206,7 @@ const ProgressBar = ({ current, total }) => {
 
 export default function WelcomeScreen() {
   const [selection, setSelection] = useState("");
-  const [serviceType, setServiceType] = useState("no_se");
-  const [screen, setScreen]       = useState("welcome"); // welcome | exit | upload | roof | estimate | contact | thankyou-yes | thankyou-no
+  const [screen, setScreen]       = useState("welcome"); // welcome | exit | upload | roof | serviceType | estimate | contact | thankyou-yes | thankyou-no
   const [contactData, setContactData] = useState(null);
   const [ocrData, setOcrData]     = useState(null);
   const [sqft, setSqft]           = useState(null);
@@ -239,7 +239,7 @@ export default function WelcomeScreen() {
     if (!selection) return;
     setScreen(selection === "si" ? "upload" : "exit");
   };
-  const handleRestart  = () => { setSelection(""); setServiceType("no_se"); setScreen("welcome"); setOcrData(null); setSqft(null); setEstData(null); setContactData(null); setBillFiles(null); setBatteryHours(0); setBatteryResult(null); };
+  const handleRestart  = () => { setSelection(""); setScreen("welcome"); setOcrData(null); setSqft(null); setEstData(null); setContactData(null); setBillFiles(null); setBatteryHours(0); setBatteryResult(null); };
 
   if (screen === "exit") {
     return (
@@ -266,7 +266,7 @@ export default function WelcomeScreen() {
     return (
       <UploadScreen
         resumeData={ocrData}
-        onNext={(data, files) => { setOcrData({ ...data, serviceType }); setBillFiles(files); setScreen("roof"); }}
+        onNext={(data, files) => { setOcrData(data); setBillFiles(files); setScreen("roof"); }}
         onBack={handleRestart}
       />
     );
@@ -275,8 +275,20 @@ export default function WelcomeScreen() {
   if (screen === "roof") {
     return (
       <RoofScreen
-        onNext={(s) => { setSqft(s); setScreen("estimate"); }}
+        onNext={(s) => { setSqft(s); setScreen("serviceType"); }}
         onBack={() => setScreen("upload")}
+      />
+    );
+  }
+
+  if (screen === "serviceType") {
+    return (
+      <ServiceTypeScreen
+        onNext={(selectedServiceType) => {
+          setOcrData(prev => ({ ...prev, serviceType: selectedServiceType }));
+          setScreen("estimate");
+        }}
+        onBack={() => setScreen("roof")}
       />
     );
   }
@@ -292,7 +304,7 @@ export default function WelcomeScreen() {
         setBatteryHours={setBatteryHours}
         onInterested={(est, batt) => { setEstData(est); setBatteryResult(batt); setScreen("contact"); }}
         onNotInterested={() => setScreen("thankyou-no")}
-        onBack={() => setScreen("roof")}
+        onBack={() => setScreen("serviceType")}
       />
     );
   }
@@ -358,22 +370,6 @@ export default function WelcomeScreen() {
           <option value="">— Selecciona una opción —</option>
           <option value="si">Sí, tengo la factura</option>
           <option value="no">No, en otro momento</option>
-        </select>
-
-        <label style={styles.label}>
-          ¿Sabes qué tipo de servicio eléctrico tienes?
-        </label>
-
-        <select
-          style={serviceType ? { ...styles.select, ...styles.selectSelected } : styles.select}
-          value={serviceType}
-          onChange={(e) => setServiceType(e.target.value)}
-        >
-          <option value="">— Selecciona una opción —</option>
-          <option value="bifasico_240">Bifásico (240V L-L)</option>
-          <option value="trifasico_208">Trifásico (208V)</option>
-          <option value="trifasico_480">Trifásico (480V)</option>
-          <option value="no_se">No lo sé</option>
         </select>
 
         <button
