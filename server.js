@@ -6,6 +6,13 @@ const path      = require('path');
 const fs        = require('fs');
 const crypto    = require('crypto');
 
+// TEST_MODE: true = development (default when unset or anything other than 'false'),
+// false = production (set TEST_MODE=false in Vercel prod env vars). Drives client-side
+// gating of test artifacts (TEST- prefixes, "usar datos de prueba" button,
+// "Generar lead SI/NO" toggle). Injected into the React bundle via the
+// __TEST_MODE__ placeholder in public/prequal.html.
+const TEST_MODE = process.env.TEST_MODE !== 'false';
+
 const app    = express();
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 25 * 1024 * 1024 } });
 
@@ -61,9 +68,13 @@ const decrypt = (token) => {
 
 // ─── ROUTES — QUESTIONNAIRES ──────────────────────────────────────────────────
 
-// PreQual → serves prequal.html
+// PreQual → serves prequal.html with TEST_MODE injected via placeholder
 app.get('/prequal', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'prequal.html'));
+  const htmlPath = path.join(__dirname, 'public', 'prequal.html');
+  const html = fs.readFileSync(htmlPath, 'utf8')
+    .replace('__TEST_MODE__', TEST_MODE ? 'true' : 'false');
+  res.setHeader('Content-Type', 'text/html; charset=utf-8');
+  res.send(html);
 });
 
 // Deal Section → serves deal.html
@@ -765,6 +776,7 @@ if (require.main === module) {
   app.listen(PORT, () => {
     console.log(`\n🌞 Windmar server running on http://localhost:${PORT}`);
     console.log(`   PreQual  → http://localhost:${PORT}/prequal`);
+    console.log(`   TEST_MODE: ${TEST_MODE ? '🧪 development' : '🚀 production'}`);
     console.log(`   Toolbelt : ${process.env.TOOLBELT_API_KEY           ? '✅ configured' : '❌ MISSING'}`);
     console.log(`   Encrypt  : ${process.env.ENCRYPTION_KEY             ? '✅ configured' : '❌ MISSING'}`);
     console.log(`   Zoho WCID: ${process.env.ZOHO_WRITE_CLIENT_ID       ? '✅ configured' : '❌ MISSING'}`);

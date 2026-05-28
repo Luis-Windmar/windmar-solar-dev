@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Header, ProgressBar } from "./shared.jsx";
 import { normalizeLumaTariff, defaultDemandKva } from "./sizing/tariff.js";
+import { TEST_MODE } from "./testMode.js";
 
 // ─── Checklist items & progress thresholds ─────────────────────────────────
 const CHECKLIST = [
@@ -281,9 +282,12 @@ function normalizeOCR(data) {
   // exceso_de_demanda_kva legitimately defaults to 0 (no excess demand).
   const excesoKvaRaw = data.exceso_de_demanda_kva ?? 0;
 
+  // TEST_MODE prefixes every real OCR result with "TEST - " so reps can spot
+  // demo records easily. Production strips the prefix entirely.
+  const prefix = TEST_MODE ? "TEST - " : "";
   return {
-    nombreNegocio: data.nombre_negocio ? "TEST - " + data.nombre_negocio : "TEST - ", // TODO: remove before production
-    direccion:    data.direccion       ? "TEST - " + data.direccion       : "TEST - ", // TODO: remove before production
+    nombreNegocio: data.nombre_negocio ? prefix + data.nombre_negocio : prefix,
+    direccion:    data.direccion       ? prefix + data.direccion       : prefix,
     municipio:    data.municipio          ?? "",
     tariff:       normalizeLumaTariff(data.tarifa) || "",
     consumoKWH:   consumoPromedio > 0     ? fmtNum(consumoPromedio, 0, 0) + " kWh" : "",
@@ -575,14 +579,18 @@ export default function UploadScreen({ onNext, onBack, resumeData }) {
             Atrás
           </button>
 
-          <div style={{ textAlign: "center", marginTop: "12px" }}>
-            <button
-              onClick={handleMockOCR}
-              style={{ background: "none", border: "none", color: "#9ca3af", fontSize: "12px", cursor: "pointer", textDecoration: "underline" }}
-            >
-              usar datos de prueba
-            </button>
-          </div>
+          {/* TEST_MODE bypass — skips OCR and injects MOCK_OCR. Hidden in
+              production; MOCK_OCR + handleMockOCR remain defined for dev use. */}
+          {TEST_MODE && (
+            <div style={{ textAlign: "center", marginTop: "12px" }}>
+              <button
+                onClick={handleMockOCR}
+                style={{ background: "none", border: "none", color: "#9ca3af", fontSize: "12px", cursor: "pointer", textDecoration: "underline" }}
+              >
+                usar datos de prueba
+              </button>
+            </div>
+          )}
 
         </div>
       </div>

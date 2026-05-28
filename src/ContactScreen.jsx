@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Header, ProgressBar } from "./shared.jsx";
+import { TEST_MODE } from "./testMode.js";
 
 const S = {
   page: {
@@ -103,10 +104,10 @@ const S = {
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@.]+\.[^\s@]{2,}$/;
 
 export default function ContactScreen({ ocrData, sqft, onNext, onBack, generateLead = true }) {
-  const [nombre, setNombre]           = useState("TEST - "); // TODO: remove before production
+  const [nombre, setNombre]           = useState(TEST_MODE ? "TEST - " : "");
   const [phone, setPhone]             = useState("");
   const [customerEmail, setCustomerEmail] = useState("");
-  const [consultorNombre, setConsultor] = useState("TEST - "); // TODO: remove before production
+  const [consultorNombre, setConsultor] = useState(TEST_MODE ? "TEST - " : "");
   const [consultorEmail, setConsultorEmail] = useState("");
   const [loading, setLoading]         = useState(false);
   const [error, setError]             = useState("");
