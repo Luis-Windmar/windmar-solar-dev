@@ -2,10 +2,10 @@ import { useState } from "react";
 import { Header, ProgressBar } from "./shared.jsx";
 
 const OPTIONS = [
-  { key: "trifasico_480", img: "/480V_outlet_icon.png", line1: "480V", line2: "3 fases" },
-  { key: "trifasico_208", img: "/208V_outlet_icon.png", line1: "208V", line2: "3 fases" },
-  { key: "bifasico_240",  img: "/240V_outlet_icon.png", line1: "240V", line2: "2 fases" },
-  { key: "no_se",         img: "/no_lo_se_icon.png",   line1: "No estoy", line2: "seguro" },
+  { key: "trifasico_480", img: "/480V_outlet_icon.png", label: "480V", sub: "3 fases" },
+  { key: "trifasico_208", img: "/208V_outlet_icon.png", label: "208V", sub: "3 fases" },
+  { key: "bifasico_240",  img: "/240V_outlet_icon.png", label: "240V", sub: "2 fases" },
+  { key: "no_se",         img: "/no_lo_se_icon.png",   label: "No estoy seguro" },
 ];
 
 const S = {
@@ -122,15 +122,15 @@ export default function ServiceTypeScreen({ onNext, onBack }) {
         <p style={S.sub}>Selecciona una de las cuatro opciones:</p>
 
         <div style={S.grid}>
-          {OPTIONS.map(({ key, img, line1, line2 }) => (
+          {OPTIONS.map(({ key, img, label, sub }) => (
             <div
               key={key}
               style={{ ...S.card, ...(selected === key ? S.cardSelected : {}) }}
               onClick={() => setSelected(key)}
             >
-              <img src={img} alt={`${line1} ${line2}`} style={S.cardIcon} />
-              <div style={S.cardLabel}>{line1}</div>
-              <div style={S.cardSub}>{line2}</div>
+              <img src={img} alt={sub ? `${label} ${sub}` : label} style={S.cardIcon} />
+              <div style={S.cardLabel}>{label}</div>
+              {sub && <div style={S.cardSub}>{sub}</div>}
             </div>
           ))}
         </div>
