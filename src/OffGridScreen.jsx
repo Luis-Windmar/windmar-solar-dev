@@ -144,6 +144,7 @@ const buildOffGridNotes = ({ consultorNombre, consultorEmail }) => {
 };
 
 export default function OffGridScreen({ onBack, onDone }) {
+  const [businessName, setBusinessName]     = useState("");
   const [nombre, setNombre]                 = useState("");
   const [telefono, setTelefono]             = useState("");
   const [direccion, setDireccion]           = useState("");
@@ -169,6 +170,7 @@ export default function OffGridScreen({ onBack, onDone }) {
     const phoneFormatted = formatPhone(telefono);
     const leadData = {
       customerName:     nombre.trim(),
+      businessName:     businessName.trim() || null,
       phone:            phoneFormatted,
       direccion:        direccion.trim() || null,
       city:             municipio.trim() || null,
@@ -210,6 +212,19 @@ export default function OffGridScreen({ onBack, onDone }) {
           LUMA. Un especialista de Windmar se pondrá en contacto contigo
           para diseñar tu solución.
         </p>
+
+        <div style={S.fieldGroup}>
+          <label style={S.label}>Nombre del negocio</label>
+          <input
+            style={inputStyle("businessName")}
+            type="text"
+            placeholder="ej. Panadería Buen Pan"
+            value={businessName}
+            onChange={(e) => setBusinessName(e.target.value)}
+            onFocus={() => setFocusedField("businessName")}
+            onBlur={() => setFocusedField(null)}
+          />
+        </div>
 
         <div style={S.fieldGroup}>
           <label style={S.label}>Nombre completo</label>
