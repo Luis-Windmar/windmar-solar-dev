@@ -800,8 +800,8 @@ function EstimateScreenInner({ ocrData, sqft, batteryHours, setBatteryHours, fet
             step={1}
             value={sliderIdx}
             onChange={handleSliderChange}
-            disabled={batteryCacheLoading || allBatteryErrored}
-            style={{ width: "100%", cursor: (batteryCacheLoading || allBatteryErrored) ? "not-allowed" : "pointer" }}
+            disabled={batteryCacheLoading}
+            style={{ width: "100%", cursor: batteryCacheLoading ? "not-allowed" : "pointer" }}
           />
           <div style={S.sliderTicks}>
             {SLIDER_HOURS.map((h) => (
@@ -810,7 +810,9 @@ function EstimateScreenInner({ ocrData, sqft, batteryHours, setBatteryHours, fet
           </div>
           {/* Reserved-space message area. Single slot, priority cascade:
                 1) batteryCacheLoading
-                2) allBatteryErrored
+                2) allBatteryErrored AND slider > 0 (no message when the rep
+                   hasn't requested backup hours yet — the all-errors state
+                   alone doesn't justify the alarm)
                 3) per-position batteryError
                 4) cap_applied + no_se warnings (can stack when valid result)
               The minHeight on S.messageArea ensures the card doesn't
@@ -820,7 +822,7 @@ function EstimateScreenInner({ ocrData, sqft, batteryHours, setBatteryHours, fet
               <span style={{ fontSize: "12px", color: "#6b7280" }}>
                 Calculando opciones de respaldo…
               </span>
-            ) : allBatteryErrored ? (
+            ) : allBatteryErrored && localBatteryHours > 0 ? (
               <span style={{ fontSize: "12px", color: "#dc2626" }}>
                 {sharedErrorCode
                   ? batteryAllErroredMessage(sharedErrorCode)
