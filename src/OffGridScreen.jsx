@@ -120,11 +120,10 @@ const formatPhone = (raw) => {
   return `${d.slice(0, 3)}-${d.slice(3, 6)}-${d.slice(6)}`;
 };
 
-const isValidName = (s) => {
-  const parts = s.trim().split(/\s+/);
-  return parts.length >= 2 && parts.every((p) => p.length >= 2);
-};
-
+// Match ContactScreen's lenient name gate — a single-word name passes
+// (e.g. "María"). Phone still requires 10 digits because `formatPhone`
+// composes XXX-XXX-XXXX from exactly 10 digits.
+const isValidName  = (s) => s.trim().length > 1;
 const isValidPhone = (s) => String(s || "").replace(/\D/g, "").length === 10;
 
 // Notes string passed through to /api/zoho-lead. The server's parseLeadNotes
@@ -299,7 +298,7 @@ export default function OffGridScreen({ onBack, onDone }) {
           disabled={!canSubmit || loading}
           onClick={handleSubmit}
         >
-          {loading ? "Enviando…" : "Enviar"}
+          {loading ? "Enviando…" : "Continuar"}
         </button>
         <button style={S.btnGhost} onClick={onBack} disabled={loading}>
           Atrás

@@ -94,7 +94,7 @@ const parseAddress = (fullAddress, municipio) => {
   return { street, zip };
 };
 
-export default function ThankYouScreen({ interested, generateLead = true, contactData, ocrData, sqft, estData, batteryHours, batteryResult, billFiles, onRestart }) {
+export default function ThankYouScreen({ interested, generateLead = true, offgrid = false, contactData, ocrData, sqft, estData, batteryHours, batteryResult, billFiles, onRestart }) {
   const [pdfStatus,  setPdfStatus]  = useState("");
   const [pdfError,   setPdfError]   = useState("");
   const [pdfReady,          setPdfReady]          = useState(false);
@@ -110,6 +110,7 @@ export default function ThankYouScreen({ interested, generateLead = true, contac
   // changes would create duplicate Zoho leads and duplicate attachments.
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
+    if (offgrid) return;                    // Off-grid: lead + thank-you already handled in OffGridScreen
     if (!interested || !contactData) return;
     const run = async () => {
       try {
@@ -277,20 +278,24 @@ export default function ThankYouScreen({ interested, generateLead = true, contac
               ¡Gracias por tu interés en un sistema con Energía de la Buena™!
             </p>
 
-            {/* 1. Descargar estimado */}
-            <button
-              style={!pdfReady ? S.btnOrangeDisabled : S.btnOrange}
-              onClick={handleDownload}
-              disabled={!pdfReady}
-            >
-              {pdfReady ? "⬇ Descargar estimado" : "Preparando estimado…"}
-            </button>
-            {pdfError  && <div style={S.pdfStatusError}>{pdfError}</div>}
-            {!pdfError && pdfStatus && (
-              <div style={S.pdfStatus}>
-                <img src="/listo_icon.jpg" alt="" style={{ width: "72px", height: "72px", objectFit: "contain" }} />
-                {pdfStatus}
-              </div>
+            {/* 1. Descargar estimado — hidden in off-grid mode (no PDF is generated) */}
+            {!offgrid && (
+              <>
+                <button
+                  style={!pdfReady ? S.btnOrangeDisabled : S.btnOrange}
+                  onClick={handleDownload}
+                  disabled={!pdfReady}
+                >
+                  {pdfReady ? "⬇ Descargar estimado" : "Preparando estimado…"}
+                </button>
+                {pdfError  && <div style={S.pdfStatusError}>{pdfError}</div>}
+                {!pdfError && pdfStatus && (
+                  <div style={S.pdfStatus}>
+                    <img src="/listo_icon.jpg" alt="" style={{ width: "72px", height: "72px", objectFit: "contain" }} />
+                    {pdfStatus}
+                  </div>
+                )}
+              </>
             )}
 
             {/* TODO: Re-enable Deal questionnaire when ready to launch */}

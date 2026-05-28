@@ -361,24 +361,11 @@ export default function WelcomeScreen() {
 
   if (screen === "offgridThankyou") {
     return (
-      <div style={styles.container}>
-        <Header />
-        <div style={styles.content}>
-          <div style={{ textAlign: "center", padding: "32px 24px" }}>
-            <div style={{ fontSize: 56, marginBottom: 16 }}>🌿</div>
-            <h2 style={{ color: "#1B3F8B", fontSize: 24, fontWeight: 700, marginBottom: 12 }}>
-              ¡Gracias!
-            </h2>
-            <p style={{ color: "#374151", fontSize: 16, lineHeight: 1.6, marginBottom: 32 }}>
-              Un especialista de Windmar se pondrá en contacto contigo pronto
-              para discutir tu sistema autónomo.
-            </p>
-            <button onClick={handleRestart} style={styles.btnGhost}>
-              Volver al inicio
-            </button>
-          </div>
-        </div>
-      </div>
+      <ThankYouScreen
+        interested={true}
+        offgrid={true}
+        onRestart={handleRestart}
+      />
     );
   }
 
