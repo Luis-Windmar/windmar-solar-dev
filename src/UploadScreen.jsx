@@ -567,6 +567,7 @@ export default function UploadScreen({ onNext, onBack, resumeData }) {
               <p style={S.tipsTitle}>Para mejores resultados...</p>
               <div style={S.tipItem}>• Sube una factura reciente</div>
               <div style={S.tipItem}>• Si es foto, tómala con buena luz</div>
+              <div style={S.tipItem}>• Archivo de menos de 4MB</div>
             </div>
           </div>
 

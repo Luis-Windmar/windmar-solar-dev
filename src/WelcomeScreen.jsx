@@ -390,7 +390,7 @@ export default function WelcomeScreen() {
         <h1 style={styles.heading}>¡Bienvenido!</h1>
         <h2 style={styles.subheading}>Estimado Solar Comercial</h2>
         <p style={styles.bodyText}>
-          En <strong>menos de 5 minutos</strong> te vamos a decir cuánto te puedes ahorrar con un sistema solar fotovoltaico Windmar™. Para ello necesitamos tu factura de LUMA más reciente.
+          En <strong>menos de 5 minutos</strong> te vamos a decir cuánto te puedes ahorrar con un sistema solar fotovoltaico Windmar™.
         </p>
 
         <label style={styles.label}>
@@ -415,17 +415,6 @@ export default function WelcomeScreen() {
         >
           {selection === "no" ? "Entendido" : "Continuar"}
         </button>
-
-        <div style={styles.noteCard}>
-          <div style={{ width: "100px", height: "100px", overflow: "hidden", flexShrink: 0 }}>
-            <img src="/financing_icon.png" alt="" style={{ width: "100px", height: "100px", objectFit: "contain", transform: "scale(1.6)", transformOrigin: "center" }} />
-          </div>
-          <p style={styles.noteText}>
-            Windmar Comercial ofrece opciones de financiamiento. Entre ellas,
-            15 años sin pronto. Evaluaremos el sistema ideal para tu negocio,
-            y te daremos un estimado del ahorro.
-          </p>
-        </div>
 
         {/* DEMO TOGGLE — remove before production */}
         <div style={{ marginTop: "32px", textAlign: "center" }}>

@@ -775,6 +775,11 @@ function EstimateScreenInner({ ocrData, sqft, batteryHours, setBatteryHours, fet
             </p>
           )}
         </div>
+        {totalCost >= FINANCING_THRESHOLD && (
+          <p style={{ fontSize: "12px", color: "#6b7280", fontStyle: "italic", marginTop: "-4px", marginBottom: "16px", textAlign: "center" }}>
+            * Windmar te pondrá en contacto con una entidad financiera.
+          </p>
+        )}
 
         {/* Battery fine-tune slider */}
         <style>{`

@@ -97,16 +97,26 @@ const S = {
   },
 };
 
+// Lenient email pattern: allows any TLD (including non-.com domains like .pr,
+// .business, .co.uk). Requires non-empty local part, an @, a domain with at
+// least one dot, and TLD of 2+ chars. Does NOT block obscure-but-valid forms.
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@.]+\.[^\s@]{2,}$/;
+
 export default function ContactScreen({ ocrData, sqft, onNext, onBack, generateLead = true }) {
   const [nombre, setNombre]           = useState("TEST - "); // TODO: remove before production
   const [phone, setPhone]             = useState("");
+  const [customerEmail, setCustomerEmail] = useState("");
   const [consultorNombre, setConsultor] = useState("TEST - "); // TODO: remove before production
   const [consultorEmail, setConsultorEmail] = useState("");
   const [loading, setLoading]         = useState(false);
   const [error, setError]             = useState("");
   const [focusedField, setFocusedField] = useState(null);
 
-  const canSubmit = nombre.trim().length > 1 && phone.trim().length >= 7;
+  const customerEmailValid = customerEmail.trim() === "" || EMAIL_PATTERN.test(customerEmail.trim());
+  const canSubmit = nombre.trim().length > 1
+                 && phone.trim().length >= 7
+                 && customerEmail.trim() !== ""
+                 && customerEmailValid;
 
   const handleSubmit = async () => {
     if (!canSubmit || loading) return;
@@ -117,6 +127,7 @@ export default function ContactScreen({ ocrData, sqft, onNext, onBack, generateL
       leadId:          null,
       nombre:          nombre.trim(),
       phone:           phone.trim(),
+      customerEmail:   customerEmail.trim(),
       consultorNombre: consultorNombre.trim(),
       consultorEmail:  consultorEmail.trim(),
     };
@@ -134,6 +145,7 @@ export default function ContactScreen({ ocrData, sqft, onNext, onBack, generateL
         body: JSON.stringify({
           nombre: nombre.trim(),
           phone:  phone.trim(),
+          customerEmail: customerEmail.trim(),
           municipio:    ocrData?.municipio   || "",
           tariff:       ocrData?.tariff      || "",
           consumoKWH:   ocrData?.consumoKWH  || "",
@@ -153,6 +165,9 @@ export default function ContactScreen({ ocrData, sqft, onNext, onBack, generateL
       setLoading(false);
     }
   };
+
+  const customerEmailShowError =
+    customerEmail.trim() !== "" && !customerEmailValid;
 
   const inputStyle = (field) => ({
     ...S.input,
@@ -197,6 +212,24 @@ export default function ContactScreen({ ocrData, sqft, onNext, onBack, generateL
         </div>
 
         <div style={S.fieldGroup}>
+          <label style={S.label}>Correo electrónico</label>
+          <input
+            style={inputStyle("customerEmail")}
+            type="email"
+            placeholder="ej. maria@ejemplo.com"
+            value={customerEmail}
+            onChange={(e) => setCustomerEmail(e.target.value)}
+            onFocus={() => setFocusedField("customerEmail")}
+            onBlur={() => setFocusedField(null)}
+          />
+          {customerEmailShowError && (
+            <div style={{ fontSize: "13px", color: "#dc2626", marginTop: "6px" }}>
+              Por favor verifica que el correo sea válido.
+            </div>
+          )}
+        </div>
+
+        <div style={S.fieldGroup}>
           <label style={S.label}>¿Quién es tu consultor?</label>
           <p style={{ fontSize: "14px", color: "#374151", lineHeight: "1.5", margin: "0 0 8px" }}>
             ¿Ya estás trabajando con un consultor de Windmar? Compártenos su nombre, o deja el espacio en blanco si no estás trabajando aún con nadie.
@@ -230,7 +263,7 @@ export default function ContactScreen({ ocrData, sqft, onNext, onBack, generateL
             <div style={S.errorMsg}>{error}</div>
             <button
               style={{ ...S.btnNavy, marginBottom: "8px" }}
-              onClick={() => onNext({ leadId: null, nombre: nombre.trim(), phone: phone.trim(), consultorNombre: consultorNombre.trim(), consultorEmail: consultorEmail.trim() })}
+              onClick={() => onNext({ leadId: null, nombre: nombre.trim(), phone: phone.trim(), customerEmail: customerEmail.trim(), consultorNombre: consultorNombre.trim(), consultorEmail: consultorEmail.trim() })}
             >
               Continuar de todas formas →
             </button>

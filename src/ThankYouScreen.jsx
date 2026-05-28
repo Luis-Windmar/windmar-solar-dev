@@ -155,6 +155,7 @@ export default function ThankYouScreen({ interested, generateLead = true, contac
           customerName:   contactData.nombre,
           businessName:   ocrData?.nombreNegocio || "",
           phone:          contactData.phone,
+          email:          contactData.customerEmail || null,
           direccion:      street,
           city:           ocrData?.municipio     || "",
           zip,
