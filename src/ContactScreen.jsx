@@ -105,10 +105,10 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@.]+\.[^\s@]{2,}$/;
 
 export default function ContactScreen({ ocrData, sqft, onNext, onBack, generateLead = true }) {
   const [nombre, setNombre]           = useState(TEST_MODE ? "TEST - " : "");
-  const [phone, setPhone]             = useState("");
-  const [customerEmail, setCustomerEmail] = useState("");
+  const [phone, setPhone]             = useState(TEST_MODE ? "7879990000" : "");
+  const [customerEmail, setCustomerEmail] = useState(TEST_MODE ? "customer@test.com" : "");
   const [consultorNombre, setConsultor] = useState(TEST_MODE ? "TEST - " : "");
-  const [consultorEmail, setConsultorEmail] = useState("");
+  const [consultorEmail, setConsultorEmail] = useState(TEST_MODE ? "consultant@test.com" : "");
   const [loading, setLoading]         = useState(false);
   const [error, setError]             = useState("");
   const [focusedField, setFocusedField] = useState(null);

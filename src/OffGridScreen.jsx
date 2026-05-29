@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Header } from "./shared.jsx";
+import { TEST_MODE } from "./testMode.js";
 
 const S = {
   page: {
@@ -144,13 +145,13 @@ const buildOffGridNotes = ({ consultorNombre, consultorEmail }) => {
 };
 
 export default function OffGridScreen({ onBack, onDone }) {
-  const [businessName, setBusinessName]     = useState("");
-  const [nombre, setNombre]                 = useState("");
-  const [telefono, setTelefono]             = useState("");
-  const [direccion, setDireccion]           = useState("");
-  const [municipio, setMunicipio]           = useState("");
-  const [consultorNombre, setConsultorNombre] = useState("");
-  const [consultorEmail, setConsultorEmail] = useState("");
+  const [businessName, setBusinessName]     = useState(TEST_MODE ? "TEST - Negocio Off-Grid" : "");
+  const [nombre, setNombre]                 = useState(TEST_MODE ? "TEST - Cliente Off-Grid" : "");
+  const [telefono, setTelefono]             = useState(TEST_MODE ? "7879990000" : "");
+  const [direccion, setDireccion]           = useState(TEST_MODE ? "TEST - Carr 2 km 55, Bo. Centro" : "");
+  const [municipio, setMunicipio]           = useState(TEST_MODE ? "Ponce" : "");
+  const [consultorNombre, setConsultorNombre] = useState(TEST_MODE ? "TEST - Consultor Off-Grid" : "");
+  const [consultorEmail, setConsultorEmail] = useState(TEST_MODE ? "consultant@test.com" : "");
   const [loading, setLoading]               = useState(false);
   const [error, setError]                   = useState("");
   const [focusedField, setFocusedField]     = useState(null);
