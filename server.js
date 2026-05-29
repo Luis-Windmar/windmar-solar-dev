@@ -505,8 +505,9 @@ const createZohoLead = async (leadData, token) => {
         Tipo_de_Tarifa:          p.tarifa                                     || null,
         // Quote_Amount: Zoho currency (float).
         Quote_Amount:            p.precio ? parseFloat(p.precio) : null,
-        // Baterias: Zoho currency (float).
-        Baterias:                leadData.batteryPrice ? parseFloat(leadData.batteryPrice) : null,
+        // Baterias: Zoho Boolean (confirmed 2026-05-29 schema). True when a
+        // battery is included (price > 0), false otherwise.
+        Baterias:                leadData.batteryPrice != null && leadData.batteryPrice > 0 ? true : false,
         // Battery_System_Size_kWh: Zoho Number (confirmed 2026-05-29 schema read).
         Battery_System_Size_kWh: leadData.batteryKWH != null ? parseInt(leadData.batteryKWH, 10) : null,
         // Storage_Size_kWh: Zoho text/String (confirmed 2026-05-29 schema read).
