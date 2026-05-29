@@ -1,6 +1,6 @@
 # Windmar Commercial — PreQual Solar Wizard
 ## Claude Code Project README
-## Last updated: 2026-05-28
+## Last updated: 2026-05-29
 ---
 # Project Context
 
@@ -113,6 +113,24 @@ voltage/phases derivation, tariff normalization — live in `src/sizing/`
 ### Step 4 Cleanup — 🔄 IN PROGRESS
 See `docs/backlog.md` for open items. Recent closures:
 
+**2026-05-29:**
+- `server.js` `createZohoLead` — full field-type audit against a live Zoho
+  schema read (`docs/ZOHO_LEADS_FIELDS_MAP.md` refreshed against record
+  `4258103003219198921`). Three fields flipped Number → String since the
+  2026-03-19 snapshot (`Carga_Contratada_KVA`, `Storage_Size_kWh`,
+  `Tama_o_del_Transformador_KVA`). `Baterias` confirmed currency (Number),
+  not Boolean. Original `Battery_System_Size_kWh` INVALID_DATA fix
+  preserved (stays as `parseInt`).
+- `ThankYouScreen.jsx` — mount-effect rewrapped in try/catch/**finally**;
+  download-button label is a three-way branch with `submissionDone` state
+  so the wizard never hangs on Zoho or PDF errors.
+- TEST_MODE prefill convention extended: ContactScreen and OffGridScreen
+  now prefill every required field with a passable test value when
+  `TEST_MODE=true`, so the Continuar CTA enables on screen mount.
+- WelcomeScreen dropdown copy: "Quiero un sistema autónomo" → "Quiero
+  un sistema offgrid". (OffGridScreen page title + Zoho `Tipo:` segment
+  still say "autónomo" — flagged but not changed.)
+
 **2026-05-28:**
 - Item 10 — ESLint `no-undef` wired into `patch_and_build.sh` ahead of `node build.js`.
 - Item 15 — `ServiceTypeScreen` added; WelcomeScreen dropdown for service type removed.
@@ -206,7 +224,7 @@ All positive-action CTAs (Continuar, Todo bien. Listo, Sí me interesa, Descarga
 ### Screen 1 — WelcomeScreen (1/6)
 - Dropdown with 3 options:
   - "Sí, tengo mi factura de LUMA" → Upload
-  - "Quiero un sistema autónomo" → OffGridScreen (side path)
+  - "Quiero un sistema offgrid" → OffGridScreen (side path)
   - "No, en otro momento" → graceful exit card
 - Navy "Continuar" CTA (label flips to "Entendido" when "No" is selected)
 - Demo toggle (Generar lead SI/NO) — **TODO: remove before production**
