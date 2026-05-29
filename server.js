@@ -495,8 +495,11 @@ const createZohoLead = async (leadData, token) => {
         Tama_o_Estimado:    p.techo     ? parseInt(p.techo, 10)     : (leadData.roofSqft != null ? parseInt(leadData.roofSqft, 10) : null),
         // Consumo_Promedio: Zoho integer (monthly kWh).
         Consumo_Promedio:   p.consumo   ? parseInt(p.consumo, 10)   : (leadData.avgConsumption != null ? parseInt(leadData.avgConsumption, 10) : null),
-        // Carga_Contratada_KVA: Zoho numeric (can be float, e.g. 50.5).
-        Carga_Contratada_KVA: p.demanda ? parseFloat(p.demanda)     : null,
+        // Carga_Contratada_KVA: live Zoho field is `text` despite the map
+        // showing `Number` (2026-03-19 snapshot). Production rejected the
+        // parseFloat coercion with INVALID_DATA expected_data_type: text;
+        // send the raw extracted string instead.
+        Carga_Contratada_KVA: p.demanda || null,
         // PV_System_Size_kW1: Zoho string field (preserves precision like "30.4").
         PV_System_Size_kW1: p.sistema                              || (leadData.systemKwp ? String(leadData.systemKwp) : null),
         Tipo_de_Tarifa:          p.tarifa                                     || null,
