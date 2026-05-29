@@ -491,15 +491,23 @@ const createZohoLead = async (leadData, token) => {
         City:               leadData.city                                     || null,
         Zip_Code:           leadData.zip                                      || null,
         // Lead_Number intentionally left blank (auto-assigned by Zoho)
-        Tama_o_Estimado:    p.techo     ? parseFloat(p.techo)     : (leadData.roofSqft       || null),
-        Consumo_Promedio:   p.consumo   ? parseFloat(p.consumo)   : (leadData.avgConsumption || null),
-        Carga_Contratada_KVA: p.demanda                            || null,
+        // Tama_o_Estimado: Zoho integer (sqft).
+        Tama_o_Estimado:    p.techo     ? parseInt(p.techo, 10)     : (leadData.roofSqft != null ? parseInt(leadData.roofSqft, 10) : null),
+        // Consumo_Promedio: Zoho integer (monthly kWh).
+        Consumo_Promedio:   p.consumo   ? parseInt(p.consumo, 10)   : (leadData.avgConsumption != null ? parseInt(leadData.avgConsumption, 10) : null),
+        // Carga_Contratada_KVA: Zoho numeric (can be float, e.g. 50.5).
+        Carga_Contratada_KVA: p.demanda ? parseFloat(p.demanda)     : null,
+        // PV_System_Size_kW1: Zoho string field (preserves precision like "30.4").
         PV_System_Size_kW1: p.sistema                              || (leadData.systemKwp ? String(leadData.systemKwp) : null),
         Tipo_de_Tarifa:          p.tarifa                                     || null,
+        // Quote_Amount: Zoho currency (float).
         Quote_Amount:            p.precio ? parseFloat(p.precio) : null,
+        // Baterias: Zoho currency (float).
         Baterias:                leadData.batteryPrice ? parseFloat(leadData.batteryPrice) : null,
-        Battery_System_Size_kWh: leadData.batteryKWH != null ? String(leadData.batteryKWH) : null,
-        Storage_Size_kWh:        leadData.batteryKWH != null ? String(leadData.batteryKWH) : null,
+        // Battery_System_Size_kWh / Storage_Size_kWh: Zoho integer (kWh).
+        // Previously sent as String() which Zoho rejected with INVALID_DATA.
+        Battery_System_Size_kWh: leadData.batteryKWH != null ? parseInt(leadData.batteryKWH, 10) : null,
+        Storage_Size_kWh:        leadData.batteryKWH != null ? parseInt(leadData.batteryKWH, 10) : null,
         Lead_Notes:              condensedNotes,
         Lead_Status:             'New Lead',
         Lead_Source:        'PreQual',

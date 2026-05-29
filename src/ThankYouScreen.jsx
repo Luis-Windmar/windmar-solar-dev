@@ -93,6 +93,10 @@ export default function ThankYouScreen({ interested, generateLead = true, offgri
   const [pdfStatus,  setPdfStatus]  = useState("");
   const [pdfError,   setPdfError]   = useState("");
   const [pdfReady,          setPdfReady]          = useState(false);
+  // True once the mount effect has finished (success OR failure). Drives the
+  // button label out of "Preparando estimado…" so the rep is never stuck
+  // when Zoho / PDF generation errors. Set in the `finally` block below.
+  const [submissionDone, setSubmissionDone] = useState(false);
   // Refs hold the live values — no stale-closure issues in handleDownload
   const blobRef        = useRef(null);
   const leadNameRef    = useRef(null);
@@ -230,7 +234,15 @@ export default function ThankYouScreen({ interested, generateLead = true, offgri
         }
 
       } catch (err) {
-        console.error("Zoho error:", err);
+        // Non-blocking: log the error and surface a fallback message under the
+        // button so the rep knows what happened. The `finally` below ensures
+        // the UI always advances out of "Preparando estimado…".
+        console.error("Zoho/PDF error (non-blocking):", err.message);
+        setPdfError("El estimado no se pudo generar. Un consultor te enviará una copia.");
+      } finally {
+        // ALWAYS advance the loading state — Zoho or PDF failures must
+        // never leave the rep stuck on "Preparando estimado…".
+        setSubmissionDone(true);
       }
     };
     run();
@@ -281,7 +293,11 @@ export default function ThankYouScreen({ interested, generateLead = true, offgri
                   onClick={handleDownload}
                   disabled={!pdfReady}
                 >
-                  {pdfReady ? "⬇ Descargar estimado" : "Preparando estimado…"}
+                  {!submissionDone
+                    ? "Preparando estimado…"
+                    : pdfReady
+                      ? "⬇ Descargar estimado"
+                      : "Estimado no disponible"}
                 </button>
                 {pdfError  && <div style={S.pdfStatusError}>{pdfError}</div>}
                 {!pdfError && pdfStatus && (
