@@ -40,7 +40,7 @@ async function build() {
   <script>
     // Injected at request time by server.js — placeholder is replaced
     // with 'true' (dev) or 'false' (prod). Read by src/testMode.js.
-    window.__TEST_MODE__ = '__TEST_MODE__';
+    window.__TEST_MODE__ = '__TESTMODE_VALUE__';
   </script>
   <script src="/prequal.bundle.js?v=${v}"></script>
 </body>

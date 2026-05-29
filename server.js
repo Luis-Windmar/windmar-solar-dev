@@ -72,7 +72,7 @@ const decrypt = (token) => {
 app.get('/prequal', (req, res) => {
   const htmlPath = path.join(__dirname, 'public', 'prequal.html');
   const html = fs.readFileSync(htmlPath, 'utf8')
-    .replace('__TEST_MODE__', TEST_MODE ? 'true' : 'false');
+    .replace('__TESTMODE_VALUE__', TEST_MODE ? 'true' : 'false');
   res.setHeader('Content-Type', 'text/html; charset=utf-8');
   res.send(html);
 });
