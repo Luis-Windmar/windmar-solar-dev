@@ -3,6 +3,12 @@
 ### Source: Live API read, session 2026-03-19
 ### Record used: 4258103003144630371
 
+> **Last schema refresh: 2026-05-29**
+> **Record used: 4258103003219198921**
+> Note: Field types are confirmed from live API read. Some fields differ from
+> the original 2026-03-19 map — Zoho admin changed field types between March
+> and May 2026. Rows tagged "Confirmed 2026-05-29" reflect the refresh.
+
 All fields returned by `GET /crm/v3/Commercial_Lead/{id}`.
 Fields marked ✅ are currently mapped in the PreQual integration.
 Fields marked 🔲 are candidates for future mapping.
@@ -71,11 +77,11 @@ Fields marked ⚙️ are system/auto fields — do not send in POST.
 
 | API Field | UI Label (best guess) | Type | Status | Notes |
 |---|---|---|---|---|
-| `Consumo_Promedio` | Consumo Promedio | Number | ✅ Mapped | Monthly avg kWh from bill |
+| `Consumo_Promedio` | Consumo Promedio | Number | ✅ Mapped | Monthly avg kWh from bill — Confirmed 2026-05-29 |
 | `Consumo_Ultimos_12_Meses` | Consumo Últimos 12 Meses | Number | 🔲 Candidate | 12-month total kWh |
-| `Carga_Contratada_KVA` | Carga Contratada | Number | ✅ Mapped | Demand in kVA from bill |
-| `Tama_o_Estimado` | Tamaño Estimado (p²) | Number | ✅ Mapped | Roof size in sq ft |
-| `PV_System_Size_kW1` | Tamaño Sistema PV (kW) | String | ✅ Mapped | Estimated system size kWp |
+| `Carga_Contratada_KVA` | Carga Contratada | **String** | ✅ Mapped | Demand in kVA from bill — **Was Number in 2026-03-19 snapshot; now String — Confirmed 2026-05-29** |
+| `Tama_o_Estimado` | Tamaño Estimado (p²) | Number | ✅ Mapped | Roof size in sq ft — Confirmed 2026-05-29 |
+| `PV_System_Size_kW1` | Tamaño Sistema PV (kW) | String | ✅ Mapped | Estimated system size kWp — Confirmed 2026-05-29 |
 | `PV_System_Size_kW` | Tamaño Sistema PV (kW) alt | String | 🔲 Candidate | Possible alternate field — null in test |
 | `System_Size_DC` | Tamaño Sistema DC | Number | 🔲 Candidate | DC system size |
 | `System_Size_AC` | Tamaño Sistema AC | Number | 🔲 Candidate | AC system size |
@@ -85,7 +91,7 @@ Fields marked ⚙️ are system/auto fields — do not send in POST.
 | `Voltaje_de_la_Red` | Voltaje de la Red | Picklist | 🔲 Candidate | Grid voltage |
 | `Voltaje_Transformador` | Voltaje del Transformador | Picklist | 🔲 Candidate | Transformer voltage |
 | `Capacidad_Transformador` | Capacidad del Transformador | Number | 🔲 Candidate | Transformer capacity |
-| `Tama_o_del_Transformador_KVA` | Tamaño del Transformador (KVA) | Number | 🔲 Candidate | Transformer size in KVA |
+| `Tama_o_del_Transformador_KVA` | Tamaño del Transformador (KVA) | **String** | 🔲 Candidate | Transformer size in KVA — **Was Number in 2026-03-19 snapshot; now String — Confirmed 2026-05-29** |
 | `DG_Penetration` | Penetración DG | Number | 🔲 Candidate | Distributed generation % |
 | `Main_Breaker` | Breaker Principal | String | 🔲 Candidate | Main breaker size |
 | `Multiples_Contadores` | Múltiples Contadores | Boolean | 🔲 Candidate | Multiple meters flag |
@@ -109,8 +115,8 @@ Fields marked ⚙️ are system/auto fields — do not send in POST.
 | `Battery_Type` | Tipo de Batería | Picklist | 🔲 Candidate | Battery type |
 | `Baterry_Type` | Tipo de Batería (alt) | Picklist | 🔲 Candidate | Possible typo duplicate of above |
 | `Battery_Qty` | Cantidad de Baterías | Number | 🔲 Candidate | Number of batteries |
-| `Battery_System_Size_kWh` | Tamaño Sistema Batería (kWh) | Number | 🔲 Candidate | Battery system size |
-| `Storage_Size_kWh` | Tamaño Almacenamiento (kWh) | Number | 🔲 Candidate | Storage capacity |
+| `Battery_System_Size_kWh` | Tamaño Sistema Batería (kWh) | Number | 🔲 Candidate | Battery system size — Confirmed 2026-05-29 |
+| `Storage_Size_kWh` | Tamaño Almacenamiento (kWh) | **String** | 🔲 Candidate | Storage capacity — **Was Number in 2026-03-19 snapshot; now String — Confirmed 2026-05-29** |
 | `Tipo_de_Respaldo` | Tipo de Respaldo | Picklist | 🔲 Candidate | Backup type |
 | `Existing_Battery_Type` | Tipo Batería Existente | Picklist | 🔲 Candidate | Existing battery if any |
 | `Existing_System_Notes` | Notas Sistema Existente | String | 🔲 Candidate | Notes on existing system |

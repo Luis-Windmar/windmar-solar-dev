@@ -507,10 +507,11 @@ const createZohoLead = async (leadData, token) => {
         Quote_Amount:            p.precio ? parseFloat(p.precio) : null,
         // Baterias: Zoho currency (float).
         Baterias:                leadData.batteryPrice ? parseFloat(leadData.batteryPrice) : null,
-        // Battery_System_Size_kWh / Storage_Size_kWh: Zoho integer (kWh).
-        // Previously sent as String() which Zoho rejected with INVALID_DATA.
+        // Battery_System_Size_kWh: Zoho Number (confirmed 2026-05-29 schema read).
         Battery_System_Size_kWh: leadData.batteryKWH != null ? parseInt(leadData.batteryKWH, 10) : null,
-        Storage_Size_kWh:        leadData.batteryKWH != null ? parseInt(leadData.batteryKWH, 10) : null,
+        // Storage_Size_kWh: Zoho text/String (confirmed 2026-05-29 schema read).
+        // Despite the matching name, this field is text — wrap the integer in String().
+        Storage_Size_kWh:        leadData.batteryKWH != null ? String(parseInt(leadData.batteryKWH, 10)) : null,
         Lead_Notes:              condensedNotes,
         Lead_Status:             'New Lead',
         Lead_Source:        'PreQual',
